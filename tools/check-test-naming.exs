@@ -3,8 +3,8 @@ Mix.install([:modkit])
 
 defmodule Tool do
   @mount Modkit.Mount.define!([
-           {Moonwalk, "test/moonwalk"},
-           {MoonwalkTest, :ignore}
+           {JSV, "test/jsv"},
+           {JSVTest, :ignore}
          ])
 
   def run do
@@ -28,7 +28,6 @@ defmodule Tool do
 
   defp with_preferred_path({path, module_str}) do
     module = Module.concat([module_str])
-    cur_path = Path.relative_to_cwd(path)
 
     case Modkit.Mount.preferred_path(@mount, module) do
       {:ok, pref_path} ->

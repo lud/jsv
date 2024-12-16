@@ -1,4 +1,4 @@
-defmodule Moonwalk.Test.TestResolver do
+defmodule JSV.Test.TestResolver do
   @mutex __MODULE__.Mutex
   @root_dir Path.join([File.cwd!(), "_build", "resolver-cache"])
   @suite_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "remotes"])

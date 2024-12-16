@@ -1,7 +1,7 @@
 gen-test-suite:
-  mix gen.test.suite draft2020-12
-  mix gen.test.suite draft7
-  # mix gen.test.suite latest
+  mix compile
+  mix run tools/gen.test.suite.exs draft2020-12
+  mix run tools/gen.test.suite.exs draft7
   mix format
   git status --porcelain | rg "test/generated" --count && mix test || true
 

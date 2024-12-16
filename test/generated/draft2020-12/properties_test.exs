@@ -1,8 +1,8 @@
 # credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 # credo:disable-for-this-file Credo.Check.Readability.StringSigils
 
-defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
-  alias Moonwalk.Test.JsonSchemaSuite
+defmodule JSV.Generated.Draft202012.PropertiesTest do
+  alias JSV.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
   @moduledoc """

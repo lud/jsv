@@ -1,10 +1,10 @@
-defmodule Moonwalk.MixProject do
+defmodule JSV.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :moonwalk,
-      description: "A tool to define API specifications adhering to the Moonwalk specification.",
+      app: :jsv,
+      description: "Yet another JSON Schema Validator with complete support for the latest specifications.",
       version: "0.0.1",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -12,7 +12,8 @@ defmodule Moonwalk.MixProject do
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
       package: package(),
-      modkit: modkit()
+      modkit: modkit(),
+      dialyzer: dialyzer()
     ]
   end
 
@@ -55,7 +56,9 @@ defmodule Moonwalk.MixProject do
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:modkit, "~> 0.6", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4"},
+      {:cli_mate, ">= 0.0.0", only: :dev},
+      {:modkit, "~> 0.6", only: :dev},
 
       # Test
       {:excoveralls, "~> 0.18.0", only: :test},
@@ -65,18 +68,32 @@ defmodule Moonwalk.MixProject do
   end
 
   defp package do
-    [licenses: ["MIT"], links: %{"Github" => "https://github.com/lud/moonwalk"}]
+    [licenses: ["MIT"], links: %{"Github" => "https://github.com/lud/jsv"}]
   end
 
   def cli do
-    [preferred_envs: ["coveralls.html": :test, "gen.test.suite": :test]]
+    [
+      preferred_envs: [
+        "coveralls.html": :test,
+        dialyzer: :test
+      ]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      flags: [:unmatched_returns, :error_handling, :unknown, :extra_return],
+      list_unused_filters: true,
+      plt_add_deps: :app_tree,
+      plt_add_apps: [:ex_unit, :mix],
+      plt_local_path: "_build/plts"
+    ]
   end
 
   defp modkit do
     [
       mount: [
-        {Moonwalk, "lib/moonwalk"},
-        {Moonwalk.Test, "test/support"}
+        {JSV, "lib/jsv"}
       ]
     ]
   end
