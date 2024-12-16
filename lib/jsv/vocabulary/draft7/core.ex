@@ -3,12 +3,9 @@ defmodule JSV.Vocabulary.Draft7.Core do
   alias JSV.Vocabulary.V202012.Core, as: Fallback
   use JSV.Vocabulary, priority: 100
 
-  @impl true
   defdelegate init_validators(opts), to: Fallback
 
-  @impl true
-
-  def take_keyword({"$ref", raw_ref}, _acc, bld, raw_schema) do
+  take_keyword :"$ref", raw_ref, _acc, bld, raw_schema do
     ref_relative_to_ns =
       case {raw_schema, bld} do
         # The ref is not relative to the current $id if defined at the same
@@ -31,15 +28,13 @@ defmodule JSV.Vocabulary.Draft7.Core do
   end
 
   # $ref overrides any other keyword
-  def take_keyword(_kw_tuple, acc, bld, raw_schema) when is_map_key(raw_schema, "$ref") do
+  def handle_keyword(_kw_tuple, acc, bld, raw_schema) when is_map_key(raw_schema, "$ref") do
     {:ok, acc, bld}
   end
 
-  defdelegate take_keyword(kw_tuple, acc, bld, raw_schema), to: Fallback
+  defdelegate handle_keyword(kw_tuple, acc, bld, raw_schema), to: Fallback
 
-  @impl true
   defdelegate finalize_validators(acc), to: Fallback
 
-  @impl true
   defdelegate validate(data, vds, vdr), to: Fallback
 end

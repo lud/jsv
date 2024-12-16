@@ -73,12 +73,10 @@ defmodule JSV.FormatValidationTest do
     defmodule CustomFormat do
       @behaviour JSV.FormatValidator
 
-      @impl true
       def supported_formats do
         ["beam-language", "date"]
       end
 
-      @impl true
       def validate_cast("beam-language", data) do
         if data in ["Elixir", "Erlang", "Gleam", "LFE"] do
           {:ok, data}

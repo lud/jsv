@@ -92,13 +92,10 @@ defmodule JSV.FormatValidator.Default do
            ]
            |> :lists.flatten()
 
-  @impl true
-
   def supported_formats do
     @formats
   end
 
-  @impl true
   def validate_cast("date-time", data) do
     case DateTime.from_iso8601(data) do
       {:ok, dt, _} ->

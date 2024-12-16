@@ -1,26 +1,23 @@
 defmodule JSV.Vocabulary.Draft7.Applicator do
-  alias JSV.Helpers
   alias JSV.Builder
+  alias JSV.Helpers
   alias JSV.Validator
   alias JSV.Vocabulary.V202012.Applicator, as: Fallback
   use JSV.Vocabulary, priority: 200
 
-  @impl true
   defdelegate init_validators(opts), to: Fallback
 
-  @impl true
   defdelegate format_error(key, args, data), to: Fallback
 
-  @impl true
-  def take_keyword({"additionalItems", items}, acc, ctx, _) do
+  take_keyword :additionalItems, items, acc, ctx, _ do
     take_sub(:additional_items, items, acc, ctx)
   end
 
-  def take_keyword({"items", items}, acc, ctx, _) when is_map(items) do
+  take_keyword :items, items when is_map(items), acc, ctx, _ do
     take_sub(:items, items, acc, ctx)
   end
 
-  def take_keyword({"items", items}, acc, ctx, _) when is_list(items) do
+  take_keyword :items, items when is_list(items), acc, ctx, _ do
     items
     |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
       case Builder.build_sub(item, ctx) do
@@ -34,11 +31,10 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     end
   end
 
-  def take_keyword(pair, acc, ctx, raw_schema) do
-    Fallback.take_keyword(pair, acc, ctx, raw_schema)
+  def handle_keyword(pair, acc, ctx, raw_schema) do
+    Fallback.handle_keyword(pair, acc, ctx, raw_schema)
   end
 
-  @impl true
   def finalize_validators([]) do
     :ignore
   end
@@ -60,7 +56,6 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     end
   end
 
-  @impl true
   def validate(data, vds, vdr) do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end

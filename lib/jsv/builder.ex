@@ -232,7 +232,7 @@ defmodule JSV.Builder do
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.
 
-        case module.take_keyword(pair, mod_acc, bld, raw_schema) do
+        case module.handle_keyword(pair, mod_acc, bld, raw_schema) do
           {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
           :ignore -> {[pair | leftovers], mod_acc, bld}
           {:error, reason} -> throw({:build_error, reason})

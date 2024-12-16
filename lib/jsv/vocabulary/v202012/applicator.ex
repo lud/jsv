@@ -1,18 +1,15 @@
 defmodule JSV.Vocabulary.V202012.Applicator do
-  alias JSV.Helpers
   alias JSV.Builder
+  alias JSV.Helpers
   alias JSV.Validator
   alias JSV.Vocabulary.V202012.Validation
   use JSV.Vocabulary, priority: 200
 
-  @impl true
   def init_validators(_) do
     []
   end
 
-  @impl true
-
-  def take_keyword({"properties", properties}, acc, ctx, _) do
+  take_keyword :properties, properties, acc, ctx, _ do
     properties
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       case Builder.build_sub(pschema, ctx) do
@@ -26,11 +23,11 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"additionalProperties", additional_properties}, acc, ctx, _) do
+  take_keyword :additionalProperties, additional_properties, acc, ctx, _ do
     take_sub(:additional_properties, additional_properties, acc, ctx)
   end
 
-  def take_keyword({"patternProperties", pattern_properties}, acc, ctx, _) do
+  take_keyword :patternProperties, pattern_properties, acc, ctx, _ do
     pattern_properties
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       with {:ok, re} <- Regex.compile(k),
@@ -44,11 +41,11 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"items", items}, acc, ctx, _) do
+  take_keyword :items, items, acc, ctx, _ do
     take_sub(:items, items, acc, ctx)
   end
 
-  def take_keyword({"prefixItems", prefix_items}, acc, ctx, _) do
+  take_keyword :prefixItems, prefix_items, acc, ctx, _ do
     prefix_items
     |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
       case Builder.build_sub(item, ctx) do
@@ -62,48 +59,48 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"allOf", [_ | _] = all_of}, acc, ctx, _) do
+  take_keyword :allOf, [_ | _] = all_of, acc, ctx, _ do
     case build_sub_list(all_of, ctx) do
       {:ok, subvalidators, ctx} -> {:ok, [{:all_of, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
-  def take_keyword({"anyOf", [_ | _] = any_of}, acc, ctx, _) do
+  take_keyword :anyOf, [_ | _] = any_of, acc, ctx, _ do
     case build_sub_list(any_of, ctx) do
       {:ok, subvalidators, ctx} -> {:ok, [{:any_of, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
-  def take_keyword({"oneOf", [_ | _] = one_of}, acc, ctx, _) do
+  take_keyword :oneOf, [_ | _] = one_of, acc, ctx, _ do
     case build_sub_list(one_of, ctx) do
       {:ok, subvalidators, ctx} -> {:ok, [{:one_of, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
-  def take_keyword({"if", if_schema}, acc, ctx, _) do
+  take_keyword :if, if_schema, acc, ctx, _ do
     take_sub(:if, if_schema, acc, ctx)
   end
 
-  def take_keyword({"then", then}, acc, ctx, _) do
+  take_keyword :then, then, acc, ctx, _ do
     take_sub(:then, then, acc, ctx)
   end
 
-  def take_keyword({"else", else_schema}, acc, ctx, _) do
+  take_keyword :else, else_schema, acc, ctx, _ do
     take_sub(:else, else_schema, acc, ctx)
   end
 
-  def take_keyword({"propertyNames", property_names}, acc, ctx, _) do
+  take_keyword :propertyNames, property_names, acc, ctx, _ do
     take_sub(:property_names, property_names, acc, ctx)
   end
 
-  def take_keyword({"contains", contains}, acc, ctx, _) do
+  take_keyword :contains, contains, acc, ctx, _ do
     take_sub(:contains, contains, acc, ctx)
   end
 
-  def take_keyword({"maxContains", max_contains}, acc, ctx, _) do
+  take_keyword :maxContains, max_contains, acc, ctx, _ do
     if validation_enabled?(ctx) do
       take_integer(:max_contains, max_contains, acc, ctx)
     else
@@ -111,7 +108,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"minContains", min_contains}, acc, ctx, _) do
+  take_keyword :minContains, min_contains, acc, ctx, _ do
     if validation_enabled?(ctx) do
       take_integer(:min_contains, min_contains, acc, ctx)
     else
@@ -119,7 +116,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx, _) do
+  take_keyword :dependentSchemas, dependent_schemas, acc, ctx, _ do
     dependent_schemas
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, depschema}, {acc, ctx} ->
       case Builder.build_sub(depschema, ctx) do
@@ -133,7 +130,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"dependencies", map}, acc, ctx, raw_schema) when is_map(map) do
+  take_keyword :dependencies, map when is_map(map), acc, ctx, raw_schema do
     {dependent_schemas, dependent_required} =
       Enum.reduce(map, {[], []}, fn {key, subschema}, {dependent_schemas, dependent_required} ->
         cond do
@@ -145,12 +142,12 @@ defmodule JSV.Vocabulary.V202012.Applicator do
         end
       end)
 
-    with {:ok, acc, ctx} <- take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx, raw_schema) do
+    with {:ok, acc, ctx} <- handle_keyword({:dependentSchemas, dependent_schemas}, acc, ctx, raw_schema) do
       {:ok, [{:dependent_required, dependent_required} | acc], ctx}
     end
   end
 
-  def take_keyword({"not", subschema}, acc, ctx, _) do
+  take_keyword :not, subschema, acc, ctx, _ do
     take_sub(:not, subschema, acc, ctx)
   end
 
@@ -173,7 +170,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
-  @impl true
   def finalize_validators([]) do
     :ignore
   end
@@ -234,7 +230,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
-  @impl true
   def validate(data, vds, vdr) do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
@@ -483,7 +478,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
-  @impl true
   def format_error(:min_contains, %{count: count, min_contains: min_contains}, _data) do
     case count do
       0 ->

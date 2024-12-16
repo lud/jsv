@@ -4,7 +4,6 @@ defmodule JSV.Vocabulary.V202012.Format do
 
   @default_validators JSV.default_format_validator_modules()
 
-  @impl true
   def init_validators(opts) do
     # The assert option is defined at the vocabulary level, as vocabularies are
     # defined like so:
@@ -22,8 +21,7 @@ defmodule JSV.Vocabulary.V202012.Format do
     %{default_assert: default_assert}
   end
 
-  @impl true
-  def take_keyword({"format", format}, acc, ctx, _) do
+  take_keyword :format, format, acc, ctx, _ do
     validator_mods =
       case ctx.opts[:formats] do
         # opt in / out, use defaults mods
@@ -57,7 +55,6 @@ defmodule JSV.Vocabulary.V202012.Format do
     end
   end
 
-  @impl true
   def finalize_validators(acc) do
     acc
     |> Map.delete(:default_assert)
@@ -68,7 +65,6 @@ defmodule JSV.Vocabulary.V202012.Format do
     end
   end
 
-  @impl true
   def validate(data, [format: {module, format}], vdr) when is_binary(data) do
     # TODO option to return casted value + TODO add low module priority
     case module.validate_cast(format, data) do
@@ -96,7 +92,6 @@ defmodule JSV.Vocabulary.V202012.Format do
 
   # ---------------------------------------------------------------------------
 
-  @impl true
   def format_error(:format, %{format: format, reason: reason}, _data) do
     "value does not respect the '#{format}' format (#{inspect(reason)})"
   end

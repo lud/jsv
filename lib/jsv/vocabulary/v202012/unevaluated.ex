@@ -2,24 +2,20 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
   alias JSV.Validator
   use JSV.Vocabulary, priority: 900
 
-  @impl true
   def init_validators(_) do
     []
   end
 
-  @impl true
-
-  def take_keyword({"unevaluatedProperties", unevaluated_properties}, acc, ctx, _) do
+  take_keyword :unevaluatedProperties, unevaluated_properties, acc, ctx, _ do
     take_sub(:unevaluated_properties, unevaluated_properties, acc, ctx)
   end
 
-  def take_keyword({"unevaluatedItems", unevaluated_items}, acc, ctx, _) do
+  take_keyword :unevaluatedItems, unevaluated_items, acc, ctx, _ do
     take_sub(:unevaluated_items, unevaluated_items, acc, ctx)
   end
 
   ignore_any_keyword()
 
-  @impl true
   def finalize_validators([]) do
     :ignore
   end
@@ -28,7 +24,6 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     Map.new(list)
   end
 
-  @impl true
   def validate(data, vds, vdr) do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
@@ -68,7 +63,6 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
 
   # TODO add tests for error formatting
 
-  @impl true
   def format_error(_, _, _data) do
     "unevaluated value did not conform to schema"
   end

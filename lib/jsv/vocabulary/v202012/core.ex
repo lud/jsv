@@ -10,22 +10,22 @@ defmodule JSV.Vocabulary.V202012.Core do
     []
   end
 
-  def take_keyword({"$ref", raw_ref}, acc, bld, _) do
+  take_keyword :"$ref", raw_ref, acc, bld, _ do
     with {:ok, ref} <- Ref.parse(raw_ref, bld.ns),
          {:ok, ref, bld} <- maybe_swap_ref(ref, bld) do
       ok_put_ref(ref, acc, bld)
     end
   end
 
-  def take_keyword({"$defs", _defs}, acc, bld, _) do
+  take_keyword :"$defs", _defs, acc, bld, _ do
     {:ok, acc, bld}
   end
 
-  def take_keyword({"$anchor", _anchor}, acc, bld, _) do
+  take_keyword :"$anchor", _anchor, acc, bld, _ do
     {:ok, acc, bld}
   end
 
-  def take_keyword({"$dynamicRef", raw_ref}, acc, bld, _) do
+  take_keyword :"$dynamicRef", raw_ref, acc, bld, _ do
     # We need to ensure that the dynamic ref is in a schema where a
     # corresponding dynamic anchor is present. Otherwise we are just a normal
     # ref to an anchor (and we do not check its existence at this point.)
@@ -45,13 +45,13 @@ defmodule JSV.Vocabulary.V202012.Core do
     end
   end
 
-  def take_keyword({"$dynamicAnchor", _anchor}, acc, bld, _) do
+  take_keyword :"$dynamicAnchor", _anchor, acc, bld, _ do
     {:ok, acc, bld}
   end
 
-  consume_keyword("$comment")
-  consume_keyword("$id")
-  consume_keyword("$schema")
+  consume_keyword(:"$comment")
+  consume_keyword(:"$id")
+  consume_keyword(:"$schema")
   ignore_any_keyword()
 
   def finalize_validators([]) do

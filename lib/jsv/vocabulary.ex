@@ -1,13 +1,13 @@
 defmodule JSV.Vocabulary do
-  alias JSV.Helpers
   alias JSV.Builder
+  alias JSV.Helpers
   alias JSV.Validator
 
   @type validators :: term
-  @type pair :: {binary, term}
+  @type pair :: {binary | atom, term}
   @type data :: %{optional(binary) => data} | [data] | binary | boolean | number | nil
   @callback init_validators(Keyword.t()) :: validators
-  @callback take_keyword(pair, validators, bld :: Builder.t(), raw_schema :: term) ::
+  @callback handle_keyword(pair, validators, bld :: Builder.t(), raw_schema :: term) ::
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
   @callback validate(data, validators, vdr :: Validator.t()) :: {:ok, data} | {:error, Validator.t()}
@@ -65,7 +65,7 @@ defmodule JSV.Vocabulary do
   defmacro todo_format_error do
     quote unquote: false do
       IO.warn("used todo_format_error")
-      @impl true
+
       def format_error(kind, args, _data) do
         keys = Map.keys(args)
 
@@ -87,40 +87,61 @@ defmodule JSV.Vocabulary do
     end
   end
 
-  @doc false
-  defmacro todo_take_keywords(bin_keys) do
-    IO.warn("called todo_take_keywords from #{inspect(__CALLER__.module)}")
+  defmacro take_keyword(atom_form, bind_value, bind_acc, bind_ctx, bind_raw_schema, [{:do, block}])
+           when is_atom(atom_form) do
+    string_form = Atom.to_string(atom_form)
 
-    quote bind_quoted: binding() do
-      Enum.each(bin_keys, fn k ->
-        def take_keyword({unquote(k) = k, _}, _, _) do
-          u = Macro.underscore(k)
-          ut = u |> String.trim("$")
+    {bind_value, when_clause} =
+      case bind_value do
+        {:when, _, [real_bind, when_clause]} ->
+          {real_bind, when_clause}
 
-          raise """
-          TODO! in #{inspect(__MODULE__)}:
-          #{__ENV__.file}
+        _ ->
+          {bind_value, true}
+      end
 
-          def take_keyword({#{inspect(k)}, #{ut}}, acc, ctx, _) do
-            {:ok, [{:"#{u}", #{ut}}|acc], ctx}
-          end
-          """
+    quoted =
+      quote generated: true do
+        @impl true
+        def handle_keyword(
+              {unquote(atom_form), unquote(bind_value)},
+              unquote(bind_acc),
+              unquote(bind_ctx),
+              unquote(bind_raw_schema)
+            )
+            when unquote(when_clause) do
+          unquote(block)
         end
-      end)
-    end
+
+        def handle_keyword({unquote(string_form), value}, acc, ctx, raw_schema) do
+          handle_keyword({unquote(atom_form), value}, acc, ctx, raw_schema)
+        end
+      end
+
+    # tap(quoted, &IO.puts(Macro.to_string(&1)))
+
+    quoted
   end
 
   defmacro ignore_any_keyword do
     quote do
-      def take_keyword(_, _, _, _) do
+      @impl true
+      def handle_keyword(_, _, _, _) do
         :ignore
       end
     end
   end
 
-  defmacro consume_keyword(kw) do
+  defmacro consume_keyword(atom_form) when is_atom(atom_form) do
+    string_form = Atom.to_string(atom_form)
+
     quote do
-      def take_keyword({unquote(kw), _}, acc, ctx, _) do
+      @impl true
+      def handle_keyword({unquote(atom_form), _}, acc, ctx, _) do
+        {:ok, acc, ctx}
+      end
+
+      def handle_keyword({unquote(string_form), _}, acc, ctx, _) do
         {:ok, acc, ctx}
       end
     end

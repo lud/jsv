@@ -1,6 +1,7 @@
 defmodule JSV.FormatValidator.Default.Optional.UUID do
   defguard is_hex(n) when n in ?0..?9 or n in ?a..?f or n in ?A..?F
 
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def parse_uuid(
         <<a1, a2, a3, a4, a5, a6, a7, a8, ?-, b1, b2, b3, b4, ?-, c1, c2, c3, c4, ?-, d1, d2, d3, d4, ?-, e1, e2, e3,
           e4, e5, e6, e7, e8, e9, e10, e11, e12>> = data
