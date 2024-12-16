@@ -56,7 +56,7 @@ defmodule JSV.MixProject do
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4"},
+      {:dialyxir, "~> 1.4", runtime: false},
       {:cli_mate, ">= 0.0.0", only: :dev},
       {:modkit, "~> 0.6", only: :dev},
 
