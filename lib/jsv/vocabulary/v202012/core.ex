@@ -41,6 +41,7 @@ defmodule JSV.Vocabulary.V202012.Core do
     else
       {:error, {:no_such_dynamic_anchor, _}} -> ok_put_ref(raw_ref, acc, bld)
       {:ok, %{dynamic?: false} = ref} -> ok_put_ref(ref, acc, bld)
+      {:error, _} = err -> err
     end
   end
 

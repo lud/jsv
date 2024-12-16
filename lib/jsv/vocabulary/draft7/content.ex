@@ -12,5 +12,8 @@ defmodule JSV.Vocabulary.Draft7.Content do
   defdelegate finalize_validators(acc), to: Fallback
 
   @impl true
-  defdelegate validate(data, vds, vdr), to: Fallback
+  @spec validate(term, term, term) :: no_return()
+  def validate(_data, _validators, _context) do
+    raise "should not be called"
+  end
 end

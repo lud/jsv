@@ -8,6 +8,7 @@ defmodule JSV.Builder do
 
   @derive {Inspect, except: []}
   defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, parent_ns: nil, opts: []]
+  @type t :: %__MODULE__{resolver: term, staged: [term], vocabularies: term, ns: term, parent_ns: term, opts: term}
 
   def new(opts) do
     struct!(__MODULE__, Map.new(opts))

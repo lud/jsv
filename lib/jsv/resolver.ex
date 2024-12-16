@@ -87,7 +87,8 @@ defmodule JSV.Resolver do
   end
 
   defp metas_of(cache_entries) do
-    Enum.flat_map(cache_entries, fn
+    cache_entries
+    |> Enum.flat_map(fn
       {_, {:alias_of, _}} -> []
       {_, v} -> [v.meta]
     end)
@@ -97,10 +98,6 @@ defmodule JSV.Resolver do
   defp resolve_meta_loop(rsv, []) do
     {:ok, rsv}
   end
-
-  # defp resolve_meta_loop(rsv, [nil | tail]) do
-  #   resolve_meta_loop(rsv, tail)
-  # end
 
   defp resolve_meta_loop(rsv, [meta | tail]) when is_binary(meta) do
     with :unresolved <- check_resolved(rsv, {:meta, meta}),
@@ -145,8 +142,8 @@ defmodule JSV.Resolver do
     {id, anchor, dynamic_anchor} = extract_keys(top_schema)
 
     # For self references that target "#" or "#some/path" in the document, when
-    # the document does not have an id, we will force it. This is for the
-    # document top only.
+    # the document does not have an id, we will force it. This is for the root
+    # document only.
 
     id = ensure_uri_ns(id)
 
@@ -354,10 +351,6 @@ defmodule JSV.Resolver do
   end
 
   defp external_id({:prefetched, ext_id, _}) do
-    ext_id
-  end
-
-  defp external_id({:meta, ext_id}) do
     ext_id
   end
 

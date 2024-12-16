@@ -12,6 +12,7 @@ defmodule JSV.Vocabulary.Draft7.MetaData do
   defdelegate finalize_validators(acc), to: Fallback
 
   @impl true
+  @spec validate(term, term, term) :: no_return()
   def validate(_data, _validators, _context) do
     raise "should not be called"
   end

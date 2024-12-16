@@ -22,6 +22,7 @@ defmodule JSV.Vocabulary.V202012.MetaData do
   end
 
   @impl true
+  @spec validate(term, term, term) :: no_return()
   def validate(_data, _validators, _context) do
     raise "should not be called"
   end
