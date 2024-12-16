@@ -39,9 +39,13 @@ defmodule JSV.Test.JsonSchemaSuite do
   end
 
   defp marshall_file(source_path, opts) do
-    # If validate is false, all tests in the file are skipped
+    # If validate is false, all tests in the file are skipped.
     validate = Keyword.get(opts, :validate, true)
+    # TODO remove, This should not be used anymore
+    true = validate
+
     ignored = Keyword.get(opts, :ignore, [])
+    elixir = Keyword.get(opts, :elixir, nil)
 
     source_path
     |> File.read!()
@@ -58,7 +62,7 @@ defmodule JSV.Test.JsonSchemaSuite do
           %{description: tt_descr, data: data, valid?: valid, skip?: ttest_ignored or tcase_ignored or not validate}
         end)
 
-      %{description: tc_descr, schema: schema, tests: tests}
+      %{description: tc_descr, schema: schema, tests: tests, elixir_version_check: elixir}
     end)
   end
 
@@ -192,5 +196,9 @@ defmodule JSV.Test.JsonSchemaSuite do
     #{map |> Map.to_list() |> Enum.map_join("\n", &inspect/1)}
     """
     |> IO.warn([])
+  end
+
+  def version_check(elixir_version_req) do
+    Version.match?(System.version(), elixir_version_req)
   end
 end

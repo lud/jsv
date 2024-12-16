@@ -114,11 +114,13 @@ defmodule JSV.FormatValidator.Default do
     Date.from_iso8601(data)
   end
 
-  def validate_cast("duration", data) do
-    # JSON schema adheres closely to the spec, the duration cannot mix Week and
-    # other P-level elements. But we are allowing it because Elixir allows it,
-    # we do not want to put arbitrary limit to capabilities.
-    Duration.from_iso8601(data)
+  if @supports_duration do
+    def validate_cast("duration", data) do
+      # JSON schema adheres closely to the spec, the duration cannot mix Week and
+      # other P-level elements. But we are allowing it because Elixir allows it,
+      # we do not want to put arbitrary limit to capabilities.
+      Duration.from_iso8601(data)
+    end
   end
 
   def validate_cast("time", data) do

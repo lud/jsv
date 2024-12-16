@@ -283,6 +283,7 @@ defmodule JSV.FormatValidationTest do
       )
     end
 
+    @tag skip: not Code.ensure_loaded?(Duration)
     test "duration" do
       run_cases(
         "duration",

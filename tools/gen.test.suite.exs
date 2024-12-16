@@ -31,7 +31,8 @@ defmodule GenTestSuite do
     "optional/format-assertion.json" => [],
     "optional/format/duration.json" => [
       schema_build_opts: [formats: true],
-      ignore: ["weeks cannot be combined with other units"]
+      ignore: ["weeks cannot be combined with other units"],
+      elixir: "~> 1.17"
     ],
     "optional/format/uuid.json" => :unsupported,
     "optional/format/ecmascript-regex.json" => :unsupported
@@ -202,6 +203,11 @@ defmodule GenTestSuite do
       \"""
 
       <%= for tcase <- @test_cases do %>
+
+        <%= if tcase.elixir_version_check do %>
+          if JsonSchemaSuite.version_check(<%= inspect(tcase.elixir_version_check) %>) do
+        <% end %>
+
         describe <%= inspect(tcase.description <> ":") %> do
 
           setup do
@@ -220,6 +226,11 @@ defmodule GenTestSuite do
             end
           <% end %>
         end
+
+        <%= if tcase.elixir_version_check do %>
+          end
+        <% end %>
+
       <% end %>
     end
     """,
