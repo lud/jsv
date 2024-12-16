@@ -1,0 +1,121 @@
+name: Elixir Checks
+
+on:
+  push:
+    branches:
+      - main
+      - feat/**
+      - f/**
+      - chore/**
+      - fix/**
+      - ci/**
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  MIX_ENV: test
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        elixir: [1.17.3, 1.16.3]
+        otp: [27.1.2, 26.2.5.5]
+        exclude:
+          - elixir: 1.16.3
+            otp: 27.1.2
+
+    name: "Test ${{matrix.elixir}}-otp-${{matrix.otp}}"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+
+      - name: Dependencies cache
+        uses: actions/cache@v4
+        id: mix-deps-code
+        with:
+          path: deps
+          key: deps-code-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+          # For the deps code we can take from any elixir version as the code
+          # source should be the same.
+          restore-keys: |
+            deps-code-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+            deps-code-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--
+            deps-code-${{ runner.os }}--${{ matrix.otp }}--
+            deps-code-${{ runner.os }}--
+
+      - name: Install Dependencies
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+
+      - name: Dependencies build cache
+        uses: actions/cache@v4
+        id: mix-deps-build
+        with:
+          path: |
+            _build
+            !_build/plts
+          key: deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+          # For the build we want them compiled on the same versions.
+          restore-keys: |
+            deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+            deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--
+
+      - name: Compile Dependencies
+        run: mix loadpaths
+
+      # Use force as we use a template config so we do not want to ignore a
+      # specific directory from the cache. So we always want to compile all the
+      # code. We will also `mix clean` at the end.
+      - name: Compile Project
+        run: mix compile --force
+
+      - name: Run Tests
+        run: mix test
+
+      - name: Check Formatting
+        run: mix format --check-formatted
+
+      - name: Run Credo
+        run: mix credo --strict
+
+      - name: Retrieve PLT Cache
+        uses: actions/cache@v4
+        id: dialyzer-plts
+        with:
+          path: _build/plts
+          # No restore keys. Since we skip checking the PLT we need the right one.
+          key: dialyzer-plts-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+
+      # The PLT will be included in the deps-build cache infortunately. We could
+      # have a dedicated directory for it but it's simpler to use _build.
+      - name: Create Dialyzer PLTs
+        if: steps.dialyzer-plts.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p priv/plts
+          mix dialyzer --plt
+
+      - name: Run dialyzer
+        run: mix dialyzer --no-check --halt-exit-status
+
+        # Remove generated application beam files to prevent caching them. We
+        # also use `mix compile --force` to always check the code compiles.
+      - name: Clean
+        run: mix clean
