@@ -10,7 +10,7 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
   defdelegate format_error(key, args, data), to: Fallback
 
   take_keyword :additionalItems, items, acc, ctx, _ do
-    take_sub(:additional_items, items, acc, ctx)
+    take_sub(:additionalItems, items, acc, ctx)
   end
 
   take_keyword :items, items when is_map(items), acc, ctx, _ do
@@ -47,12 +47,12 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
 
   defp finalize_items(validators) do
     {items, validators} = Keyword.pop(validators, :items, nil)
-    {additional_items, validators} = Keyword.pop(validators, :additional_items, nil)
+    {additional_items, validators} = Keyword.pop(validators, :additionalItems, nil)
 
     case {items, additional_items} do
       {nil, nil} -> validators
-      {item_map, _} when is_map(item_map) -> Keyword.put(validators, :all_items, {item_map, nil})
-      some -> Keyword.put(validators, :all_items, some)
+      {item_map, _} when is_map(item_map) -> Keyword.put(validators, :items@jsv, {item_map, nil})
+      some -> Keyword.put(validators, :items@jsv, some)
     end
   end
 
@@ -60,7 +60,7 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
 
-  def validate_keyword({:all_items, {items, additional_items}}, data, vdr) when is_list(items) and is_list(data) do
+  def validate_keyword({:items@jsv, {items, additional_items}}, data, vdr) when is_list(items) and is_list(data) do
     all_schemas = Stream.concat(List.wrap(items), Stream.cycle([additional_items]))
 
     index_items = Stream.with_index(data)
@@ -83,7 +83,7 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     Validator.return(:lists.reverse(rev_items), vdr)
   end
 
-  def validate_keyword({:all_items, {items, _}}, data, vdr)
+  def validate_keyword({:items@jsv, {items, _}}, data, vdr)
       when (is_map(items) or (is_tuple(items) and elem(items, 0) == :alias_of)) and is_list(data) do
     all_schemas = Stream.cycle([items])
 
@@ -107,7 +107,7 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     Validator.return(:lists.reverse(rev_items), vdr)
   end
 
-  pass validate_keyword({:all_items, _})
+  pass validate_keyword({:items@jsv, _})
 
   def validate_keyword(vd, data, vdr) do
     Fallback.validate_keyword(vd, data, vdr)

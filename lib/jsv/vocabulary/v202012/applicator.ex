@@ -24,7 +24,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   take_keyword :additionalProperties, additional_properties, acc, ctx, _ do
-    take_sub(:additional_properties, additional_properties, acc, ctx)
+    take_sub(:additionalProperties, additional_properties, acc, ctx)
   end
 
   take_keyword :patternProperties, pattern_properties, acc, ctx, _ do
@@ -36,7 +36,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:pattern_properties, subvalidators} | acc], ctx}
+      {:ok, {subvalidators, ctx}} -> {:ok, [{:patternProperties, subvalidators} | acc], ctx}
       {:error, _} = err -> err
     end
   end
@@ -54,28 +54,28 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:prefix_items, :lists.reverse(subvalidators)} | acc], ctx}
+      {:ok, {subvalidators, ctx}} -> {:ok, [{:prefixItems, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
   take_keyword :allOf, [_ | _] = all_of, acc, ctx, _ do
     case build_sub_list(all_of, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:all_of, :lists.reverse(subvalidators)} | acc], ctx}
+      {:ok, subvalidators, ctx} -> {:ok, [{:allOf, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
   take_keyword :anyOf, [_ | _] = any_of, acc, ctx, _ do
     case build_sub_list(any_of, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:any_of, :lists.reverse(subvalidators)} | acc], ctx}
+      {:ok, subvalidators, ctx} -> {:ok, [{:anyOf, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
   take_keyword :oneOf, [_ | _] = one_of, acc, ctx, _ do
     case build_sub_list(one_of, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:one_of, :lists.reverse(subvalidators)} | acc], ctx}
+      {:ok, subvalidators, ctx} -> {:ok, [{:oneOf, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
@@ -93,7 +93,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   take_keyword :propertyNames, property_names, acc, ctx, _ do
-    take_sub(:property_names, property_names, acc, ctx)
+    take_sub(:propertyNames, property_names, acc, ctx)
   end
 
   take_keyword :contains, contains, acc, ctx, _ do
@@ -102,7 +102,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   take_keyword :maxContains, max_contains, acc, ctx, _ do
     if validation_enabled?(ctx) do
-      take_integer(:max_contains, max_contains, acc, ctx)
+      take_integer(:maxContains, max_contains, acc, ctx)
     else
       :ignore
     end
@@ -110,7 +110,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   take_keyword :minContains, min_contains, acc, ctx, _ do
     if validation_enabled?(ctx) do
-      take_integer(:min_contains, min_contains, acc, ctx)
+      take_integer(:minContains, min_contains, acc, ctx)
     else
       :ignore
     end
@@ -125,7 +125,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:dependent_schemas, subvalidators} | acc], ctx}
+      {:ok, {subvalidators, ctx}} -> {:ok, [{:dependentSchemas, subvalidators} | acc], ctx}
       {:error, _} = err -> err
     end
   end
@@ -143,7 +143,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       end)
 
     with {:ok, acc, ctx} <- handle_keyword({:dependentSchemas, dependent_schemas}, acc, ctx, raw_schema) do
-      {:ok, [{:dependent_required, dependent_required} | acc], ctx}
+      {:ok, [{:dependentRequired, dependent_required} | acc], ctx}
     end
   end
 
@@ -184,25 +184,25 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   defp finalize_properties(validators) do
     {properties, validators} = Keyword.pop(validators, :properties, nil)
-    {pattern_properties, validators} = Keyword.pop(validators, :pattern_properties, nil)
-    {additional_properties, validators} = Keyword.pop(validators, :additional_properties, nil)
+    {pattern_properties, validators} = Keyword.pop(validators, :patternProperties, nil)
+    {additional_properties, validators} = Keyword.pop(validators, :additionalProperties, nil)
 
     case {properties, pattern_properties, additional_properties} do
       {nil, nil, nil} ->
         validators
 
       _ ->
-        Keyword.put(validators, :all_properties, {properties, pattern_properties, additional_properties})
+        Keyword.put(validators, :properties@jsv, {properties, pattern_properties, additional_properties})
     end
   end
 
   defp finalize_items(validators) do
     {items, validators} = Keyword.pop(validators, :items, nil)
-    {prefix_items, validators} = Keyword.pop(validators, :prefix_items, nil)
+    {prefix_items, validators} = Keyword.pop(validators, :prefixItems, nil)
 
     case {items, prefix_items} do
       {nil, nil} -> validators
-      some -> Keyword.put(validators, :all_items, some)
+      some -> Keyword.put(validators, :items@jsv, some)
     end
   end
 
@@ -213,18 +213,18 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
     case {if_vds, then_vds, else_vds} do
       {nil, _, _} -> validators
-      some -> Keyword.put(validators, :if_then_else, some)
+      some -> Keyword.put(validators, :if@jsv, some)
     end
   end
 
   defp finalize_contains(validators) do
     {contains, validators} = Keyword.pop(validators, :contains, nil)
-    {min_contains, validators} = Keyword.pop(validators, :min_contains, 1)
-    {max_contains, validators} = Keyword.pop(validators, :max_contains, nil)
+    {min_contains, validators} = Keyword.pop(validators, :minContains, 1)
+    {max_contains, validators} = Keyword.pop(validators, :maxContains, nil)
 
     case {contains, min_contains, max_contains} do
       {nil, _, _} -> validators
-      some -> Keyword.put(validators, :all_contains, some)
+      some -> Keyword.put(validators, :contains@jsv, some)
     end
   end
 
@@ -263,7 +263,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def validate_keyword({:all_properties, {properties, pattern_properties, additional_properties}}, data, vdr)
+  def validate_keyword({:properties@jsv, {properties, pattern_properties, additional_properties}}, data, vdr)
       when is_map(data) do
     key_to_propschema = property_validations(data, properties)
     key_to_patternschema = pattern_validations(data, pattern_properties)
@@ -297,9 +297,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end)
   end
 
-  pass validate_keyword({:all_properties, _})
+  pass validate_keyword({:properties@jsv, _})
 
-  def validate_keyword({:all_items, {items, prefix_items}}, data, vdr) when is_list(data) do
+  def validate_keyword({:items@jsv, {items, prefix_items}}, data, vdr) when is_list(data) do
     all_schemas = Stream.concat(List.wrap(prefix_items), Stream.cycle([items]))
 
     index_items = Stream.with_index(data)
@@ -322,36 +322,36 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     Validator.return(:lists.reverse(rev_items), vdr)
   end
 
-  pass validate_keyword({:all_items, _})
+  pass validate_keyword({:items@jsv, _})
 
-  def validate_keyword({:one_of, subvalidators}, data, vdr) do
+  def validate_keyword({:oneOf, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       {[{_, data}], _, vdr} ->
         {:ok, data, vdr}
 
       {[], _, _} ->
         # TODO compute branch error of all invalid
-        {:error, Validator.with_error(vdr, :one_of, data, validated_schemas: [])}
+        {:error, Validator.with_error(vdr, :oneOf, data, validated_schemas: [])}
 
       {[_ | _] = too_much, _, _} ->
         validated_schemas = Enum.map(too_much, &elem(&1, 0))
-        {:error, Validator.with_error(vdr, :one_of, data, validated_schemas: validated_schemas)}
+        {:error, Validator.with_error(vdr, :oneOf, data, validated_schemas: validated_schemas)}
     end
   end
 
   IO.warn("@todo do not use validate_split for anyOf, halt on first match")
 
-  def validate_keyword({:any_of, subvalidators}, data, vdr) do
+  def validate_keyword({:anyOf, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
       # TODO compute branch error of all invalid validations
       {[{_, data} | _], _, vdr} -> {:ok, data, vdr}
-      {[], _, vdr} -> {:error, Validator.with_error(vdr, :any_of, data, validated_schemas: [])}
+      {[], _, vdr} -> {:error, Validator.with_error(vdr, :anyOf, data, validated_schemas: [])}
     end
   end
 
-  def validate_keyword({:all_of, subvalidators}, data, vdr) do
+  def validate_keyword({:allOf, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
@@ -362,7 +362,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def validate_keyword({:if_then_else, {if_vds, then_vds, else_vds}}, data, vdr) do
+  def validate_keyword({:if@jsv, {if_vds, then_vds, else_vds}}, data, vdr) do
     case Validator.validate(data, if_vds, vdr) do
       {:ok, _, vdr} ->
         case then_vds do
@@ -378,7 +378,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def validate_keyword({:all_contains, {subschema, n_min, n_max}}, data, vdr) when is_list(data) do
+  def validate_keyword({:contains@jsv, {subschema, n_min, n_max}}, data, vdr) when is_list(data) do
     # We need to keep the validator struct for validated items as they have to
     # be flagged as evaluated for unevaluatedItems support.
     {:ok, count, vdr} =
@@ -395,19 +395,19 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
     cond do
       count < n_min ->
-        {:error, Validator.with_error(vdr, :min_contains, data, count: count, min_contains: n_min)}
+        {:error, Validator.with_error(vdr, :minContains, data, count: count, min_contains: n_min)}
 
       is_integer(n_max) and count > n_max ->
-        {:error, Validator.with_error(vdr, :max_contains, data, count: count, max_contains: n_max)}
+        {:error, Validator.with_error(vdr, :maxContains, data, count: count, max_contains: n_max)}
 
       true ->
         {:ok, data, vdr}
     end
   end
 
-  pass validate_keyword({:all_contains, _})
+  pass validate_keyword({:contains@jsv, _})
 
-  def validate_keyword({:dependent_schemas, schemas_map}, data, vdr) when is_map(data) do
+  def validate_keyword({:dependentSchemas, schemas_map}, data, vdr) when is_map(data) do
     Validator.iterate(schemas_map, data, vdr, fn
       {parent_key, subschema}, data, vdr when is_map_key(data, parent_key) ->
         Validator.validate(data, subschema, vdr)
@@ -417,9 +417,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end)
   end
 
-  pass validate_keyword({:dependent_schemas, _})
+  pass validate_keyword({:dependentSchemas, _})
 
-  def validate_keyword({:dependent_required, dep_req}, data, vdr) do
+  def validate_keyword({:dependentRequired, dep_req}, data, vdr) do
     Validation.validate_dependent_required(dep_req, data, vdr)
   end
 
@@ -431,7 +431,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def validate_keyword({:property_names, subschema}, data, vdr) when is_map(data) do
+  def validate_keyword({:propertyNames, subschema}, data, vdr) when is_map(data) do
     data
     |> Map.keys()
     |> Validator.iterate(data, vdr, fn key, data, vdr ->
@@ -442,7 +442,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end)
   end
 
-  pass validate_keyword({:property_names, _})
+  pass validate_keyword({:propertyNames, _})
   # ---------------------------------------------------------------------------
 
   # Split the validators between those that validate the data and those who
@@ -467,8 +467,8 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   defp with_property_error(vdr, data, {kind, key, _, pattern}) do
     case kind do
       :property -> Validator.with_error(vdr, :property, data, key: key)
-      :pattern -> Validator.with_error(vdr, :pattern_property, data, pattern: pattern, key: key)
-      :additional -> Validator.with_error(vdr, :additional_property, data, key: key)
+      :pattern -> Validator.with_error(vdr, :patternProperties, data, pattern: pattern, key: key)
+      :additional -> Validator.with_error(vdr, :additionalProperties, data, key: key)
     end
   end
 
@@ -478,7 +478,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
-  def format_error(:min_contains, %{count: count, min_contains: min_contains}, _data) do
+  def format_error(:minContains, %{count: count, min_contains: min_contains}, _data) do
     case count do
       0 ->
         "list does not contain any item validating the 'contains' schema, #{min_contains} are required"
@@ -488,7 +488,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def format_error(:max_contains, args, _) do
+  def format_error(:maxContains, args, _) do
     %{count: count, max_contains: max_contains} = args
     "list contains more than #{max_contains} items validating the 'contains' schema, found #{count} items"
   end
@@ -502,23 +502,23 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     "property '#{key}' did not conform to the property schema"
   end
 
-  def format_error(:additional_property, %{key: key}, _data) do
+  def format_error(:additionalProperties, %{key: key}, _data) do
     "property '#{key}' did not conform to the additionalProperties schema"
   end
 
-  def format_error(:pattern_property, %{pattern: pattern, key: key}, _data) do
+  def format_error(:patternProperties, %{pattern: pattern, key: key}, _data) do
     "property '#{key}' did not conform to the patternProperties schema for pattern /#{pattern}/"
   end
 
-  def format_error(:one_of, %{validated_schemas: []}, _data) do
+  def format_error(:oneOf, %{validated_schemas: []}, _data) do
     {"value did not conform to one of the given schemas", %{}}
   end
 
-  def format_error(:one_of, %{validated_schemas: _validated_schemas}, _data) do
+  def format_error(:oneOf, %{validated_schemas: _validated_schemas}, _data) do
     {"value validated more than one of the given schemas", %{}}
   end
 
-  def format_error(:any_of, %{validated_schemas: []}, _data) do
+  def format_error(:anyOf, %{validated_schemas: []}, _data) do
     "value did not conform to any of the given schemas"
   end
 

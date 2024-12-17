@@ -512,7 +512,7 @@ defmodule JSV.Resolver do
     case Map.fetch(cache, key) do
       {:ok, {:alias_of, key}} -> fetch_local(cache, key)
       {:ok, cached} -> {:ok, cached}
-      :error -> {:error, {:missed_cache, key}}
+      :error -> {:error, {:unresolved, key}}
     end
   end
 

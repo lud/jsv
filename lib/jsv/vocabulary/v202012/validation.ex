@@ -16,7 +16,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   take_keyword :exclusiveMaximum, exclusive_maximum, acc, ctx, _ do
-    take_number(:exclusive_maximum, exclusive_maximum, acc, ctx)
+    take_number(:exclusiveMaximum, exclusive_maximum, acc, ctx)
   end
 
   take_keyword :minimum, minimum, acc, ctx, _ do
@@ -24,15 +24,15 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   take_keyword :exclusiveMinimum, exclusive_minimum, acc, ctx, _ do
-    take_number(:exclusive_minimum, exclusive_minimum, acc, ctx)
+    take_number(:exclusiveMinimum, exclusive_minimum, acc, ctx)
   end
 
   take_keyword :minItems, min_items, acc, ctx, _ do
-    take_integer(:min_items, min_items, acc, ctx)
+    take_integer(:minItems, min_items, acc, ctx)
   end
 
   take_keyword :maxItems, max_items, acc, ctx, _ do
-    take_integer(:max_items, max_items, acc, ctx)
+    take_integer(:maxItems, max_items, acc, ctx)
   end
 
   take_keyword :required, required when is_list(required), acc, ctx, _ do
@@ -44,7 +44,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   take_keyword :multipleOf, multiple_of, acc, ctx, _ do
-    take_number(:multiple_of, multiple_of, acc, ctx)
+    take_number(:multipleOf, multiple_of, acc, ctx)
   end
 
   take_keyword :const, const, acc, ctx, _ do
@@ -52,19 +52,19 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   take_keyword :maxLength, max_length, acc, ctx, _ do
-    take_integer(:max_length, max_length, acc, ctx)
+    take_integer(:maxLength, max_length, acc, ctx)
   end
 
   take_keyword :minLength, min_length, acc, ctx, _ do
-    take_integer(:min_length, min_length, acc, ctx)
+    take_integer(:minLength, min_length, acc, ctx)
   end
 
   take_keyword :minProperties, min_properties, acc, ctx, _ do
-    take_integer(:min_properties, min_properties, acc, ctx)
+    take_integer(:minProperties, min_properties, acc, ctx)
   end
 
   take_keyword :maxProperties, max_properties, acc, ctx, _ do
-    take_integer(:max_properties, max_properties, acc, ctx)
+    take_integer(:maxProperties, max_properties, acc, ctx)
   end
 
   take_keyword :enum, enum, acc, ctx, _ do
@@ -80,14 +80,14 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   take_keyword :uniqueItems, unique?, acc, ctx, _ do
     if unique? do
-      {:ok, [{:unique_items, true} | acc], ctx}
+      {:ok, [{:uniqueItems, true} | acc], ctx}
     else
       {:ok, acc, ctx}
     end
   end
 
   take_keyword :dependentRequired, dependent_required, acc, ctx, _ do
-    {:ok, [{:dependent_required, dependent_required} | acc], ctx}
+    {:ok, [{:dependentRequired, dependent_required} | acc], ctx}
   end
 
   # minContains/maxContains is handled by the Applicator module IF the validation vocabulary is
@@ -173,14 +173,14 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:maximum, _})
 
-  def validate_keyword({:exclusive_maximum, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:exclusiveMaximum, n}, data, vdr) when is_number(data) do
     case data < n do
       true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :exclusive_maximum, data, n: n)}
+      false -> {:error, Validator.with_error(vdr, :exclusiveMaximum, data, n: n)}
     end
   end
 
-  pass validate_keyword({:exclusive_maximum, _})
+  pass validate_keyword({:exclusiveMaximum, _})
 
   def validate_keyword({:minimum, n}, data, vdr) when is_number(data) do
     case data >= n do
@@ -191,43 +191,43 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:minimum, _})
 
-  def validate_keyword({:exclusive_minimum, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:exclusiveMinimum, n}, data, vdr) when is_number(data) do
     case data > n do
       true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :exclusive_minimum, data, n: n)}
+      false -> {:error, Validator.with_error(vdr, :exclusiveMinimum, data, n: n)}
     end
   end
 
-  pass validate_keyword({:exclusive_minimum, _})
+  pass validate_keyword({:exclusiveMinimum, _})
 
-  def validate_keyword({:max_items, max}, data, vdr) when is_list(data) do
+  def validate_keyword({:maxItems, max}, data, vdr) when is_list(data) do
     len = length(data)
 
     if len <= max do
       {:ok, data, vdr}
     else
-      {:error, Validator.with_error(vdr, :max_items, data, max_items: max, len: len)}
+      {:error, Validator.with_error(vdr, :maxItems, data, max_items: max, len: len)}
     end
   end
 
-  pass validate_keyword({:max_items, _})
+  pass validate_keyword({:maxItems, _})
 
-  def validate_keyword({:min_items, min}, data, vdr) when is_list(data) do
+  def validate_keyword({:minItems, min}, data, vdr) when is_list(data) do
     len = length(data)
 
     if len >= min do
       {:ok, data, vdr}
     else
-      {:error, Validator.with_error(vdr, :min_items, data, min_items: min, len: len)}
+      {:error, Validator.with_error(vdr, :minItems, data, min_items: min, len: len)}
     end
   end
 
-  pass validate_keyword({:min_items, _})
+  pass validate_keyword({:minItems, _})
 
-  def validate_keyword({:multiple_of, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:multipleOf, n}, data, vdr) when is_number(data) do
     case Helpers.fractional_is_zero?(data / n) do
       true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :multiple_of, data, multiple_of: n)}
+      false -> {:error, Validator.with_error(vdr, :multipleOf, data, multiple_of: n)}
     end
   rescue
     # Rescue infinite division (huge numbers divided by float, too large invalid
@@ -235,7 +235,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
     _ in ArithmeticError -> {:error, Validator.with_error(vdr, :arithmetic_error, data, context: "multipleOf")}
   end
 
-  pass validate_keyword({:multiple_of, _})
+  pass validate_keyword({:multipleOf, _})
 
   def validate_keyword({:required, required_keys}, data, vdr) when is_map(data) do
     case required_keys -- Map.keys(data) do
@@ -246,33 +246,33 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:required, _})
 
-  def validate_keyword({:dependent_required, dependent_required}, data, vdr) do
+  def validate_keyword({:dependentRequired, dependent_required}, data, vdr) do
     validate_dependent_required(dependent_required, data, vdr)
   end
 
-  def validate_keyword({:max_length, max}, data, vdr) when is_binary(data) do
+  def validate_keyword({:maxLength, max}, data, vdr) when is_binary(data) do
     len = String.length(data)
 
     if len <= max do
       {:ok, data, vdr}
     else
-      {:error, Validator.with_error(vdr, :max_length, data, max_length: max, len: len)}
+      {:error, Validator.with_error(vdr, :maxLength, data, max_length: max, len: len)}
     end
   end
 
-  pass validate_keyword({:max_length, _})
+  pass validate_keyword({:maxLength, _})
 
-  def validate_keyword({:min_length, min}, data, vdr) when is_binary(data) do
+  def validate_keyword({:minLength, min}, data, vdr) when is_binary(data) do
     len = String.length(data)
 
     if len >= min do
       {:ok, data, vdr}
     else
-      {:error, Validator.with_error(vdr, :min_length, data, min_length: min, len: len)}
+      {:error, Validator.with_error(vdr, :minLength, data, min_length: min, len: len)}
     end
   end
 
-  pass validate_keyword({:min_length, _})
+  pass validate_keyword({:minLength, _})
 
   def validate_keyword({:const, const}, data, vdr) do
     # 1 == 1.0 should be true according to JSON Schema specs
@@ -302,7 +302,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:pattern, _})
 
-  def validate_keyword({:unique_items, true}, data, vdr) when is_list(data) do
+  def validate_keyword({:uniqueItems, true}, data, vdr) when is_list(data) do
     data
     |> Enum.with_index()
     |> Enum.reduce({[], %{}}, fn {item, index}, {duplicate_indices, seen} ->
@@ -313,29 +313,29 @@ defmodule JSV.Vocabulary.V202012.Validation do
     end)
     |> case do
       {[], _} -> {:ok, data, vdr}
-      {duplicates, _} -> {:error, Validator.with_error(vdr, :unique_items, data, duplicates: Map.new(duplicates))}
+      {duplicates, _} -> {:error, Validator.with_error(vdr, :uniqueItems, data, duplicates: Map.new(duplicates))}
     end
   end
 
-  pass validate_keyword({:unique_items, true})
+  pass validate_keyword({:uniqueItems, true})
 
-  def validate_keyword({:min_properties, n}, data, vdr) when is_map(data) do
+  def validate_keyword({:minProperties, n}, data, vdr) when is_map(data) do
     case map_size(data) do
-      size when size < n -> {:error, Validator.with_error(vdr, :min_properties, data, min_properties: n, size: size)}
+      size when size < n -> {:error, Validator.with_error(vdr, :minProperties, data, min_properties: n, size: size)}
       _ -> {:ok, data, vdr}
     end
   end
 
-  pass validate_keyword({:min_properties, _})
+  pass validate_keyword({:minProperties, _})
 
-  def validate_keyword({:max_properties, n}, data, vdr) when is_map(data) do
+  def validate_keyword({:maxProperties, n}, data, vdr) when is_map(data) do
     case map_size(data) do
-      size when size > n -> {:error, Validator.with_error(vdr, :max_properties, data, max_properties: n, size: size)}
+      size when size > n -> {:error, Validator.with_error(vdr, :maxProperties, data, max_properties: n, size: size)}
       _ -> {:ok, data, vdr}
     end
   end
 
-  pass validate_keyword({:max_properties, _})
+  pass validate_keyword({:maxProperties, _})
 
   # ---------------------------------------------------------------------------
 
@@ -351,7 +351,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
             {:ok, data, vdr}
 
           missing ->
-            {:error, Validator.with_error(vdr, :dependent_required, data, parent: parent_key, missing: missing)}
+            {:error, Validator.with_error(vdr, :dependentRequired, data, parent: parent_key, missing: missing)}
         end
 
       {_, _}, data, vdr ->
@@ -407,7 +407,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
     "value #{data} is lower than minimum #{n}"
   end
 
-  def format_error(:exclusive_minimum, %{n: n}, data) do
+  def format_error(:exclusiveMinimum, %{n: n}, data) do
     "value #{data} is not higher than exclusive minimum #{n}"
   end
 
@@ -415,15 +415,15 @@ defmodule JSV.Vocabulary.V202012.Validation do
     "value #{data} is higher than maximum #{n}"
   end
 
-  def format_error(:exclusive_maximum, %{n: n}, data) do
+  def format_error(:exclusiveMaximum, %{n: n}, data) do
     "value #{data} is not lower than exclusive maximum #{n}"
   end
 
-  def format_error(:min_length, %{len: len, min_length: min_length}, _data) do
+  def format_error(:minLength, %{len: len, min_length: min_length}, _data) do
     "value length must be at least #{min_length} but is #{len}"
   end
 
-  def format_error(:max_length, %{len: len, max_length: max_length}, _data) do
+  def format_error(:maxLength, %{len: len, max_length: max_length}, _data) do
     "value length must be at most #{max_length} but is #{len}"
   end
 
@@ -438,7 +438,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
     end
   end
 
-  def format_error(:multiple_of, %{multiple_of: multiple_of}, data) do
+  def format_error(:multipleOf, %{multiple_of: multiple_of}, data) do
     "value #{data} is not a multiple of #{multiple_of}"
   end
 
@@ -446,19 +446,19 @@ defmodule JSV.Vocabulary.V202012.Validation do
     "value does not conform to pattern /#{pattern}/"
   end
 
-  def format_error(:max_items, %{len: len, max_items: max_items}, _data) do
+  def format_error(:maxItems, %{len: len, max_items: max_items}, _data) do
     "value should have at most #{max_items} items, got #{len}"
   end
 
-  def format_error(:min_items, %{len: len, min_items: min_items}, _data) do
+  def format_error(:minItems, %{len: len, min_items: min_items}, _data) do
     "value should have at least #{min_items} items, got #{len}"
   end
 
-  def format_error(:min_properties, %{size: size, min_properties: min_properties}, _data) do
+  def format_error(:minProperties, %{size: size, min_properties: min_properties}, _data) do
     "value must have at least #{min_properties} properties, got #{size}"
   end
 
-  def format_error(:max_properties, %{size: size, max_properties: max_properties}, _data) do
+  def format_error(:maxProperties, %{size: size, max_properties: max_properties}, _data) do
     "value must have at most #{max_properties} properties, got #{size}"
   end
 
@@ -466,7 +466,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
     "value must be one of the enum values: #{enum |> Enum.map(&inspect/1) |> verbose_list("or")}"
   end
 
-  def format_error(:dependent_required, %{parent: parent, missing: missing}, _data) do
+  def format_error(:dependentRequired, %{parent: parent, missing: missing}, _data) do
     case missing do
       [single] ->
         "property #{quote_prop(single)} is required when property #{quote_prop(parent)} is present"
@@ -476,7 +476,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
     end
   end
 
-  def format_error(:unique_items, %{duplicates: duplicates}, _data) do
+  def format_error(:uniqueItems, %{duplicates: duplicates}, _data) do
     printout =
       Enum.map(duplicates, fn {dup_index, seen_index} ->
         "values at indices #{seen_index} and #{dup_index} are equal"

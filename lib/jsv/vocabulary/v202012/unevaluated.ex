@@ -7,11 +7,11 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
   end
 
   take_keyword :unevaluatedProperties, unevaluated_properties, acc, ctx, _ do
-    take_sub(:unevaluated_properties, unevaluated_properties, acc, ctx)
+    take_sub(:unevaluatedProperties, unevaluated_properties, acc, ctx)
   end
 
   take_keyword :unevaluatedItems, unevaluated_items, acc, ctx, _ do
-    take_sub(:unevaluated_items, unevaluated_items, acc, ctx)
+    take_sub(:unevaluatedItems, unevaluated_items, acc, ctx)
   end
 
   ignore_any_keyword()
@@ -28,7 +28,7 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
 
-  def validate_keyword({:unevaluated_properties, subschema}, data, vdr) when is_map(data) do
+  def validate_keyword({:unevaluatedProperties, subschema}, data, vdr) when is_map(data) do
     evaluated = Validator.list_evaluaded(vdr)
 
     data
@@ -41,9 +41,9 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     end)
   end
 
-  pass validate_keyword({:unevaluated_properties, _})
+  pass validate_keyword({:unevaluatedProperties, _})
 
-  def validate_keyword({:unevaluated_items, subschema}, data, vdr) when is_list(data) do
+  def validate_keyword({:unevaluatedItems, subschema}, data, vdr) when is_list(data) do
     evaluated = Validator.list_evaluaded(vdr)
 
     data
@@ -57,7 +57,7 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     end)
   end
 
-  pass validate_keyword({:unevaluated_items, _})
+  pass validate_keyword({:unevaluatedItems, _})
 
   # ---------------------------------------------------------------------------
 

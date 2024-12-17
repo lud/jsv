@@ -29,9 +29,3 @@ defmodule JSV.Root do
     {:ok, %Root{raw: valid?, root_key: :root, validators: %{root: BooleanSchema.of(valid?)}}}
   end
 end
-
-# TODO
-IO.warn("""
-Allow all keys to be atoms. Special keys like :all_properties should become
-:properties@jsv
-""")
