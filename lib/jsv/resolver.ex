@@ -9,6 +9,14 @@ defmodule JSV.Resolver do
     # TODO drop parent_ns once we do not support draft-7
     @enforce_keys [:raw, :meta, :vocabularies, :ns, :parent_ns]
     defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            raw: term,
+            meta: binary,
+            vocabularies: term,
+            ns: binary,
+            parent_ns: binary
+          }
   end
 
   @draft_202012_vocabulary %{
@@ -25,10 +33,10 @@ defmodule JSV.Resolver do
     "https://json-schema.org/draft-07/--fallback--vocab/core" => Vocabulary.Draft7.Core,
     "https://json-schema.org/draft-07/--fallback--vocab/validation" => Vocabulary.Draft7.Validation,
     "https://json-schema.org/draft-07/--fallback--vocab/applicator" => Vocabulary.Draft7.Applicator,
-    # "https://json-schema.org/draft-07/--fallback--vocab/content" => Vocabulary.Draft7.Content,
+    "https://json-schema.org/draft-07/--fallback--vocab/content" => Vocabulary.Draft7.Content,
     "https://json-schema.org/draft-07/--fallback--vocab/format-annotation" => Vocabulary.Draft7.Format,
-    "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.Draft7.Format, assert: true}
-    # "https://json-schema.org/draft-07/--fallback--vocab/meta-data" => Vocabulary.Draft7.MetaData,
+    "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.Draft7.Format, assert: true},
+    "https://json-schema.org/draft-07/--fallback--vocab/meta-data" => Vocabulary.Draft7.MetaData
     # "https://json-schema.org/draft-07/--fallback--vocab/unevaluated" => Vocabulary.Draft7.Unevaluated
   }
   @draft7_vocabulary_keyword_fallback Map.new(@draft7_vocabulary, fn {k, _mod} -> {k, true} end)
@@ -48,6 +56,8 @@ defmodule JSV.Resolver do
     resolved: %{},
     vocabularies: %{}
   ]
+
+  # TODO callback behaviour
 
   @opaque t :: %__MODULE__{}
 
@@ -460,38 +470,36 @@ defmodule JSV.Resolver do
 
   def fetch_vocabularies_for(rsv, ns) do
     # The vocabularies are defined by the meta schema, so we do a double fetch
-    with {:ok, %{meta: meta}} <- deref_resolved(rsv, ns) do
+    with {:ok, %{meta: meta}} <- fetch_resolved(rsv, ns) do
       fetch_vocabularies_of(rsv, meta)
     end
   end
 
   defp fetch_vocabularies_of(rsv, meta) do
-    case deref_resolved(rsv, {:meta, meta}) do
+    case fetch_resolved(rsv, {:meta, meta}) do
       {:ok, %{vocabularies: vocabularies}} -> {:ok, vocabularies}
       {:error, _} = err -> err
     end
   end
 
-  IO.warn("@TODO use a single function for deref_resolved and fetch_resolved, it is confusing for now")
+  @spec fetch_resolved(t(), resolvable) :: {:ok, Resolved.t()} | {:error, term}
+        when resolvable:
+               {:pointer, term, term}
+               | :root
+               | {:meta, binary()}
+               | binary
+               | {:anchor | :dynamic_anchor, binary, binary}
 
-  defp deref_resolved(%{resolved: cache} = rsv, key) do
-    case Map.fetch(cache, key) do
-      {:ok, {:alias_of, key}} -> deref_resolved(rsv, key)
-      {:ok, cached} -> {:ok, cached}
-      :error -> {:error, {:missed_cache, key}}
-    end
+  def fetch_resolved(rsv, {:pointer, _, _} = pointer) do
+    fetch_pointer(rsv.resolved, pointer)
   end
 
-  def fetch_resolved(rsv, binary) when is_binary(binary) do
-    do_fetch_resolved(rsv, binary)
+  def fetch_resolved(rsv, key) do
+    fetch_local(rsv.resolved, key)
   end
 
-  def fetch_resolved(rsv, :root) do
-    do_fetch_resolved(rsv, :root)
-  end
-
-  def fetch_resolved(rsv, {:pointer, ns, docpath}) do
-    with {:ok, %Resolved{raw: raw, meta: meta, ns: ns, parent_ns: parent_ns}} <- deref_resolved(rsv, ns),
+  defp fetch_pointer(cache, {:pointer, ns, docpath}) do
+    with {:ok, %Resolved{raw: raw, meta: meta, ns: ns, parent_ns: parent_ns}} <- fetch_local(cache, ns),
          {:ok, [sub | _] = subs} <- fetch_docpath(raw, docpath),
          {:ok, ns, parent_ns} <- derive_docpath_ns(subs, ns, parent_ns) do
       {:ok, %Resolved{raw: sub, meta: meta, vocabularies: nil, ns: ns, parent_ns: parent_ns}}
@@ -500,16 +508,9 @@ defmodule JSV.Resolver do
     end
   end
 
-  def fetch_resolved(rsv, {:dynamic_anchor, _, _} = k) do
-    do_fetch_resolved(rsv, k)
-  end
-
-  def fetch_resolved(rsv, {:anchor, _, _} = k) do
-    do_fetch_resolved(rsv, k)
-  end
-
-  defp do_fetch_resolved(%{resolved: cache}, key) do
+  defp fetch_local(cache, key) do
     case Map.fetch(cache, key) do
+      {:ok, {:alias_of, key}} -> fetch_local(cache, key)
       {:ok, cached} -> {:ok, cached}
       :error -> {:error, {:missed_cache, key}}
     end

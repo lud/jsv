@@ -20,6 +20,7 @@ defmodule JSV.Test.TestResolver do
   end
 
   def resolve("http" <> _ = url) do
+    true = allow_host?(url)
     %{host: host, path: path, query: nil, fragment: frag} = URI.parse(url)
     true = frag in [nil, ""]
     path = [@root_dir, host | String.split(path, "/")] |> Path.join()
@@ -32,6 +33,18 @@ defmodule JSV.Test.TestResolver do
         {:error, :enoent} -> fetch_and_write(url, path)
       end
     end)
+  end
+
+  def allow_host?("http://json-schema.org/" <> _) do
+    true
+  end
+
+  def allow_host?("https://json-schema.org/" <> _) do
+    true
+  end
+
+  def allow_host?(url) do
+    raise "unallowed test resolver host: #{url}"
   end
 
   defp return_local_file(path) do

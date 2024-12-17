@@ -5,13 +5,13 @@ defmodule JSV.Vocabulary.V202012.MetaData do
     []
   end
 
-  consume_keyword(:deprecated)
-  consume_keyword(:description)
-  consume_keyword(:default)
-  consume_keyword(:title)
-  consume_keyword(:readOnly)
-  consume_keyword(:writeOnly)
-  consume_keyword(:examples)
+  consume_keyword :deprecated
+  consume_keyword :description
+  consume_keyword :default
+  consume_keyword :title
+  consume_keyword :readOnly
+  consume_keyword :writeOnly
+  consume_keyword :examples
 
   ignore_any_keyword()
 

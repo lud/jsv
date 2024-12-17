@@ -132,6 +132,21 @@ defmodule JSV.Vocabulary do
     end
   end
 
+  defmacro ignore_keyword(atom_form) when is_atom(atom_form) do
+    string_form = Atom.to_string(atom_form)
+
+    quote do
+      @impl true
+      def handle_keyword({unquote(atom_form), _}, _, _, _) do
+        :ignore
+      end
+
+      def handle_keyword({unquote(string_form), _}, _, _, _) do
+        :ignore
+      end
+    end
+  end
+
   defmacro consume_keyword(atom_form) when is_atom(atom_form) do
     string_form = Atom.to_string(atom_form)
 

@@ -49,9 +49,10 @@ defmodule JSV.Vocabulary.V202012.Core do
     {:ok, acc, bld}
   end
 
-  consume_keyword(:"$comment")
-  consume_keyword(:"$id")
-  consume_keyword(:"$schema")
+  consume_keyword :"$comment"
+  consume_keyword :"$id"
+  consume_keyword :"$schema"
+  consume_keyword :"$vocabulary"
   ignore_any_keyword()
 
   def finalize_validators([]) do

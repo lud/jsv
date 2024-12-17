@@ -27,6 +27,10 @@ defmodule JSV.Vocabulary.Draft7.Core do
     end
   end
 
+  take_keyword :definitions, _defs, acc, bld, _ do
+    {:ok, acc, bld}
+  end
+
   # $ref overrides any other keyword
   def handle_keyword(_kw_tuple, acc, bld, raw_schema) when is_map_key(raw_schema, "$ref") do
     {:ok, acc, bld}

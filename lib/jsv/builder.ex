@@ -103,10 +103,6 @@ defmodule JSV.Builder do
     end
   end
 
-  defp register_validator(_all_validators, vkey, {:alias_of, vkey}) do
-    raise "creating a alias to self: #{inspect({:alias_of, vkey})}"
-  end
-
   defp register_validator(all_validators, vkey, schema_validators) do
     Map.put(all_validators, vkey, schema_validators)
   end
@@ -154,12 +150,6 @@ defmodule JSV.Builder do
     end
   end
 
-  defp build_resolved(bld, {:alias_of, key}) do
-    # If the resolver returns an alias we know the target of the alias is
-    # already resolved, so we can just stage it as such.
-    {:ok, {:alias_of, key}, stage_build(bld, {:resolved, key})}
-  end
-
   defp build_resolved(bld, resolved) do
     %Resolved{ns: ns, parent_ns: parent_ns} = resolved
 
@@ -205,12 +195,13 @@ defmodule JSV.Builder do
       end)
 
     # TODO we should warn if the dialect did not pick all elements from the
-    # schema. But this should be opt-in
-    # case leftovers do
-    #   [] -> :ok
-    #   map when map_size(map) == 0 -> :ok
-    #   other -> IO.warn("got some leftovers: #{inspect(other)}", [])
-    # end
+    # schema. But this should be opt-in. We should have an option that accepts a
+    # fun, so an user of the library could raise, log, or pass.
+    #
+    #     case leftovers do
+    #       [] -> :ok
+    #       other -> IO.warn("got some leftovers: #{inspect(other)}", [])
+    #     end
 
     # Reverse the list to keep the priority order from bld.vocabularies
     schema_validators = :lists.reverse(schema_validators)

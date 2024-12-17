@@ -62,7 +62,7 @@ defmodule JSV.MixProject do
 
       # Test
       {:excoveralls, "~> 0.18.0", only: :test},
-      {:mutex, "~> 3.0", only: :test},
+      {:mutex, "~> 3.0", only: [:dev, :test]},
       json_schema_test_suite()
     ]
   end
