@@ -234,10 +234,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
 
-  IO.warn("remove errors carrying. Maybe seen keys too?")
-
-  defp property_validations(data, property_schema)
-
   defp property_validations(_data, nil) do
     []
   end
@@ -248,8 +244,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       _ -> []
     end)
   end
-
-  defp pattern_validations(data, pattern_properties)
 
   defp pattern_validations(_data, nil) do
     []
@@ -265,30 +259,34 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   def validate_keyword({:properties@jsv, {properties, pattern_properties, additional_properties}}, data, vdr)
       when is_map(data) do
-    key_to_propschema = property_validations(data, properties)
-    key_to_patternschema = pattern_validations(data, pattern_properties)
+    for_props = property_validations(data, properties)
+    for_patterns = pattern_validations(data, pattern_properties)
 
-    key_to_additional =
+    validations = for_props ++ for_patterns
+
+    for_additional =
       case additional_properties do
         nil ->
           []
 
         _ ->
-          seen_keys =
-            Enum.map(key_to_propschema, fn {:property, key, _, _} -> key end) ++
-              Enum.map(key_to_patternschema, fn {:pattern, key, _, _} -> key end)
-
-          data
-          |> Enum.filter(fn {key, _} -> key not in seen_keys end)
-          |> Enum.map(fn {key, _} -> {:additional, key, additional_properties, nil} end)
+          Enum.flat_map(data, fn {key, _} ->
+            if List.keymember?(validations, key, 1) do
+              []
+            else
+              [{:additional, key, additional_properties, nil}]
+            end
+          end)
       end
 
-    all_validation = Enum.concat([key_to_propschema, key_to_patternschema, key_to_additional])
+    all_validations = for_additional ++ validations
 
-    # Note: casted data from previous schema is evaluted by later schema. The
-    # other way would be to discard previously casted on later schema.
+    # Note: if a property is validated by both :properties and
+    # :patternProperties, casted data from the first schema is evaluted by the
+    # second. A possible fix is to discard previously casted value on second
+    # schema but we will loose all cast from nested schemas.
 
-    Validator.iterate(all_validation, data, vdr, fn
+    Validator.iterate(all_validations, data, vdr, fn
       {_kind, key, subschema, _pattern} = propcase, data, vdr ->
         case Validator.validate_nested(Map.fetch!(data, key), key, subschema, vdr) do
           {:ok, casted, vdr} -> {:ok, Map.put(data, key, casted), vdr}
@@ -466,7 +464,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   defp with_property_error(vdr, data, {kind, key, _, pattern}) do
     case kind do
-      :property -> Validator.with_error(vdr, :property, data, key: key)
+      :property -> Validator.with_error(vdr, :properties, data, key: key)
       :pattern -> Validator.with_error(vdr, :patternProperties, data, pattern: pattern, key: key)
       :additional -> Validator.with_error(vdr, :additionalProperties, data, key: key)
     end
@@ -498,7 +496,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     "item at index #{index} does not validate the 'items' schema"
   end
 
-  def format_error(:property, %{key: key}, _) do
+  def format_error(:properties, %{key: key}, _) do
     "property '#{key}' did not conform to the property schema"
   end
 
