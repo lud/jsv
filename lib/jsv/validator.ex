@@ -47,7 +47,10 @@ defmodule JSV.Validator do
     }
   end
 
-  IO.warn("flip the arguments")
+  IO.warn("TODO remove matches to %__MODULE__{} everywhere")
+  # The validator struct is the 3rd argument to mimic the callback on the
+  # vocabulary modules where builder and validators are passed as a context as
+  # last argument.
   def validate(data, dialect_or_boolean_schema, vdr)
 
   def validate(data, %BooleanSchema{} = bs, %__MODULE__{} = vdr) do

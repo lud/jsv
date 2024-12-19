@@ -35,14 +35,14 @@ defmodule JSV.FormatValidationTest do
 
     test "opt-in at validation time", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema)
-      assert {:ok, @bad_ipv4} = JSV.validate(schema, @bad_ipv4)
+      assert {:ok, @bad_ipv4} = JSV.validate(@bad_ipv4, schema)
     end
 
     test "validation can be enabled in build", ctx do
       # Note that passing `true` is the same as passing a list with a single
       # item, the default formats module
       assert {:ok, schema} = build_schema(ctx.json_schema, formats: true)
-      assert {:error, {:schema_validation, [_]}} = JSV.validate(schema, @bad_ipv4)
+      assert {:error, {:schema_validation, [_]}} = JSV.validate(@bad_ipv4, schema)
     end
   end
 
@@ -60,12 +60,12 @@ defmodule JSV.FormatValidationTest do
 
     test "default validation", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema)
-      assert {:error, {:schema_validation, [_]}} = JSV.validate(schema, @bad_ipv4)
+      assert {:error, {:schema_validation, [_]}} = JSV.validate(@bad_ipv4, schema)
     end
 
     test "validation can be disabled in build", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema, formats: false)
-      assert {:ok, @bad_ipv4} = JSV.validate(schema, @bad_ipv4)
+      assert {:ok, @bad_ipv4} = JSV.validate(@bad_ipv4, schema)
     end
   end
 
@@ -96,7 +96,7 @@ defmodule JSV.FormatValidationTest do
 
       # We can validate the supported formats
       assert {:ok, schema} = build_schema(raw_for("beam-language"), formats: formats)
-      assert {:ok, "LFE"} = JSV.validate(schema, "LFE")
+      assert {:ok, "LFE"} = JSV.validate("LFE", schema)
 
       # but it does not support ipv4 format
       assert {:error, {:unsupported_format, "ipv4"}} = build_schema(raw_for("ipv4"), formats: formats)
@@ -108,15 +108,15 @@ defmodule JSV.FormatValidationTest do
 
       # We can validate the supported formats
       assert {:ok, schema} = build_schema(raw_for("beam-language"), formats: formats)
-      assert {:ok, "LFE"} = JSV.validate(schema, "LFE")
+      assert {:ok, "LFE"} = JSV.validate("LFE", schema)
 
       # and it does support ipv4 format
       assert {:ok, schema} = build_schema(raw_for("ipv4"), formats: formats)
-      assert {:ok, "127.0.0.1"} = JSV.validate(schema, "127.0.0.1")
+      assert {:ok, "127.0.0.1"} = JSV.validate("127.0.0.1", schema)
 
       # and we were able to override default implementations
       assert {:ok, schema} = build_schema(raw_for("date"), formats: formats)
-      assert {:ok, "a long time ago"} = JSV.validate(schema, "a long time ago")
+      assert {:ok, "a long time ago"} = JSV.validate("a long time ago", schema)
     end
   end
 
@@ -127,7 +127,7 @@ defmodule JSV.FormatValidationTest do
       schema = format_schema(format)
 
       Enum.each(valids, fn value ->
-        case JSV.validate(schema, value) do
+        case JSV.validate(value, schema) do
           {:ok, ^value} ->
             :ok
 
@@ -139,7 +139,7 @@ defmodule JSV.FormatValidationTest do
       end)
 
       Enum.each(invalids, fn value ->
-        case JSV.validate(schema, value) do
+        case JSV.validate(value, schema) do
           {:ok, ^value} ->
             flunk("""
             Expected value #{inspect(value)} to not be valid against format #{inspect(format)}.

@@ -1,6 +1,5 @@
 defmodule JSV.BuilderTest do
   alias JSV.Builder
-  alias JSV.Resolver
   alias JSV.Schema
   alias JSV.Test.TestResolver
   use ExUnit.Case, async: true

@@ -72,7 +72,9 @@ defmodule JSV do
 
   IO.warn("flip the arguments")
 
-  def validate(%JSV.Root{} = schema, data) do
+  def validate(data, schema)
+
+  def validate(data, %JSV.Root{} = schema) do
     case validation_entrypoint(schema, data) do
       {:ok, casted_data, _} -> {:ok, casted_data}
       {:error, %JSV.Validator{errors: errors}} -> {:error, {:schema_validation, errors}}
@@ -84,7 +86,8 @@ defmodule JSV do
   def validation_entrypoint(%JSV.Root{} = schema, data) do
     %JSV.Root{validators: validators, root_key: root_key} = schema
     root_schema_validators = Map.fetch!(validators, root_key)
-    JSV.Validator.validate(data, root_schema_validators, JSV.Validator.new(validators, _scope = [root_key]))
+    validator = JSV.Validator.new(validators, _scope = [root_key])
+    JSV.Validator.validate(data, root_schema_validators, validator)
   end
 
   def default_format_validator_modules do
