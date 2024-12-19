@@ -46,7 +46,7 @@ defmodule JSV.Generated.Draft202012.Optional.AnchorTest do
         }
         """)
 
-      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

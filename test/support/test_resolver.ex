@@ -67,7 +67,8 @@ defmodule JSV.Test.TestResolver do
 
   defp http_get(url) do
     headers = []
-    http_options = [ssl: ExSslOptions.eef_options()]
+    # http_options = [ssl: ExSslOptions.eef_options()]
+    http_options = []
 
     url = String.to_charlist(url)
     IO.puts([IO.ANSI.yellow(), "GET ", url, IO.ANSI.reset()])

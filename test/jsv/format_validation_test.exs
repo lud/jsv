@@ -33,7 +33,7 @@ defmodule JSV.FormatValidationTest do
       {:ok, json_schema: json_schema}
     end
 
-    test "default to no validation", ctx do
+    test "opt-in at validation time", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema)
       assert {:ok, @bad_ipv4} = JSV.validate(schema, @bad_ipv4)
     end
@@ -47,7 +47,7 @@ defmodule JSV.FormatValidationTest do
   end
 
   describe "build-time opt-out format validation" do
-    # We use a custom schema that uses format-assertion by default
+    # Here we use a custom schema that uses format-assertion by default
     setup do
       json_schema =
         %{
@@ -58,12 +58,12 @@ defmodule JSV.FormatValidationTest do
       {:ok, json_schema: json_schema}
     end
 
-    test "default to no validation", ctx do
+    test "default validation", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema)
       assert {:error, {:schema_validation, [_]}} = JSV.validate(schema, @bad_ipv4)
     end
 
-    test "validation can be enabled in build", ctx do
+    test "validation can be disabled in build", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema, formats: false)
       assert {:ok, @bad_ipv4} = JSV.validate(schema, @bad_ipv4)
     end

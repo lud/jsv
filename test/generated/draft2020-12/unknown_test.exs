@@ -21,7 +21,7 @@ defmodule JSV.Generated.Draft202012.UnknownTest do
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,
-          default_draft: "https://json-schema.org/draft/2020-12/schema",
+          default_meta: "https://json-schema.org/draft/2020-12/schema",
           formats: true
         )
 

@@ -21,6 +21,8 @@ defmodule JSV.Vocabulary.V202012.Format do
     %{default_assert: default_assert}
   end
 
+  IO.warn("rename ctx to bld")
+
   take_keyword :format, format, acc, ctx, _ do
     validator_mods =
       case ctx.opts[:formats] do
@@ -64,6 +66,8 @@ defmodule JSV.Vocabulary.V202012.Format do
       [{:format, _}] = list -> list
     end
   end
+
+  IO.warn("TODO support validation opt-in at runtime")
 
   def validate(data, [format: {module, format}], vdr) when is_binary(data) do
     # TODO option to return casted value + TODO add low module priority

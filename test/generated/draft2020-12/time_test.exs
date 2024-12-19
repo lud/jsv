@@ -21,7 +21,7 @@ defmodule JSV.Generated.Draft202012.TimeTest do
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,
-          default_draft: "https://json-schema.org/draft/2020-12/schema",
+          default_meta: "https://json-schema.org/draft/2020-12/schema",
           formats: true
         )
 
@@ -88,13 +88,6 @@ defmodule JSV.Generated.Draft202012.TimeTest do
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "a valid time string with leap second, Zulu", c do
-      data = "23:59:60Z"
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
     test "invalid leap second, Zulu (wrong hour)", c do
       data = "22:59:60Z"
       expected_valid = false
@@ -104,13 +97,6 @@ defmodule JSV.Generated.Draft202012.TimeTest do
     test "invalid leap second, Zulu (wrong minute)", c do
       data = "23:58:60Z"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "valid leap second, zero time-offset", c do
-      data = "23:59:60+00:00"
-      expected_valid = true
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
@@ -126,20 +112,6 @@ defmodule JSV.Generated.Draft202012.TimeTest do
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "valid leap second, positive time-offset", c do
-      data = "01:29:60+01:30"
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "valid leap second, large positive time-offset", c do
-      data = "23:29:60+23:30"
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
     test "invalid leap second, positive time-offset (wrong hour)", c do
       data = "23:59:60+01:00"
       expected_valid = false
@@ -149,20 +121,6 @@ defmodule JSV.Generated.Draft202012.TimeTest do
     test "invalid leap second, positive time-offset (wrong minute)", c do
       data = "23:59:60+00:30"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "valid leap second, negative time-offset", c do
-      data = "15:59:60-08:00"
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "valid leap second, large negative time-offset", c do
-      data = "00:29:60-23:30"
-      expected_valid = true
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
@@ -264,27 +222,6 @@ defmodule JSV.Generated.Draft202012.TimeTest do
 
     test "an invalid offset indicator", c do
       data = "08:30:06 PST"
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "only RFC3339 not all of ISO 8601 are valid", c do
-      data = "01:01:01,1111"
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "no time offset", c do
-      data = "12:00:00"
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "no time offset with second fraction", c do
-      data = "12:00:00.52"
       expected_valid = false
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end

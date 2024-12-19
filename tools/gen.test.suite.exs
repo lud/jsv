@@ -218,12 +218,13 @@ defmodule GenTestSuite do
           end
 
           <%= for ttest <- tcase.tests do %>
-            <%= if ttest.skip?, do: "@tag :skip", else: "" %>
+            <%= if not ttest.skip? do %>
             test <%= inspect(ttest.description) %>, c do
               data = <%= inspect(ttest.data, limit: :infinity, pretty: true) %>
               expected_valid = <%= inspect(ttest.valid?) %>
               JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
             end
+            <% end %>
           <% end %>
         end
 
@@ -260,7 +261,7 @@ defmodule GenTestSuite do
         :error -> raise ArgumentError, "No suite configuration for #{inspect(suite)}"
       end
 
-    schema_options = [default_draft: default_draft(suite)]
+    schema_options = [default_meta: default_meta(suite)]
 
     suite
     |> JsonSchemaSuite.stream_cases(enabled)
@@ -269,11 +270,11 @@ defmodule GenTestSuite do
     |> then(&IO.puts("Wrote #{&1} files"))
   end
 
-  defp default_draft("draft7") do
+  defp default_meta("draft7") do
     "http://json-schema.org/draft-07/schema"
   end
 
-  defp default_draft("draft2020-12") do
+  defp default_meta("draft2020-12") do
     "https://json-schema.org/draft/2020-12/schema"
   end
 

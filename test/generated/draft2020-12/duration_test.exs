@@ -22,7 +22,7 @@ defmodule JSV.Generated.Draft202012.DurationTest do
 
         schema =
           JsonSchemaSuite.build_schema(json_schema,
-            default_draft: "https://json-schema.org/draft/2020-12/schema",
+            default_meta: "https://json-schema.org/draft/2020-12/schema",
             formats: true
           )
 
@@ -158,13 +158,6 @@ defmodule JSV.Generated.Draft202012.DurationTest do
       test "two weeks", c do
         data = "P2W"
         expected_valid = true
-        JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-      end
-
-      @tag :skip
-      test "weeks cannot be combined with other units", c do
-        data = "P1Y2W"
-        expected_valid = false
         JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
       end
 

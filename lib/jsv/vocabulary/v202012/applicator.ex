@@ -337,8 +337,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  IO.warn("@todo do not use validate_split for anyOf, halt on first match")
-
   def validate_keyword({:anyOf, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the

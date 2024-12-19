@@ -1,4 +1,5 @@
 defmodule JSV.Builder do
+  alias JSV.Root
   alias JSV.BooleanSchema
   alias JSV.Key
   alias JSV.Ref
@@ -7,11 +8,24 @@ defmodule JSV.Builder do
   alias JSV.RNS
 
   @derive {Inspect, except: []}
+  @enforce_keys [:resolver]
   defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, parent_ns: nil, opts: []]
   @type t :: %__MODULE__{resolver: term, staged: [term], vocabularies: term, ns: term, parent_ns: term, opts: term}
 
   def new(opts) do
-    struct!(__MODULE__, Map.new(opts))
+    {resolver_impl, opts} = Keyword.pop!(opts, :resolver)
+    {default_meta, opts} = Keyword.pop!(opts, :default_meta)
+    resolver = Resolver.new(resolver_impl, default_meta)
+    struct!(__MODULE__, resolver: resolver, opts: opts)
+  end
+
+  def build(bld, raw_schema) do
+    with {:ok, root_key, resolver} <- Resolver.resolve_root(bld.resolver, raw_schema),
+         bld = %__MODULE__{bld | resolver: resolver},
+         bld = stage_build(bld, root_key),
+         {:ok, validators} <- build_all(bld) do
+      {:ok, %Root{raw: raw_schema, validators: validators, root_key: root_key}}
+    end
   end
 
   def stage_build(%{staged: staged} = bld, buildable) do
@@ -55,10 +69,10 @@ defmodule JSV.Builder do
   # * mod_validators are the created validators from part of a schema
   #   keywords+values and a vocabulary module
 
-  def build_all(bld) do
+  defp build_all(bld) do
     build_all(bld, %{})
   catch
-    {:build_error, reason} -> {:error, reason}
+    {:thrown_build_error, reason} -> {:error, reason}
   end
 
   defp build_all(bld, all_validators) do
@@ -122,7 +136,7 @@ defmodule JSV.Builder do
     # _}) instead of passing the original ref.
     #
     # Everytime we encounter a dynamic ref in build_all/2 we insert all dynamic
-    # references into the staged list. But if we insert the reft itself it will
+    # references into the staged list. But if we insert the ref itself it will
     # lead to an infinite loop, since we do that when we find a ref in this
     # loop.
     #
@@ -130,10 +144,10 @@ defmodule JSV.Builder do
     # Resolver accept to work with that kind of schema identifier (that is,
     # {:dynamic_anchor, _, _} tuple).
     #
-    # new items can appear when we build subschemas that stage a ref in the
-    # build struct.
+    # New items only come up when we build subschemas by staging a ref in the
+    # builder.
     #
-    # But to keep it clean we just scan the whole list every time.
+    # But to keep it clean we scan the whole list every time.
     dynamic_buildables =
       Enum.flat_map(bld.resolver.resolved, fn
         {{:dynamic_anchor, _, _} = vkey, _resolved} -> [{:resolved, vkey}]
@@ -151,15 +165,22 @@ defmodule JSV.Builder do
   end
 
   defp build_resolved(bld, resolved) do
-    %Resolved{ns: ns, parent_ns: parent_ns} = resolved
+    %Resolved{meta: meta, ns: ns, parent_ns: parent_ns} = resolved
 
-    case Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
+    case fetch_vocabularies(bld, meta) do
       {:ok, vocabularies} when is_list(vocabularies) ->
         bld = %__MODULE__{bld | vocabularies: vocabularies, ns: ns, parent_ns: parent_ns}
         do_build_sub(resolved.raw, bld)
 
       {:error, _} = err ->
         err
+    end
+  end
+
+  defp fetch_vocabularies(bld, meta) do
+    case Resolver.fetch_meta(bld.resolver, meta) do
+      {:ok, %Resolved{vocabularies: vocabularies}} -> {:ok, vocabularies}
+      {:error, _} = err -> err
     end
   end
 
@@ -226,7 +247,7 @@ defmodule JSV.Builder do
         case module.handle_keyword(pair, mod_acc, bld, raw_schema) do
           {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
           :ignore -> {[pair | leftovers], mod_acc, bld}
-          {:error, reason} -> throw({:build_error, reason})
+          {:error, reason} -> throw({:thrown_build_error, reason})
         end
       end)
 

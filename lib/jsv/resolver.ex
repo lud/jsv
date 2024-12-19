@@ -46,35 +46,44 @@ defmodule JSV.Resolver do
   @fix_host "jsv-no-host"
   @fix_scheme "jsv-no-scheme"
 
-  # @derive {Inspect, only: [:resolved,  :opts]}
-  @enforce_keys [:root]
-  defstruct [
-    :ns,
-    :root,
-    opts: %{resolver: UnknownResolver, default_draft: nil},
-    fetch_cache: %{},
-    resolved: %{},
-    vocabularies: %{}
-  ]
+  defstruct mod: UnknownResolver,
+            default_meta: nil,
+            # fetch_cache is a local cache for the resolver instance. Actual caching of
+            # remote resources should be done in the resolver implementation.
+            fetch_cache: %{},
+            resolved: %{}
 
   # TODO callback behaviour
 
   @opaque t :: %__MODULE__{}
 
-  # TODO build new_root as set_root(new(opts), raw_schema)
-  def new_root(raw_schema, opts_map) when is_map(raw_schema) do
+  def new(module, default_meta) do
+    %__MODULE__{mod: module, default_meta: default_meta}
+  end
+
+  IO.warn("todo allow atom keys in here")
+
+  IO.warn("""
+  The library should provide a default resolver implementation that uses httpc
+  to fetch remote resources with
+
+  * A file cache for iterations between runs
+  * A ram cache based on ETS for runtime, skip it for compilation
+  * An option to list URL prefixes, so we can restrict allowed prefixes.
+    Defaults to ["https://json-schema.org/"].
+  """)
+
+  def resolve_root(rsv, raw_schema) when is_map(raw_schema) do
     # Bootstrap of the recursive resolving of schemas, metaschemas and
     # anchors/$ids. We just need to set the :root value in the context as the
     # $id (or `:root` atom if not set) of the top schema.
 
     root_ns = Map.get(raw_schema, "$id", :root)
-    rsv = %__MODULE__{root: root_ns, opts: opts_map}
+    # rsv = %__MODULE__{rsv | root: root_ns}
+    ^root_ns = Key.of(root_ns)
 
-    with {:ok, rsv} <- resolve(rsv, {:prefetched, root_ns, raw_schema}),
-         {:ok, vocabularies} <- fetch_vocabularies_for(rsv, root_ns) do
-      {:ok, %__MODULE__{rsv | ns: root_ns, vocabularies: vocabularies}}
-    else
-      {:error, _} = err -> err
+    with {:ok, rsv} <- resolve(rsv, {:prefetched, root_ns, raw_schema}) do
+      {:ok, root_ns, rsv}
     end
   end
 
@@ -87,7 +96,7 @@ defmodule JSV.Resolver do
 
   defp do_resolve(rsv, resolvable) do
     with {:ok, raw_schema, rsv} <- ensure_fetched(rsv, resolvable),
-         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable), rsv.opts.default_draft),
+         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable), rsv.default_meta),
          {:ok, cache_entries} <- create_cache_entries(identified_schemas),
          {:ok, rsv} <- insert_cache_entries(rsv, cache_entries) do
       resolve_meta_loop(rsv, metas_of(cache_entries))
@@ -125,10 +134,6 @@ defmodule JSV.Resolver do
     check_resolved(rsv, id)
   end
 
-  defp check_resolved(rsv, {:dynamic_anchor, ns, _}) do
-    check_resolved(rsv, ns)
-  end
-
   defp check_resolved(rsv, id) when is_binary(id) or :root == id do
     case rsv do
       %{resolved: %{^id => _}} -> :already_resolved
@@ -148,7 +153,7 @@ defmodule JSV.Resolver do
   end
 
   # Extract all $ids and achors. We receive the top schema
-  defp scan_schema(top_schema, external_id, default_draft) when not is_nil(external_id) do
+  defp scan_schema(top_schema, external_id, default_meta) when not is_nil(external_id) do
     {id, anchor, dynamic_anchor} = extract_keys(top_schema)
 
     # For self references that target "#" or "#some/path" in the document, when
@@ -185,7 +190,7 @@ defmodule JSV.Resolver do
     aliases = id_aliases ++ anchors ++ dynamic_anchors
 
     # If no metaschema is defined we will use the default draft as a fallback
-    meta = Map.get(top_schema, "$schema", default_draft)
+    meta = Map.get(top_schema, "$schema", default_meta)
 
     top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases, ns: ns, parent_ns: nil}
     acc = [top_descriptor]
@@ -403,7 +408,7 @@ defmodule JSV.Resolver do
   end
 
   def fetch_raw_schema(rsv, url) when is_binary(url) do
-    call_resolver(rsv.opts.resolver, url)
+    call_resolver(rsv.mod, url)
   end
 
   def fetch_raw_schema(rsv, %Ref{ns: ns}) do
@@ -464,22 +469,8 @@ defmodule JSV.Resolver do
     end)
   end
 
-  def fetch_vocabularies_for(rsv, %Resolved{meta: meta}) do
-    fetch_vocabularies_of(rsv, meta)
-  end
-
-  def fetch_vocabularies_for(rsv, ns) do
-    # The vocabularies are defined by the meta schema, so we do a double fetch
-    with {:ok, %{meta: meta}} <- fetch_resolved(rsv, ns) do
-      fetch_vocabularies_of(rsv, meta)
-    end
-  end
-
-  defp fetch_vocabularies_of(rsv, meta) do
-    case fetch_resolved(rsv, {:meta, meta}) do
-      {:ok, %{vocabularies: vocabularies}} -> {:ok, vocabularies}
-      {:error, _} = err -> err
-    end
+  def fetch_meta(rsv, meta) do
+    fetch_resolved(rsv, {:meta, meta})
   end
 
   @spec fetch_resolved(t(), resolvable) :: {:ok, Resolved.t()} | {:error, term}
@@ -488,7 +479,7 @@ defmodule JSV.Resolver do
                | :root
                | {:meta, binary()}
                | binary
-               | {:anchor | :dynamic_anchor, binary, binary}
+               | {:anchor, binary, binary}
 
   def fetch_resolved(rsv, {:pointer, _, _} = pointer) do
     fetch_pointer(rsv.resolved, pointer)

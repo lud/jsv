@@ -21,7 +21,7 @@ defmodule JSV.Generated.Draft202012.DateTimeTest do
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,
-          default_draft: "https://json-schema.org/draft/2020-12/schema",
+          default_meta: "https://json-schema.org/draft/2020-12/schema",
           formats: true
         )
 
@@ -88,20 +88,6 @@ defmodule JSV.Generated.Draft202012.DateTimeTest do
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "a valid date-time with a leap second, UTC", c do
-      data = "1998-12-31T23:59:60Z"
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "a valid date-time with a leap second, with minus offset", c do
-      data = "1998-12-31T15:59:60.123-08:00"
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
     test "an invalid date-time past leap second, UTC", c do
       data = "1998-12-31T23:59:61Z"
       expected_valid = false
@@ -141,13 +127,6 @@ defmodule JSV.Generated.Draft202012.DateTimeTest do
     test "an invalid date-time string", c do
       data = "06/19/1963 08:30:06 PST"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    @tag :skip
-    test "case-insensitive T and Z", c do
-      data = "1963-06-19t08:30:06.283185z"
-      expected_valid = true
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 

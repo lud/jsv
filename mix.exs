@@ -35,23 +35,24 @@ defmodule JSV.MixProject do
     {:json_schema_test_suite,
      git: "https://github.com/json-schema-org/JSON-Schema-Test-Suite.git",
      ref: "82a077498cc761d69e8530c721702be980926c89",
-     only: [:test],
+     only: [:dev, :test],
      compile: false,
      app: false}
   end
 
   defp deps do
     [
-      {:jason, "~> 1.4"},
-      {:decimal, "~> 2.1"},
+      # Actual dependencies
+      {:jason, "~> 1.0"},
+      {:decimal, "~> 2.0"},
+      {:nimble_options, "~> 1.0"},
 
       # Formats
       {:mail_address, "~> 1.0", optional: true},
       {:abnf_parsec, "~> 1.0", optional: true},
-      {:ecto, "> 0.0.0", optional: true},
 
       # Test or Prod ?
-      {:ex_ssl_options, "~> 0.1.0"},
+      # {:ex_ssl_options, "~> 0.1"},
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
@@ -61,7 +62,7 @@ defmodule JSV.MixProject do
       {:modkit, "~> 0.6", only: :dev},
 
       # Test
-      {:excoveralls, "~> 0.18.0", only: :test},
+      {:excoveralls, "~> 0.18", only: :test},
       {:mutex, "~> 3.0", only: [:dev, :test]},
       json_schema_test_suite()
     ]

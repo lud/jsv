@@ -32,17 +32,22 @@ defmodule JSV.Validator do
 
   # TODO remove `%__MODULE__{}=`
 
-  @enforce_keys [:path, :validators, :scope, :errors, :root_key, :evaluated]
+  @enforce_keys [:path, :validators, :scope, :errors, :evaluated]
   defstruct @enforce_keys
 
   @opaque t :: %__MODULE__{}
 
-  def new(%JSV.Root{} = schema) do
-    %{validators: validators, root_key: root_key} = schema
-
-    %__MODULE__{path: [], validators: validators, root_key: root_key, scope: [root_key], errors: [], evaluated: [%{}]}
+  def new(validators, scope) do
+    %__MODULE__{
+      path: [],
+      validators: validators,
+      scope: scope,
+      errors: [],
+      evaluated: [%{}]
+    }
   end
 
+  IO.warn("flip the arguments")
   def validate(data, dialect_or_boolean_schema, vdr)
 
   def validate(data, %BooleanSchema{} = bs, %__MODULE__{} = vdr) do
@@ -118,7 +123,8 @@ defmodule JSV.Validator do
     regardless of previously returned values. Returning and error tuple does not
     stop the iteration.
   * When returning `{:ok, value, vdr}`, `value` will be the new accumulator.
-  * When returning `{:error, vdr}`, the accumulator is not changed.
+  * When returning `{:error, vdr}`, the vale accumulator is not changed, but the
+    new returned vdr with errors is carried on.
   * Returning an ok tuple after an error tuple on a previous item does not
     remove the errors from the validator struct, they are carried along.
 
@@ -126,7 +132,7 @@ defmodule JSV.Validator do
   returned an OK tuple, `{:error, vdr}` otherwise.
 
   This is useful to call all possible validators for a given piece of data,
-  collecting all possible errors without stopping, but still returning an errors
+  collecting all possible errors without stopping, but still returning an error
   in the end if some error arose.
   """
   def iterate(enum, init, vdr, fun) when is_function(fun, 3) do
@@ -153,8 +159,8 @@ defmodule JSV.Validator do
   end
 
   def validate_nested(data, key, subvalidators, vdr) when is_binary(key) when is_integer(key) do
-    %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key, evaluated: evaluated} = vdr
-    # We do not carry sub errors so custom validation do not have to check for
+    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vdr
+    # We do not carry sub errors so custom validation does not have to check for
     # error presence when iterating with map/reduce (although they should use
     # iterate/4).
     sub_vdr = %__MODULE__{
@@ -162,7 +168,6 @@ defmodule JSV.Validator do
       errors: [],
       validators: all_validators,
       scope: scope,
-      root_key: root_key,
       evaluated: [%{} | evaluated]
     }
 
@@ -186,14 +191,13 @@ defmodule JSV.Validator do
   defp do_validate_ref(data, ref, vdr) do
     subvalidators = checkout_ref(vdr, ref)
 
-    %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key, evaluated: evaluated} = vdr
+    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vdr
     # TODO separate validator must have its isolated evaluated paths list
     separate_vdr = %__MODULE__{
       path: path,
       errors: [],
       validators: all_validators,
       scope: scope,
-      root_key: root_key,
       evaluated: evaluated
     }
 
