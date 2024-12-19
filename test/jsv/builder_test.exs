@@ -1,8 +1,8 @@
 defmodule JSV.BuilderTest do
-  alias JSV.Test.TestResolver
+  alias JSV.Builder
   alias JSV.Resolver
   alias JSV.Schema
-  alias JSV.Builder
+  alias JSV.Test.TestResolver
   use ExUnit.Case, async: true
 
   IO.warn("TODO build atom schema tests")

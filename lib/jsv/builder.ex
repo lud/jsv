@@ -1,11 +1,11 @@
 defmodule JSV.Builder do
-  alias JSV.Root
   alias JSV.BooleanSchema
   alias JSV.Key
   alias JSV.Ref
   alias JSV.Resolver
   alias JSV.Resolver.Resolved
   alias JSV.RNS
+  alias JSV.Root
 
   @derive {Inspect, except: []}
   @enforce_keys [:resolver]

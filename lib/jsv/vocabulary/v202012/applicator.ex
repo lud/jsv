@@ -234,22 +234,22 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
 
-  defp property_validations(_data, nil) do
+  defp properties_validations(_data, nil) do
     []
   end
 
-  defp property_validations(data, properties) do
+  defp properties_validations(data, properties) do
     Enum.flat_map(properties, fn
       {key, subschema} when is_map_key(data, key) -> [{:property, key, subschema, nil}]
       _ -> []
     end)
   end
 
-  defp pattern_validations(_data, nil) do
+  defp pattern_properties_validations(_data, nil) do
     []
   end
 
-  defp pattern_validations(data, pattern_properties) do
+  defp pattern_properties_validations(data, pattern_properties) do
     for {{pattern, re}, subschema} <- pattern_properties,
         {key, _} <- data,
         Regex.match?(re, key) do
@@ -257,26 +257,27 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  def validate_keyword({:properties@jsv, {properties, pattern_properties, additional_properties}}, data, vdr)
+  defp additional_properties_validations(data, schema, other_validations) do
+    Enum.flat_map(data, fn {key, _} ->
+      if List.keymember?(other_validations, key, 1) do
+        []
+      else
+        [{:additional, key, schema, nil}]
+      end
+    end)
+  end
+
+  def validate_keyword({:properties@jsv, {props_schemas, patterns_schemas, additionals_schema}}, data, vdr)
       when is_map(data) do
-    for_props = property_validations(data, properties)
-    for_patterns = pattern_validations(data, pattern_properties)
+    for_props = properties_validations(data, props_schemas)
+    for_patterns = pattern_properties_validations(data, patterns_schemas)
 
     validations = for_props ++ for_patterns
 
     for_additional =
-      case additional_properties do
-        nil ->
-          []
-
-        _ ->
-          Enum.flat_map(data, fn {key, _} ->
-            if List.keymember?(validations, key, 1) do
-              []
-            else
-              [{:additional, key, additional_properties, nil}]
-            end
-          end)
+      case additionals_schema do
+        nil -> []
+        _ -> additional_properties_validations(data, additionals_schema, validations)
       end
 
     all_validations = for_additional ++ validations

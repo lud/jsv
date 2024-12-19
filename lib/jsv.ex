@@ -1,7 +1,7 @@
 defmodule JSV do
-  alias JSV.Root
   alias JSV.BooleanSchema
   alias JSV.Builder
+  alias JSV.Root
 
   @default_default_meta "https://json-schema.org/draft/2020-12/schema"
 
