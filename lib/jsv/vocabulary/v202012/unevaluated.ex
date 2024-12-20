@@ -6,12 +6,12 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     []
   end
 
-  take_keyword :unevaluatedProperties, unevaluated_properties, acc, ctx, _ do
-    take_sub(:unevaluatedProperties, unevaluated_properties, acc, ctx)
+  take_keyword :unevaluatedProperties, unevaluated_properties, acc, builder, _ do
+    take_sub(:unevaluatedProperties, unevaluated_properties, acc, builder)
   end
 
-  take_keyword :unevaluatedItems, unevaluated_items, acc, ctx, _ do
-    take_sub(:unevaluatedItems, unevaluated_items, acc, ctx)
+  take_keyword :unevaluatedItems, unevaluated_items, acc, builder, _ do
+    take_sub(:unevaluatedItems, unevaluated_items, acc, builder)
   end
 
   ignore_any_keyword()

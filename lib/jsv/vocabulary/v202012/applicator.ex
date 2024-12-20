@@ -9,128 +9,128 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     []
   end
 
-  take_keyword :properties, properties, acc, ctx, _ do
+  take_keyword :properties, properties, acc, builder, _ do
     properties
-    |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
-      case Builder.build_sub(pschema, ctx) do
-        {:ok, subvalidators, ctx} -> {:ok, {Map.put(acc, k, subvalidators), ctx}}
+    |> Helpers.reduce_ok({%{}, builder}, fn {k, pschema}, {acc, builder} ->
+      case Builder.build_sub(pschema, builder) do
+        {:ok, subvalidators, builder} -> {:ok, {Map.put(acc, k, subvalidators), builder}}
         {:error, _} = err -> err
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:properties, subvalidators} | acc], ctx}
+      {:ok, {subvalidators, builder}} -> {:ok, [{:properties, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  take_keyword :additionalProperties, additional_properties, acc, ctx, _ do
-    take_sub(:additionalProperties, additional_properties, acc, ctx)
+  take_keyword :additionalProperties, additional_properties, acc, builder, _ do
+    take_sub(:additionalProperties, additional_properties, acc, builder)
   end
 
-  take_keyword :patternProperties, pattern_properties, acc, ctx, _ do
+  take_keyword :patternProperties, pattern_properties, acc, builder, _ do
     pattern_properties
-    |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
+    |> Helpers.reduce_ok({%{}, builder}, fn {k, pschema}, {acc, builder} ->
       with {:ok, re} <- Regex.compile(k),
-           {:ok, subvalidators, ctx} <- Builder.build_sub(pschema, ctx) do
-        {:ok, {Map.put(acc, {k, re}, subvalidators), ctx}}
+           {:ok, subvalidators, builder} <- Builder.build_sub(pschema, builder) do
+        {:ok, {Map.put(acc, {k, re}, subvalidators), builder}}
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:patternProperties, subvalidators} | acc], ctx}
+      {:ok, {subvalidators, builder}} -> {:ok, [{:patternProperties, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  take_keyword :items, items, acc, ctx, _ do
-    take_sub(:items, items, acc, ctx)
+  take_keyword :items, items, acc, builder, _ do
+    take_sub(:items, items, acc, builder)
   end
 
-  take_keyword :prefixItems, prefix_items, acc, ctx, _ do
+  take_keyword :prefixItems, prefix_items, acc, builder, _ do
     prefix_items
-    |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
-      case Builder.build_sub(item, ctx) do
-        {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | subacc], ctx}}
+    |> Helpers.reduce_ok({[], builder}, fn item, {subacc, builder} ->
+      case Builder.build_sub(item, builder) do
+        {:ok, subvalidators, builder} -> {:ok, {[subvalidators | subacc], builder}}
         {:error, _} = err -> err
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:prefixItems, :lists.reverse(subvalidators)} | acc], ctx}
+      {:ok, {subvalidators, builder}} -> {:ok, [{:prefixItems, :lists.reverse(subvalidators)} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  take_keyword :allOf, [_ | _] = all_of, acc, ctx, _ do
-    case build_sub_list(all_of, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:allOf, :lists.reverse(subvalidators)} | acc], ctx}
+  take_keyword :allOf, [_ | _] = all_of, acc, builder, _ do
+    case build_sub_list(all_of, builder) do
+      {:ok, subvalidators, builder} -> {:ok, [{:allOf, :lists.reverse(subvalidators)} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  take_keyword :anyOf, [_ | _] = any_of, acc, ctx, _ do
-    case build_sub_list(any_of, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:anyOf, :lists.reverse(subvalidators)} | acc], ctx}
+  take_keyword :anyOf, [_ | _] = any_of, acc, builder, _ do
+    case build_sub_list(any_of, builder) do
+      {:ok, subvalidators, builder} -> {:ok, [{:anyOf, :lists.reverse(subvalidators)} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  take_keyword :oneOf, [_ | _] = one_of, acc, ctx, _ do
-    case build_sub_list(one_of, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:oneOf, :lists.reverse(subvalidators)} | acc], ctx}
+  take_keyword :oneOf, [_ | _] = one_of, acc, builder, _ do
+    case build_sub_list(one_of, builder) do
+      {:ok, subvalidators, builder} -> {:ok, [{:oneOf, :lists.reverse(subvalidators)} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  take_keyword :if, if_schema, acc, ctx, _ do
-    take_sub(:if, if_schema, acc, ctx)
+  take_keyword :if, if_schema, acc, builder, _ do
+    take_sub(:if, if_schema, acc, builder)
   end
 
-  take_keyword :then, then, acc, ctx, _ do
-    take_sub(:then, then, acc, ctx)
+  take_keyword :then, then, acc, builder, _ do
+    take_sub(:then, then, acc, builder)
   end
 
-  take_keyword :else, else_schema, acc, ctx, _ do
-    take_sub(:else, else_schema, acc, ctx)
+  take_keyword :else, else_schema, acc, builder, _ do
+    take_sub(:else, else_schema, acc, builder)
   end
 
-  take_keyword :propertyNames, property_names, acc, ctx, _ do
-    take_sub(:propertyNames, property_names, acc, ctx)
+  take_keyword :propertyNames, property_names, acc, builder, _ do
+    take_sub(:propertyNames, property_names, acc, builder)
   end
 
-  take_keyword :contains, contains, acc, ctx, _ do
-    take_sub(:contains, contains, acc, ctx)
+  take_keyword :contains, contains, acc, builder, _ do
+    take_sub(:contains, contains, acc, builder)
   end
 
-  take_keyword :maxContains, max_contains, acc, ctx, _ do
-    if validation_enabled?(ctx) do
-      take_integer(:maxContains, max_contains, acc, ctx)
+  take_keyword :maxContains, max_contains, acc, builder, _ do
+    if validation_enabled?(builder) do
+      take_integer(:maxContains, max_contains, acc, builder)
     else
       :ignore
     end
   end
 
-  take_keyword :minContains, min_contains, acc, ctx, _ do
-    if validation_enabled?(ctx) do
-      take_integer(:minContains, min_contains, acc, ctx)
+  take_keyword :minContains, min_contains, acc, builder, _ do
+    if validation_enabled?(builder) do
+      take_integer(:minContains, min_contains, acc, builder)
     else
       :ignore
     end
   end
 
-  take_keyword :dependentSchemas, dependent_schemas, acc, ctx, _ do
+  take_keyword :dependentSchemas, dependent_schemas, acc, builder, _ do
     dependent_schemas
-    |> Helpers.reduce_ok({%{}, ctx}, fn {k, depschema}, {acc, ctx} ->
-      case Builder.build_sub(depschema, ctx) do
-        {:ok, subvalidators, ctx} -> {:ok, {Map.put(acc, k, subvalidators), ctx}}
+    |> Helpers.reduce_ok({%{}, builder}, fn {k, depschema}, {acc, builder} ->
+      case Builder.build_sub(depschema, builder) do
+        {:ok, subvalidators, builder} -> {:ok, {Map.put(acc, k, subvalidators), builder}}
         {:error, _} = err -> err
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:dependentSchemas, subvalidators} | acc], ctx}
+      {:ok, {subvalidators, builder}} -> {:ok, [{:dependentSchemas, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  take_keyword :dependencies, map when is_map(map), acc, ctx, raw_schema do
+  take_keyword :dependencies, map when is_map(map), acc, builder, raw_schema do
     {dependent_schemas, dependent_required} =
       Enum.reduce(map, {[], []}, fn {key, subschema}, {dependent_schemas, dependent_required} ->
         cond do
@@ -142,28 +142,28 @@ defmodule JSV.Vocabulary.V202012.Applicator do
         end
       end)
 
-    with {:ok, acc, ctx} <- handle_keyword({:dependentSchemas, dependent_schemas}, acc, ctx, raw_schema) do
-      {:ok, [{:dependentRequired, dependent_required} | acc], ctx}
+    with {:ok, acc, builder} <- handle_keyword({:dependentSchemas, dependent_schemas}, acc, builder, raw_schema) do
+      {:ok, [{:dependentRequired, dependent_required} | acc], builder}
     end
   end
 
-  take_keyword :not, subschema, acc, ctx, _ do
-    take_sub(:not, subschema, acc, ctx)
+  take_keyword :not, subschema, acc, builder, _ do
+    take_sub(:not, subschema, acc, builder)
   end
 
   ignore_any_keyword()
 
   # ---------------------------------------------------------------------------
 
-  defp build_sub_list(subschemas, ctx) do
-    Helpers.reduce_ok(subschemas, {[], ctx}, fn subschema, {acc, ctx} ->
-      case Builder.build_sub(subschema, ctx) do
-        {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | acc], ctx}}
+  defp build_sub_list(subschemas, builder) do
+    Helpers.reduce_ok(subschemas, {[], builder}, fn subschema, {acc, builder} ->
+      case Builder.build_sub(subschema, builder) do
+        {:ok, subvalidators, builder} -> {:ok, {[subvalidators | acc], builder}}
         {:error, _} = err -> err
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, :lists.reverse(subvalidators), ctx}
+      {:ok, {subvalidators, builder}} -> {:ok, :lists.reverse(subvalidators), builder}
       {:error, _} = err -> err
     end
   end
@@ -469,8 +469,8 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validation_enabled?(bld) do
-    Builder.vocabulary_enabled?(bld, JSV.Vocabulary.V202012.Validation)
+  defp validation_enabled?(builder) do
+    Builder.vocabulary_enabled?(builder, JSV.Vocabulary.V202012.Validation)
   end
 
   # ---------------------------------------------------------------------------

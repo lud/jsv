@@ -5,16 +5,16 @@ defmodule JSV.Vocabulary.V202012.Content do
     []
   end
 
-  take_keyword :contentMediaType, _, acc, ctx, _ do
-    {:ok, acc, ctx}
+  take_keyword :contentMediaType, _, acc, builder, _ do
+    {:ok, acc, builder}
   end
 
-  take_keyword :contentEncoding, _, acc, ctx, _ do
-    {:ok, acc, ctx}
+  take_keyword :contentEncoding, _, acc, builder, _ do
+    {:ok, acc, builder}
   end
 
-  take_keyword :contentSchema, _, acc, ctx, _ do
-    {:ok, acc, ctx}
+  take_keyword :contentSchema, _, acc, builder, _ do
+    {:ok, acc, builder}
   end
 
   ignore_any_keyword()

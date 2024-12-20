@@ -4,7 +4,7 @@ defmodule JSV.Vocabulary.Draft7.Format do
 
   defdelegate init_validators(opts), to: Fallback
 
-  defdelegate handle_keyword(kw_tuple, acc, ctx, raw_schema), to: Fallback
+  defdelegate handle_keyword(kw_tuple, acc, builder, raw_schema), to: Fallback
 
   defdelegate finalize_validators(acc), to: Fallback
 

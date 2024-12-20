@@ -21,11 +21,9 @@ defmodule JSV.Vocabulary.V202012.Format do
     %{default_assert: default_assert}
   end
 
-  IO.warn("rename ctx to bld")
-
-  take_keyword :format, format, acc, ctx, _ do
+  take_keyword :format, format, acc, builder, _ do
     validator_mods =
-      case ctx.opts[:formats] do
+      case builder.opts[:formats] do
         # opt in / out, use defaults mods
         bool when is_boolean(bool) -> validation_modules_or_none(bool)
         # no opt-in/out, use default for vocabulary "assert" opt
@@ -35,8 +33,8 @@ defmodule JSV.Vocabulary.V202012.Format do
       end
 
     case validator_mods do
-      :none -> {:ok, acc, ctx}
-      _ -> add_format(validator_mods, format, acc, ctx)
+      :none -> {:ok, acc, builder}
+      _ -> add_format(validator_mods, format, acc, builder)
     end
   end
 
@@ -50,10 +48,10 @@ defmodule JSV.Vocabulary.V202012.Format do
     @default_validators
   end
 
-  defp add_format(validator_mods, format, acc, ctx) do
+  defp add_format(validator_mods, format, acc, builder) do
     case Enum.find(validator_mods, :__no_mod__, fn mod -> format in mod.supported_formats() end) do
       :__no_mod__ -> {:error, {:unsupported_format, format}}
-      module -> {:ok, Map.put(acc, :format, {module, format}), ctx}
+      module -> {:ok, Map.put(acc, :format, {module, format}), builder}
     end
   end
 

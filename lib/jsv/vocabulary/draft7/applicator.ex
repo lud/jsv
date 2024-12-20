@@ -9,30 +9,30 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
 
   defdelegate format_error(key, args, data), to: Fallback
 
-  take_keyword :additionalItems, items, acc, ctx, _ do
-    take_sub(:additionalItems, items, acc, ctx)
+  take_keyword :additionalItems, items, acc, builder, _ do
+    take_sub(:additionalItems, items, acc, builder)
   end
 
-  take_keyword :items, items when is_map(items), acc, ctx, _ do
-    take_sub(:items, items, acc, ctx)
+  take_keyword :items, items when is_map(items), acc, builder, _ do
+    take_sub(:items, items, acc, builder)
   end
 
-  take_keyword :items, items when is_list(items), acc, ctx, _ do
+  take_keyword :items, items when is_list(items), acc, builder, _ do
     items
-    |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
-      case Builder.build_sub(item, ctx) do
-        {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | subacc], ctx}}
+    |> Helpers.reduce_ok({[], builder}, fn item, {subacc, builder} ->
+      case Builder.build_sub(item, builder) do
+        {:ok, subvalidators, builder} -> {:ok, {[subvalidators | subacc], builder}}
         {:error, _} = err -> err
       end
     end)
     |> case do
-      {:ok, {subvalidators, ctx}} -> {:ok, [{:items, :lists.reverse(subvalidators)} | acc], ctx}
+      {:ok, {subvalidators, builder}} -> {:ok, [{:items, :lists.reverse(subvalidators)} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  def handle_keyword(pair, acc, ctx, raw_schema) do
-    Fallback.handle_keyword(pair, acc, ctx, raw_schema)
+  def handle_keyword(pair, acc, builder, raw_schema) do
+    Fallback.handle_keyword(pair, acc, builder, raw_schema)
   end
 
   def finalize_validators([]) do

@@ -7,7 +7,7 @@ defmodule JSV.Vocabulary do
   @type pair :: {binary | atom, term}
   @type data :: %{optional(binary) => data} | [data] | binary | boolean | number | nil
   @callback init_validators(Keyword.t()) :: validators
-  @callback handle_keyword(pair, validators, bld :: Builder.t(), raw_schema :: term) ::
+  @callback handle_keyword(pair, validators, Builder.t(), raw_schema :: term) ::
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
   @callback validate(data, validators, vdr :: Validator.t()) :: {:ok, data} | {:error, Validator.t()}
@@ -87,7 +87,7 @@ defmodule JSV.Vocabulary do
     end
   end
 
-  defmacro take_keyword(atom_form, bind_value, bind_acc, bind_ctx, bind_raw_schema, [{:do, block}])
+  defmacro take_keyword(atom_form, bind_value, bind_acc, bind_builder, bind_raw_schema, [{:do, block}])
            when is_atom(atom_form) do
     string_form = Atom.to_string(atom_form)
 
@@ -106,15 +106,15 @@ defmodule JSV.Vocabulary do
         def handle_keyword(
               {unquote(atom_form), unquote(bind_value)},
               unquote(bind_acc),
-              unquote(bind_ctx),
+              unquote(bind_builder),
               unquote(bind_raw_schema)
             )
             when unquote(when_clause) do
           unquote(block)
         end
 
-        def handle_keyword({unquote(string_form), value}, acc, ctx, raw_schema) do
-          handle_keyword({unquote(atom_form), value}, acc, ctx, raw_schema)
+        def handle_keyword({unquote(string_form), value}, acc, builder, raw_schema) do
+          handle_keyword({unquote(atom_form), value}, acc, builder, raw_schema)
         end
       end
 
@@ -152,12 +152,12 @@ defmodule JSV.Vocabulary do
 
     quote do
       @impl true
-      def handle_keyword({unquote(atom_form), _}, acc, ctx, _) do
-        {:ok, acc, ctx}
+      def handle_keyword({unquote(atom_form), _}, acc, builder, _) do
+        {:ok, acc, builder}
       end
 
-      def handle_keyword({unquote(string_form), _}, acc, ctx, _) do
-        {:ok, acc, ctx}
+      def handle_keyword({unquote(string_form), _}, acc, builder, _) do
+        {:ok, acc, builder}
       end
     end
   end
@@ -176,16 +176,16 @@ defmodule JSV.Vocabulary do
     end
   end
 
-  def take_sub(key, subraw, acc, ctx) when is_list(acc) do
-    case Builder.build_sub(subraw, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{key, subvalidators} | acc], ctx}
+  def take_sub(key, subraw, acc, builder) when is_list(acc) do
+    case Builder.build_sub(subraw, builder) do
+      {:ok, subvalidators, builder} -> {:ok, [{key, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
-  def take_integer(key, n, acc, ctx) when is_list(acc) do
+  def take_integer(key, n, acc, builder) when is_list(acc) do
     with {:ok, n} <- force_integer(n) do
-      {:ok, [{key, n} | acc], ctx}
+      {:ok, [{key, n} | acc], builder}
     end
   end
 
@@ -205,9 +205,9 @@ defmodule JSV.Vocabulary do
     {:error, "not an integer: #{inspect(other)}"}
   end
 
-  def take_number(key, n, acc, ctx) when is_list(acc) do
+  def take_number(key, n, acc, builder) when is_list(acc) do
     with :ok <- check_number(n) do
-      {:ok, [{key, n} | acc], ctx}
+      {:ok, [{key, n} | acc], builder}
     end
   end
 

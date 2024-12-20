@@ -19,17 +19,17 @@ defmodule JSV.Builder do
     struct!(__MODULE__, resolver: resolver, opts: opts)
   end
 
-  def build(bld, raw_schema) do
-    with {:ok, root_key, resolver} <- Resolver.resolve_root(bld.resolver, raw_schema),
-         bld = %__MODULE__{bld | resolver: resolver},
-         bld = stage_build(bld, root_key),
-         {:ok, validators} <- build_all(bld) do
+  def build(builder, raw_schema) do
+    with {:ok, root_key, resolver} <- Resolver.resolve_root(builder.resolver, raw_schema),
+         builder = %__MODULE__{builder | resolver: resolver},
+         builder = stage_build(builder, root_key),
+         {:ok, validators} <- build_all(builder) do
       {:ok, %Root{raw: raw_schema, validators: validators, root_key: root_key}}
     end
   end
 
-  def stage_build(%{staged: staged} = bld, buildable) do
-    %__MODULE__{bld | staged: append_unique(staged, buildable)}
+  def stage_build(%{staged: staged} = builder, buildable) do
+    %__MODULE__{builder | staged: append_unique(staged, buildable)}
   end
 
   defp append_unique([key | t], key) do
@@ -44,9 +44,9 @@ defmodule JSV.Builder do
     [key]
   end
 
-  def ensure_resolved(%{resolver: resolver} = bld, resolvable) do
+  def ensure_resolved(%{resolver: resolver} = builder, resolvable) do
     case Resolver.resolve(resolver, resolvable) do
-      {:ok, resolver} -> {:ok, %__MODULE__{bld | resolver: resolver}}
+      {:ok, resolver} -> {:ok, %__MODULE__{builder | resolver: resolver}}
       {:error, reason} -> {:error, {:resolver_error, reason}}
     end
   end
@@ -59,8 +59,8 @@ defmodule JSV.Builder do
     :empty
   end
 
-  defp take_staged(%{staged: [staged | tail]} = bld) do
-    {staged, %__MODULE__{bld | staged: tail}}
+  defp take_staged(%{staged: [staged | tail]} = builder) do
+    {staged, %__MODULE__{builder | staged: tail}}
   end
 
   # * all_validators represent the map of schema_id_or_ref => validators for
@@ -69,13 +69,13 @@ defmodule JSV.Builder do
   # * mod_validators are the created validators from part of a schema
   #   keywords+values and a vocabulary module
 
-  defp build_all(bld) do
-    build_all(bld, %{})
+  defp build_all(builder) do
+    build_all(builder, %{})
   catch
     {:thrown_build_error, reason} -> {:error, reason}
   end
 
-  defp build_all(bld, all_validators) do
+  defp build_all(builder, all_validators) do
     # We split the buildables in three cases:
     # - One dynamic refs will lead to build all existing dynamic refs not
     #   already built.
@@ -87,27 +87,27 @@ defmodule JSV.Builder do
     # We need to do that 2-pass in the stage list because some resolvables
     # (dynamic refs) lead to stage and build multiple validators.
 
-    case take_staged(bld) do
-      {{:resolved, vkey}, %{resolver: resolver} = bld} ->
+    case take_staged(builder) do
+      {{:resolved, vkey}, %{resolver: resolver} = builder} ->
         with :buildable <- check_not_built(all_validators, vkey),
              {:ok, resolved} <- Resolver.fetch_resolved(resolver, vkey),
-             {:ok, schema_validators, bld} <- build_resolved(bld, resolved) do
-          build_all(bld, register_validator(all_validators, vkey, schema_validators))
+             {:ok, schema_validators, builder} <- build_resolved(builder, resolved) do
+          build_all(builder, register_validator(all_validators, vkey, schema_validators))
         else
-          {:already_built, _} -> build_all(bld, all_validators)
+          {:already_built, _} -> build_all(builder, all_validators)
           {:error, _} = err -> err
         end
 
-      {%Ref{dynamic?: true}, bld} ->
-        bld = stage_all_dynamic(bld)
-        build_all(bld, all_validators)
+      {%Ref{dynamic?: true}, builder} ->
+        builder = stage_all_dynamic(builder)
+        build_all(builder, all_validators)
 
-      {resolvable, bld} when is_binary(resolvable) when is_struct(resolvable, Ref) when :root == resolvable ->
+      {resolvable, builder} when is_binary(resolvable) when is_struct(resolvable, Ref) when :root == resolvable ->
         with :buildable <- check_not_built(all_validators, Key.of(resolvable)),
-             {:ok, bld} <- resolve_and_stage(bld, resolvable) do
-          build_all(bld, all_validators)
+             {:ok, builder} <- resolve_and_stage(builder, resolvable) do
+          build_all(builder, all_validators)
         else
-          {:already_built, _} -> build_all(bld, all_validators)
+          {:already_built, _} -> build_all(builder, all_validators)
           {:error, _} = err -> err
         end
 
@@ -121,16 +121,16 @@ defmodule JSV.Builder do
     Map.put(all_validators, vkey, schema_validators)
   end
 
-  defp resolve_and_stage(bld, resolvable) do
+  defp resolve_and_stage(builder, resolvable) do
     vkey = Key.of(resolvable)
 
-    case ensure_resolved(bld, resolvable) do
-      {:ok, new_bld} -> {:ok, stage_build(new_bld, {:resolved, vkey})}
+    case ensure_resolved(builder, resolvable) do
+      {:ok, new_builder} -> {:ok, stage_build(new_builder, {:resolved, vkey})}
       {:error, _} = err -> err
     end
   end
 
-  defp stage_all_dynamic(bld) do
+  defp stage_all_dynamic(builder) do
     # To build all dynamic references we tap into the resolver. The resolver
     # also conveniently allows to fetch by its own keys ({:dynamic_anchor, _,
     # _}) instead of passing the original ref.
@@ -149,12 +149,12 @@ defmodule JSV.Builder do
     #
     # But to keep it clean we scan the whole list every time.
     dynamic_buildables =
-      Enum.flat_map(bld.resolver.resolved, fn
+      Enum.flat_map(builder.resolver.resolved, fn
         {{:dynamic_anchor, _, _} = vkey, _resolved} -> [{:resolved, vkey}]
         _ -> []
       end)
 
-    %__MODULE__{bld | staged: dynamic_buildables ++ bld.staged}
+    %__MODULE__{builder | staged: dynamic_buildables ++ builder.staged}
   end
 
   defp check_not_built(all_validators, vkey) do
@@ -164,54 +164,54 @@ defmodule JSV.Builder do
     end
   end
 
-  defp build_resolved(bld, resolved) do
+  defp build_resolved(builder, resolved) do
     %Resolved{meta: meta, ns: ns, parent_ns: parent_ns} = resolved
 
-    case fetch_vocabularies(bld, meta) do
+    case fetch_vocabularies(builder, meta) do
       {:ok, vocabularies} when is_list(vocabularies) ->
-        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: ns, parent_ns: parent_ns}
-        do_build_sub(resolved.raw, bld)
+        builder = %__MODULE__{builder | vocabularies: vocabularies, ns: ns, parent_ns: parent_ns}
+        do_build_sub(resolved.raw, builder)
 
       {:error, _} = err ->
         err
     end
   end
 
-  defp fetch_vocabularies(bld, meta) do
-    case Resolver.fetch_meta(bld.resolver, meta) do
+  defp fetch_vocabularies(builder, meta) do
+    case Resolver.fetch_meta(builder.resolver, meta) do
       {:ok, %Resolved{vocabularies: vocabularies}} -> {:ok, vocabularies}
       {:error, _} = err -> err
     end
   end
 
-  def build_sub(%{"$id" => id}, %__MODULE__{} = bld) do
-    with {:ok, key} <- RNS.derive(bld.ns, id) do
-      {:ok, {:alias_of, key}, stage_build(bld, key)}
+  def build_sub(%{"$id" => id}, %__MODULE__{} = builder) do
+    with {:ok, key} <- RNS.derive(builder.ns, id) do
+      {:ok, {:alias_of, key}, stage_build(builder, key)}
     end
   end
 
-  def build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) when is_boolean(raw_schema) do
-    do_build_sub(raw_schema, bld)
+  def build_sub(raw_schema, %__MODULE__{} = builder) when is_map(raw_schema) when is_boolean(raw_schema) do
+    do_build_sub(raw_schema, builder)
   end
 
-  defp do_build_sub(valid?, %__MODULE__{} = bld) when is_boolean(valid?) do
-    {:ok, BooleanSchema.of(valid?), bld}
+  defp do_build_sub(valid?, %__MODULE__{} = builder) when is_boolean(valid?) do
+    {:ok, BooleanSchema.of(valid?), builder}
   end
 
-  defp do_build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) do
-    {_leftovers, schema_validators, %__MODULE__{} = bld} =
-      Enum.reduce(bld.vocabularies, {raw_schema, [], bld}, fn module_or_tuple,
-                                                              {remaining_pairs, schema_validators, bld} ->
+  defp do_build_sub(raw_schema, %__MODULE__{} = builder) when is_map(raw_schema) do
+    {_leftovers, schema_validators, %__MODULE__{} = builder} =
+      Enum.reduce(builder.vocabularies, {raw_schema, [], builder}, fn module_or_tuple,
+                                                                      {remaining_pairs, schema_validators, builder} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
         {module, init_opts} = mod_and_init_opts(module_or_tuple)
 
-        {remaining_pairs, mod_validators, %__MODULE__{} = bld} =
-          build_mod_validators(remaining_pairs, module, init_opts, bld, raw_schema)
+        {remaining_pairs, mod_validators, %__MODULE__{} = builder} =
+          build_mod_validators(remaining_pairs, module, init_opts, builder, raw_schema)
 
         case mod_validators do
-          :ignore -> {remaining_pairs, schema_validators, bld}
-          _ -> {remaining_pairs, [{module, mod_validators} | schema_validators], bld}
+          :ignore -> {remaining_pairs, schema_validators, builder}
+          _ -> {remaining_pairs, [{module, mod_validators} | schema_validators], builder}
         end
       end)
 
@@ -224,10 +224,10 @@ defmodule JSV.Builder do
     #       other -> IO.warn("got some leftovers: #{inspect(other)}", [])
     #     end
 
-    # Reverse the list to keep the priority order from bld.vocabularies
+    # Reverse the list to keep the priority order from builder.vocabularies
     schema_validators = :lists.reverse(schema_validators)
 
-    {:ok, %JSV.Subschema{validators: schema_validators}, bld}
+    {:ok, %JSV.Subschema{validators: schema_validators}, builder}
   end
 
   defp mod_and_init_opts({module, opts}) when is_atom(module) and is_list(opts) do
@@ -238,24 +238,24 @@ defmodule JSV.Builder do
     {module, []}
   end
 
-  defp build_mod_validators(raw_pairs, module, init_opts, bld, raw_schema) when is_map(raw_schema) do
-    {leftovers, mod_acc, %__MODULE__{} = bld} =
-      Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), bld}, fn pair, {leftovers, mod_acc, bld} ->
+  defp build_mod_validators(raw_pairs, module, init_opts, builder, raw_schema) when is_map(raw_schema) do
+    {leftovers, mod_acc, %__MODULE__{} = builder} =
+      Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), builder}, fn pair, {leftovers, mod_acc, builder} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.
 
-        case module.handle_keyword(pair, mod_acc, bld, raw_schema) do
-          {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
-          :ignore -> {[pair | leftovers], mod_acc, bld}
+        case module.handle_keyword(pair, mod_acc, builder, raw_schema) do
+          {:ok, mod_acc, builder} -> {leftovers, mod_acc, builder}
+          :ignore -> {[pair | leftovers], mod_acc, builder}
           {:error, reason} -> throw({:thrown_build_error, reason})
         end
       end)
 
-    {leftovers, module.finalize_validators(mod_acc), bld}
+    {leftovers, module.finalize_validators(mod_acc), builder}
   end
 
-  def vocabulary_enabled?(bld, vocab) do
-    Enum.find_value(bld.vocabularies, false, fn
+  def vocabulary_enabled?(builder, vocab) do
+    Enum.find_value(builder.vocabularies, false, fn
       ^vocab -> true
       {^vocab, _} -> true
       _ -> false

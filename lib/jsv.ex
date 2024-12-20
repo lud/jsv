@@ -70,8 +70,6 @@ defmodule JSV do
     @default_default_meta
   end
 
-  IO.warn("flip the arguments")
-
   def validate(data, schema)
 
   def validate(data, %JSV.Root{} = schema) do

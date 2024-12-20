@@ -5,9 +5,9 @@ defmodule JSV.Vocabulary.Draft7.Core do
 
   defdelegate init_validators(opts), to: Fallback
 
-  take_keyword :"$ref", raw_ref, _acc, bld, raw_schema do
+  take_keyword :"$ref", raw_ref, _acc, builder, raw_schema do
     ref_relative_to_ns =
-      case {raw_schema, bld} do
+      case {raw_schema, builder} do
         # The ref is not relative to the current $id if defined at the same
         # level and there is a parent $id.
         #
@@ -23,20 +23,20 @@ defmodule JSV.Vocabulary.Draft7.Core do
 
     with {:ok, ref} <- Ref.parse(raw_ref, ref_relative_to_ns) do
       # reset the acc as $ref overrides any other keyword
-      Fallback.ok_put_ref(ref, [], bld)
+      Fallback.ok_put_ref(ref, [], builder)
     end
   end
 
-  take_keyword :definitions, _defs, acc, bld, _ do
-    {:ok, acc, bld}
+  take_keyword :definitions, _defs, acc, builder, _ do
+    {:ok, acc, builder}
   end
 
   # $ref overrides any other keyword
-  def handle_keyword(_kw_tuple, acc, bld, raw_schema) when is_map_key(raw_schema, "$ref") do
-    {:ok, acc, bld}
+  def handle_keyword(_kw_tuple, acc, builder, raw_schema) when is_map_key(raw_schema, "$ref") do
+    {:ok, acc, builder}
   end
 
-  defdelegate handle_keyword(kw_tuple, acc, bld, raw_schema), to: Fallback
+  defdelegate handle_keyword(kw_tuple, acc, builder, raw_schema), to: Fallback
 
   defdelegate finalize_validators(acc), to: Fallback
 

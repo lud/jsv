@@ -7,87 +7,87 @@ defmodule JSV.Vocabulary.V202012.Validation do
     []
   end
 
-  take_keyword :type, t, vds, ctx, _ do
-    {:ok, [{:type, valid_type!(t)} | vds], ctx}
+  take_keyword :type, t, vds, builder, _ do
+    {:ok, [{:type, valid_type!(t)} | vds], builder}
   end
 
-  take_keyword :maximum, maximum, acc, ctx, _ do
-    take_number(:maximum, maximum, acc, ctx)
+  take_keyword :maximum, maximum, acc, builder, _ do
+    take_number(:maximum, maximum, acc, builder)
   end
 
-  take_keyword :exclusiveMaximum, exclusive_maximum, acc, ctx, _ do
-    take_number(:exclusiveMaximum, exclusive_maximum, acc, ctx)
+  take_keyword :exclusiveMaximum, exclusive_maximum, acc, builder, _ do
+    take_number(:exclusiveMaximum, exclusive_maximum, acc, builder)
   end
 
-  take_keyword :minimum, minimum, acc, ctx, _ do
-    take_number(:minimum, minimum, acc, ctx)
+  take_keyword :minimum, minimum, acc, builder, _ do
+    take_number(:minimum, minimum, acc, builder)
   end
 
-  take_keyword :exclusiveMinimum, exclusive_minimum, acc, ctx, _ do
-    take_number(:exclusiveMinimum, exclusive_minimum, acc, ctx)
+  take_keyword :exclusiveMinimum, exclusive_minimum, acc, builder, _ do
+    take_number(:exclusiveMinimum, exclusive_minimum, acc, builder)
   end
 
-  take_keyword :minItems, min_items, acc, ctx, _ do
-    take_integer(:minItems, min_items, acc, ctx)
+  take_keyword :minItems, min_items, acc, builder, _ do
+    take_integer(:minItems, min_items, acc, builder)
   end
 
-  take_keyword :maxItems, max_items, acc, ctx, _ do
-    take_integer(:maxItems, max_items, acc, ctx)
+  take_keyword :maxItems, max_items, acc, builder, _ do
+    take_integer(:maxItems, max_items, acc, builder)
   end
 
-  take_keyword :required, required when is_list(required), acc, ctx, _ do
-    {:ok, [{:required, required} | acc], ctx}
+  take_keyword :required, required when is_list(required), acc, builder, _ do
+    {:ok, [{:required, required} | acc], builder}
   end
 
-  take_keyword :multipleOf, zero when zero in [0, 0.0], _acc, _ctx, _ do
+  take_keyword :multipleOf, zero when zero in [0, 0.0], _acc, _builder, _ do
     {:error, "mutipleOf zero is not allowed"}
   end
 
-  take_keyword :multipleOf, multiple_of, acc, ctx, _ do
-    take_number(:multipleOf, multiple_of, acc, ctx)
+  take_keyword :multipleOf, multiple_of, acc, builder, _ do
+    take_number(:multipleOf, multiple_of, acc, builder)
   end
 
-  take_keyword :const, const, acc, ctx, _ do
-    {:ok, [{:const, const} | acc], ctx}
+  take_keyword :const, const, acc, builder, _ do
+    {:ok, [{:const, const} | acc], builder}
   end
 
-  take_keyword :maxLength, max_length, acc, ctx, _ do
-    take_integer(:maxLength, max_length, acc, ctx)
+  take_keyword :maxLength, max_length, acc, builder, _ do
+    take_integer(:maxLength, max_length, acc, builder)
   end
 
-  take_keyword :minLength, min_length, acc, ctx, _ do
-    take_integer(:minLength, min_length, acc, ctx)
+  take_keyword :minLength, min_length, acc, builder, _ do
+    take_integer(:minLength, min_length, acc, builder)
   end
 
-  take_keyword :minProperties, min_properties, acc, ctx, _ do
-    take_integer(:minProperties, min_properties, acc, ctx)
+  take_keyword :minProperties, min_properties, acc, builder, _ do
+    take_integer(:minProperties, min_properties, acc, builder)
   end
 
-  take_keyword :maxProperties, max_properties, acc, ctx, _ do
-    take_integer(:maxProperties, max_properties, acc, ctx)
+  take_keyword :maxProperties, max_properties, acc, builder, _ do
+    take_integer(:maxProperties, max_properties, acc, builder)
   end
 
-  take_keyword :enum, enum, acc, ctx, _ do
-    {:ok, [{:enum, enum} | acc], ctx}
+  take_keyword :enum, enum, acc, builder, _ do
+    {:ok, [{:enum, enum} | acc], builder}
   end
 
-  take_keyword :pattern, pattern, acc, ctx, _ do
+  take_keyword :pattern, pattern, acc, builder, _ do
     case Regex.compile(pattern) do
-      {:ok, re} -> {:ok, [{:pattern, re} | acc], ctx}
+      {:ok, re} -> {:ok, [{:pattern, re} | acc], builder}
       {:error, _} -> {:error, {:invalid_pattern, pattern}}
     end
   end
 
-  take_keyword :uniqueItems, unique?, acc, ctx, _ do
+  take_keyword :uniqueItems, unique?, acc, builder, _ do
     if unique? do
-      {:ok, [{:uniqueItems, true} | acc], ctx}
+      {:ok, [{:uniqueItems, true} | acc], builder}
     else
-      {:ok, acc, ctx}
+      {:ok, acc, builder}
     end
   end
 
-  take_keyword :dependentRequired, dependent_required, acc, ctx, _ do
-    {:ok, [{:dependentRequired, dependent_required} | acc], ctx}
+  take_keyword :dependentRequired, dependent_required, acc, builder, _ do
+    {:ok, [{:dependentRequired, dependent_required} | acc], builder}
   end
 
   # minContains/maxContains is handled by the Applicator module IF the validation vocabulary is
