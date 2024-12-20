@@ -40,5 +40,5 @@ defmodule JSV.Vocabulary.Draft7.Core do
 
   defdelegate finalize_validators(acc), to: Fallback
 
-  defdelegate validate(data, vds, vdr), to: Fallback
+  defdelegate validate(data, vds, vctx), to: Fallback
 end

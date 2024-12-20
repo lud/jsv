@@ -137,12 +137,12 @@ defmodule JSV.Vocabulary.V202012.Core do
 
   # ---------------------------------------------------------------------------
 
-  def validate(data, vds, vdr) do
-    Validator.iterate(vds, data, vdr, &validate_keyword/3)
+  def validate(data, vds, vctx) do
+    Validator.iterate(vds, data, vctx, &validate_keyword/3)
   end
 
-  def validate_keyword({:ref, ref}, data, vdr) do
-    Validator.validate_ref(data, ref, vdr)
+  def validate_keyword({:ref, ref}, data, vctx) do
+    Validator.validate_ref(data, ref, vctx)
   end
 
   # ---------------------------------------------------------------------------

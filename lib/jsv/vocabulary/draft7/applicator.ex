@@ -56,34 +56,34 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     end
   end
 
-  def validate(data, vds, vdr) do
-    Validator.iterate(vds, data, vdr, &validate_keyword/3)
+  def validate(data, vds, vctx) do
+    Validator.iterate(vds, data, vctx, &validate_keyword/3)
   end
 
-  def validate_keyword({:items@jsv, {items, additional_items}}, data, vdr) when is_list(items) and is_list(data) do
+  def validate_keyword({:items@jsv, {items, additional_items}}, data, vctx) when is_list(items) and is_list(data) do
     all_schemas = Stream.concat(List.wrap(items), Stream.cycle([additional_items]))
 
     index_items = Stream.with_index(data)
 
     zipped = Enum.zip(index_items, all_schemas)
 
-    {rev_items, vdr} =
-      Enum.reduce(zipped, {[], vdr}, fn
-        {{item, _index}, nil}, {casted, vdr} ->
+    {rev_items, vctx} =
+      Enum.reduce(zipped, {[], vctx}, fn
+        {{item, _index}, nil}, {casted, vctx} ->
           # TODO add evaluated path to validator
-          {[item | casted], vdr}
+          {[item | casted], vctx}
 
-        {{item, index}, subschema}, {casted, vdr} ->
-          case Validator.validate_nested(item, index, subschema, vdr) do
-            {:ok, casted_item, vdr} -> {[casted_item | casted], vdr}
-            {:error, vdr} -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
+        {{item, index}, subschema}, {casted, vctx} ->
+          case Validator.validate_nested(item, index, subschema, vctx) do
+            {:ok, casted_item, vctx} -> {[casted_item | casted], vctx}
+            {:error, vctx} -> {[item | casted], Validator.with_error(vctx, :item, item, index: index)}
           end
       end)
 
-    Validator.return(:lists.reverse(rev_items), vdr)
+    Validator.return(:lists.reverse(rev_items), vctx)
   end
 
-  def validate_keyword({:items@jsv, {items, _}}, data, vdr)
+  def validate_keyword({:items@jsv, {items, _}}, data, vctx)
       when (is_map(items) or (is_tuple(items) and elem(items, 0) == :alias_of)) and is_list(data) do
     all_schemas = Stream.cycle([items])
 
@@ -91,25 +91,25 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
 
     zipped = Enum.zip(index_items, all_schemas)
 
-    {rev_items, vdr} =
-      Enum.reduce(zipped, {[], vdr}, fn
-        {{item, _index}, nil}, {casted, vdr} ->
+    {rev_items, vctx} =
+      Enum.reduce(zipped, {[], vctx}, fn
+        {{item, _index}, nil}, {casted, vctx} ->
           # TODO add evaluated path to validator
-          {[item | casted], vdr}
+          {[item | casted], vctx}
 
-        {{item, index}, subschema}, {casted, vdr} ->
-          case Validator.validate_nested(item, index, subschema, vdr) do
-            {:ok, casted_item, vdr} -> {[casted_item | casted], vdr}
-            {:error, vdr} -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
+        {{item, index}, subschema}, {casted, vctx} ->
+          case Validator.validate_nested(item, index, subschema, vctx) do
+            {:ok, casted_item, vctx} -> {[casted_item | casted], vctx}
+            {:error, vctx} -> {[item | casted], Validator.with_error(vctx, :item, item, index: index)}
           end
       end)
 
-    Validator.return(:lists.reverse(rev_items), vdr)
+    Validator.return(:lists.reverse(rev_items), vctx)
   end
 
   pass validate_keyword({:items@jsv, _})
 
-  def validate_keyword(vd, data, vdr) do
-    Fallback.validate_keyword(vd, data, vdr)
+  def validate_keyword(vd, data, vctx) do
+    Fallback.validate_keyword(vd, data, vctx)
   end
 end

@@ -24,35 +24,35 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     Map.new(list)
   end
 
-  def validate(data, vds, vdr) do
-    Validator.iterate(vds, data, vdr, &validate_keyword/3)
+  def validate(data, vds, vctx) do
+    Validator.iterate(vds, data, vctx, &validate_keyword/3)
   end
 
-  def validate_keyword({:unevaluatedProperties, subschema}, data, vdr) when is_map(data) do
-    evaluated = Validator.list_evaluaded(vdr)
+  def validate_keyword({:unevaluatedProperties, subschema}, data, vctx) when is_map(data) do
+    evaluated = Validator.list_evaluaded(vctx)
 
     data
     |> Enum.filter(fn {k, _v} -> k not in evaluated end)
-    |> Validator.iterate(data, vdr, fn {k, v}, data, vdr ->
-      case Validator.validate_nested(v, k, subschema, vdr) do
-        {:ok, _, vdr} -> {:ok, data, vdr}
-        {:error, vdr} -> {:error, vdr}
+    |> Validator.iterate(data, vctx, fn {k, v}, data, vctx ->
+      case Validator.validate_nested(v, k, subschema, vctx) do
+        {:ok, _, vctx} -> {:ok, data, vctx}
+        {:error, vctx} -> {:error, vctx}
       end
     end)
   end
 
   pass validate_keyword({:unevaluatedProperties, _})
 
-  def validate_keyword({:unevaluatedItems, subschema}, data, vdr) when is_list(data) do
-    evaluated = Validator.list_evaluaded(vdr)
+  def validate_keyword({:unevaluatedItems, subschema}, data, vctx) when is_list(data) do
+    evaluated = Validator.list_evaluaded(vctx)
 
     data
     |> Enum.with_index(0)
     |> Enum.reject(fn {_, index} -> index in evaluated end)
-    |> Validator.iterate(data, vdr, fn {item, index}, data, vdr ->
-      case Validator.validate_nested(item, index, subschema, vdr) do
-        {:ok, _, vdr} -> {:ok, data, vdr}
-        {:error, vdr} -> {:error, vdr}
+    |> Validator.iterate(data, vctx, fn {item, index}, data, vctx ->
+      case Validator.validate_nested(item, index, subschema, vctx) do
+        {:ok, _, vctx} -> {:ok, data, vctx}
+        {:error, vctx} -> {:error, vctx}
       end
     end)
   end

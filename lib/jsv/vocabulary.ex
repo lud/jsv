@@ -10,7 +10,7 @@ defmodule JSV.Vocabulary do
   @callback handle_keyword(pair, validators, Builder.t(), raw_schema :: term) ::
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
-  @callback validate(data, validators, vdr :: Validator.t()) :: {:ok, data} | {:error, Validator.t()}
+  @callback validate(data, validators, vctx :: Validator.t()) :: {:ok, data} | {:error, Validator.t()}
   @callback format_error(atom, %{optional(atom) => term}, data) ::
               String.t() | {String.t(), %{optional(binary | atom) => term}}
 
@@ -169,8 +169,8 @@ defmodule JSV.Vocabulary do
 
       {fun_name, _, [match_tuple]} ->
         quote do
-          def unquote(fun_name)(unquote(match_tuple), data, vdr) do
-            {:ok, data, vdr}
+          def unquote(fun_name)(unquote(match_tuple), data, vctx) do
+            {:ok, data, vctx}
           end
         end
     end

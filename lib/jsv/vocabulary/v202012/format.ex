@@ -65,22 +65,22 @@ defmodule JSV.Vocabulary.V202012.Format do
     end
   end
 
-  def validate(data, [format: {module, format}], vdr) when is_binary(data) do
+  def validate(data, [format: {module, format}], vctx) when is_binary(data) do
     # TODO option to return casted value + TODO add low module priority
     case module.validate_cast(format, data) do
       {:ok, _casted} ->
-        {:ok, data, vdr}
+        {:ok, data, vctx}
 
       {:error, reason} ->
-        {:error, Validator.with_error(vdr, :format, data, format: format, reason: json_encodable_or_inspect(reason))}
+        {:error, Validator.with_error(vctx, :format, data, format: format, reason: json_encodable_or_inspect(reason))}
 
       other ->
         raise "invalid return from #{module}.validate/2 called with format #{inspect(format)}, got: #{inspect(other)}"
     end
   end
 
-  def validate(data, [format: _], vdr) do
-    {:ok, data, vdr}
+  def validate(data, [format: _], vctx) do
+    {:ok, data, vctx}
   end
 
   defp json_encodable_or_inspect(term) do

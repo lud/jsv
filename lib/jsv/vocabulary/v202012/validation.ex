@@ -138,11 +138,11 @@ defmodule JSV.Vocabulary.V202012.Validation do
     :number
   end
 
-  def validate(data, vds, vdr) do
-    Validator.iterate(vds, data, vdr, &validate_keyword/3)
+  def validate(data, vds, vctx) do
+    Validator.iterate(vds, data, vctx, &validate_keyword/3)
   end
 
-  def validate_keyword({:type, ts}, data, vdr) when is_list(ts) do
+  def validate_keyword({:type, ts}, data, vctx) when is_list(ts) do
     Enum.find_value(ts, fn t ->
       case validate_type(data, t) do
         true -> {:ok, data}
@@ -151,158 +151,158 @@ defmodule JSV.Vocabulary.V202012.Validation do
       end
     end)
     |> case do
-      {:ok, data} -> {:ok, data, vdr}
-      nil -> {:error, Validator.with_error(vdr, :type, data, type: ts)}
+      {:ok, data} -> {:ok, data, vctx}
+      nil -> {:error, Validator.with_error(vctx, :type, data, type: ts)}
     end
   end
 
-  def validate_keyword({:type, t}, data, vdr) do
+  def validate_keyword({:type, t}, data, vctx) do
     case validate_type(data, t) do
-      true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :type, data, type: t)}
-      {:swap, new_data} -> {:ok, new_data, vdr}
+      true -> {:ok, data, vctx}
+      false -> {:error, Validator.with_error(vctx, :type, data, type: t)}
+      {:swap, new_data} -> {:ok, new_data, vctx}
     end
   end
 
-  def validate_keyword({:maximum, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:maximum, n}, data, vctx) when is_number(data) do
     case data <= n do
-      true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :maximum, data, n: n)}
+      true -> {:ok, data, vctx}
+      false -> {:error, Validator.with_error(vctx, :maximum, data, n: n)}
     end
   end
 
   pass validate_keyword({:maximum, _})
 
-  def validate_keyword({:exclusiveMaximum, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:exclusiveMaximum, n}, data, vctx) when is_number(data) do
     case data < n do
-      true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :exclusiveMaximum, data, n: n)}
+      true -> {:ok, data, vctx}
+      false -> {:error, Validator.with_error(vctx, :exclusiveMaximum, data, n: n)}
     end
   end
 
   pass validate_keyword({:exclusiveMaximum, _})
 
-  def validate_keyword({:minimum, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:minimum, n}, data, vctx) when is_number(data) do
     case data >= n do
-      true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :minimum, data, n: n)}
+      true -> {:ok, data, vctx}
+      false -> {:error, Validator.with_error(vctx, :minimum, data, n: n)}
     end
   end
 
   pass validate_keyword({:minimum, _})
 
-  def validate_keyword({:exclusiveMinimum, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:exclusiveMinimum, n}, data, vctx) when is_number(data) do
     case data > n do
-      true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :exclusiveMinimum, data, n: n)}
+      true -> {:ok, data, vctx}
+      false -> {:error, Validator.with_error(vctx, :exclusiveMinimum, data, n: n)}
     end
   end
 
   pass validate_keyword({:exclusiveMinimum, _})
 
-  def validate_keyword({:maxItems, max}, data, vdr) when is_list(data) do
+  def validate_keyword({:maxItems, max}, data, vctx) when is_list(data) do
     len = length(data)
 
     if len <= max do
-      {:ok, data, vdr}
+      {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vdr, :maxItems, data, max_items: max, len: len)}
+      {:error, Validator.with_error(vctx, :maxItems, data, max_items: max, len: len)}
     end
   end
 
   pass validate_keyword({:maxItems, _})
 
-  def validate_keyword({:minItems, min}, data, vdr) when is_list(data) do
+  def validate_keyword({:minItems, min}, data, vctx) when is_list(data) do
     len = length(data)
 
     if len >= min do
-      {:ok, data, vdr}
+      {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vdr, :minItems, data, min_items: min, len: len)}
+      {:error, Validator.with_error(vctx, :minItems, data, min_items: min, len: len)}
     end
   end
 
   pass validate_keyword({:minItems, _})
 
-  def validate_keyword({:multipleOf, n}, data, vdr) when is_number(data) do
+  def validate_keyword({:multipleOf, n}, data, vctx) when is_number(data) do
     case Helpers.fractional_is_zero?(data / n) do
-      true -> {:ok, data, vdr}
-      false -> {:error, Validator.with_error(vdr, :multipleOf, data, multiple_of: n)}
+      true -> {:ok, data, vctx}
+      false -> {:error, Validator.with_error(vctx, :multipleOf, data, multiple_of: n)}
     end
   rescue
     # Rescue infinite division (huge numbers divided by float, too large invalid
     # floats)
-    _ in ArithmeticError -> {:error, Validator.with_error(vdr, :arithmetic_error, data, context: "multipleOf")}
+    _ in ArithmeticError -> {:error, Validator.with_error(vctx, :arithmetic_error, data, context: "multipleOf")}
   end
 
   pass validate_keyword({:multipleOf, _})
 
-  def validate_keyword({:required, required_keys}, data, vdr) when is_map(data) do
+  def validate_keyword({:required, required_keys}, data, vctx) when is_map(data) do
     case required_keys -- Map.keys(data) do
-      [] -> {:ok, data, vdr}
-      missing -> {:error, Validator.with_error(vdr, :required, data, required: missing)}
+      [] -> {:ok, data, vctx}
+      missing -> {:error, Validator.with_error(vctx, :required, data, required: missing)}
     end
   end
 
   pass validate_keyword({:required, _})
 
-  def validate_keyword({:dependentRequired, dependent_required}, data, vdr) do
-    validate_dependent_required(dependent_required, data, vdr)
+  def validate_keyword({:dependentRequired, dependent_required}, data, vctx) do
+    validate_dependent_required(dependent_required, data, vctx)
   end
 
-  def validate_keyword({:maxLength, max}, data, vdr) when is_binary(data) do
+  def validate_keyword({:maxLength, max}, data, vctx) when is_binary(data) do
     len = String.length(data)
 
     if len <= max do
-      {:ok, data, vdr}
+      {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vdr, :maxLength, data, max_length: max, len: len)}
+      {:error, Validator.with_error(vctx, :maxLength, data, max_length: max, len: len)}
     end
   end
 
   pass validate_keyword({:maxLength, _})
 
-  def validate_keyword({:minLength, min}, data, vdr) when is_binary(data) do
+  def validate_keyword({:minLength, min}, data, vctx) when is_binary(data) do
     len = String.length(data)
 
     if len >= min do
-      {:ok, data, vdr}
+      {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vdr, :minLength, data, min_length: min, len: len)}
+      {:error, Validator.with_error(vctx, :minLength, data, min_length: min, len: len)}
     end
   end
 
   pass validate_keyword({:minLength, _})
 
-  def validate_keyword({:const, const}, data, vdr) do
+  def validate_keyword({:const, const}, data, vctx) do
     # 1 == 1.0 should be true according to JSON Schema specs
     if data == const do
-      {:ok, data, vdr}
+      {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vdr, :const, data, const: const)}
+      {:error, Validator.with_error(vctx, :const, data, const: const)}
     end
   end
 
-  def validate_keyword({:enum, enum}, data, vdr) do
+  def validate_keyword({:enum, enum}, data, vctx) do
     # validate 1 == 1.0 or 1.0 == 1
     if Enum.any?(enum, &(&1 == data)) do
-      {:ok, data, vdr}
+      {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vdr, :enum, data, enum: enum)}
+      {:error, Validator.with_error(vctx, :enum, data, enum: enum)}
     end
   end
 
-  def validate_keyword({:pattern, re}, data, vdr) when is_binary(data) do
+  def validate_keyword({:pattern, re}, data, vctx) when is_binary(data) do
     if Regex.match?(re, data) do
-      {:ok, data, vdr}
+      {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vdr, :pattern, data, pattern: re.source)}
+      {:error, Validator.with_error(vctx, :pattern, data, pattern: re.source)}
     end
   end
 
   pass validate_keyword({:pattern, _})
 
-  def validate_keyword({:uniqueItems, true}, data, vdr) when is_list(data) do
+  def validate_keyword({:uniqueItems, true}, data, vctx) when is_list(data) do
     data
     |> Enum.with_index()
     |> Enum.reduce({[], %{}}, fn {item, index}, {duplicate_indices, seen} ->
@@ -312,26 +312,26 @@ defmodule JSV.Vocabulary.V202012.Validation do
       end
     end)
     |> case do
-      {[], _} -> {:ok, data, vdr}
-      {duplicates, _} -> {:error, Validator.with_error(vdr, :uniqueItems, data, duplicates: Map.new(duplicates))}
+      {[], _} -> {:ok, data, vctx}
+      {duplicates, _} -> {:error, Validator.with_error(vctx, :uniqueItems, data, duplicates: Map.new(duplicates))}
     end
   end
 
   pass validate_keyword({:uniqueItems, true})
 
-  def validate_keyword({:minProperties, n}, data, vdr) when is_map(data) do
+  def validate_keyword({:minProperties, n}, data, vctx) when is_map(data) do
     case map_size(data) do
-      size when size < n -> {:error, Validator.with_error(vdr, :minProperties, data, min_properties: n, size: size)}
-      _ -> {:ok, data, vdr}
+      size when size < n -> {:error, Validator.with_error(vctx, :minProperties, data, min_properties: n, size: size)}
+      _ -> {:ok, data, vctx}
     end
   end
 
   pass validate_keyword({:minProperties, _})
 
-  def validate_keyword({:maxProperties, n}, data, vdr) when is_map(data) do
+  def validate_keyword({:maxProperties, n}, data, vctx) when is_map(data) do
     case map_size(data) do
-      size when size > n -> {:error, Validator.with_error(vdr, :maxProperties, data, max_properties: n, size: size)}
-      _ -> {:ok, data, vdr}
+      size when size > n -> {:error, Validator.with_error(vctx, :maxProperties, data, max_properties: n, size: size)}
+      _ -> {:ok, data, vctx}
     end
   end
 
@@ -341,26 +341,26 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   # Shared to support "dependencies" compatibility
   @doc false
-  def validate_dependent_required(dependent_required, data, vdr) when is_map(data) do
+  def validate_dependent_required(dependent_required, data, vctx) when is_map(data) do
     all_keys = Map.keys(data)
 
-    Validator.iterate(dependent_required, data, vdr, fn
-      {parent_key, required_keys}, data, vdr when is_map_key(data, parent_key) ->
+    Validator.iterate(dependent_required, data, vctx, fn
+      {parent_key, required_keys}, data, vctx when is_map_key(data, parent_key) ->
         case required_keys -- all_keys do
           [] ->
-            {:ok, data, vdr}
+            {:ok, data, vctx}
 
           missing ->
-            {:error, Validator.with_error(vdr, :dependentRequired, data, parent: parent_key, missing: missing)}
+            {:error, Validator.with_error(vctx, :dependentRequired, data, parent: parent_key, missing: missing)}
         end
 
-      {_, _}, data, vdr ->
-        {:ok, data, vdr}
+      {_, _}, data, vctx ->
+        {:ok, data, vctx}
     end)
   end
 
-  def validate_dependent_required(_dependent_required, data, vdr) do
-    {:ok, data, vdr}
+  def validate_dependent_required(_dependent_required, data, vctx) do
+    {:ok, data, vctx}
   end
 
   defp validate_type(data, :array) do

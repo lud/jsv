@@ -51,38 +51,38 @@ defmodule JSV.Validator do
   # The validator struct is the 3rd argument to mimic the callback on the
   # vocabulary modules where builder and validators are passed as a context as
   # last argument.
-  def validate(data, dialect_or_boolean_schema, vdr)
+  def validate(data, dialect_or_boolean_schema, vctx)
 
-  def validate(data, %BooleanSchema{} = bs, %__MODULE__{} = vdr) do
+  def validate(data, %BooleanSchema{} = bs, %__MODULE__{} = vctx) do
     case BooleanSchema.valid?(bs) do
-      true -> return(data, vdr)
-      false -> {:error, add_error(vdr, boolean_schema_error(vdr, bs, data))}
+      true -> return(data, vctx)
+      false -> {:error, add_error(vctx, boolean_schema_error(vctx, bs, data))}
     end
   end
 
-  def validate(data, {:alias_of, key}, %__MODULE__{} = vdr) do
-    with_scope(vdr, key, fn vdr ->
-      validate(data, Map.fetch!(vdr.validators, key), vdr)
+  def validate(data, {:alias_of, key}, %__MODULE__{} = vctx) do
+    with_scope(vctx, key, fn vctx ->
+      validate(data, Map.fetch!(vctx.validators, key), vctx)
     end)
   end
 
-  def validate(data, validators, %__MODULE__{} = vdr) do
-    do_validate(data, validators, vdr)
+  def validate(data, validators, %__MODULE__{} = vctx) do
+    do_validate(data, validators, vctx)
   end
 
-  defp with_scope(vdr, sub_key, fun) do
-    %{scope: scopes} = vdr
+  defp with_scope(vctx, sub_key, fun) do
+    %{scope: scopes} = vctx
 
     # Premature optimization that can be removed: skip appending scope if it is
     # the same as the current one.
     case {Key.namespace_of(sub_key), scopes} do
       {same, [same | _]} ->
-        fun.(vdr)
+        fun.(vctx)
 
       {new_scope, scopes} ->
-        case fun.(%__MODULE__{vdr | scope: [new_scope | scopes]}) do
-          {:ok, data, vdr} -> {:ok, data, %__MODULE__{vdr | scope: scopes}}
-          {:error, vdr} -> {:error, %__MODULE__{vdr | scope: scopes}}
+        case fun.(%__MODULE__{vctx | scope: [new_scope | scopes]}) do
+          {:ok, data, vctx} -> {:ok, data, %__MODULE__{vctx | scope: scopes}}
+          {:error, vctx} -> {:error, %__MODULE__{vctx | scope: scopes}}
         end
     end
   end
@@ -96,12 +96,12 @@ defmodule JSV.Validator do
   the validators will be added back (squash) to the current scope of the given
   validator struct.
   """
-  def validate_detach(data, dialect_or_boolean_schema, vdr) do
-    %{evaluated: parent_evaluated} = vdr
+  def validate_detach(data, dialect_or_boolean_schema, vctx) do
+    %{evaluated: parent_evaluated} = vctx
     # TODO no need to add the parent in the list?
-    sub_vdr = %__MODULE__{vdr | evaluated: [%{} | parent_evaluated]}
+    sub_vctx = %__MODULE__{vctx | evaluated: [%{} | parent_evaluated]}
 
-    case validate(data, dialect_or_boolean_schema, sub_vdr) do
+    case validate(data, dialect_or_boolean_schema, sub_vctx) do
       {:ok, data, new_sub} -> {:ok, data, squash_evaluated(new_sub)}
       {:error, new_sub} -> {:error, squash_evaluated(new_sub)}
     end
@@ -109,11 +109,11 @@ defmodule JSV.Validator do
 
   # Executes all validators with the given data, collecting errors on the way,
   # then return either ok or error with all errors.
-  defp do_validate(data, %Subschema{} = sub, vdr) do
+  defp do_validate(data, %Subschema{} = sub, vctx) do
     %{validators: validators} = sub
 
-    iterate(validators, data, vdr, fn {module, mod_validators}, data, vdr ->
-      module.validate(data, mod_validators, vdr)
+    iterate(validators, data, vctx, fn {module, mod_validators}, data, vctx ->
+      module.validate(data, mod_validators, vctx)
     end)
   end
 
@@ -122,51 +122,51 @@ defmodule JSV.Validator do
 
   This function is kind of a mix between map and reduce:
 
-  * The callback is called with `item, acc, vdr` for all items in the enum,
+  * The callback is called with `item, acc, vctx` for all items in the enum,
     regardless of previously returned values. Returning and error tuple does not
     stop the iteration.
-  * When returning `{:ok, value, vdr}`, `value` will be the new accumulator.
-  * When returning `{:error, vdr}`, the vale accumulator is not changed, but the
-    new returned vdr with errors is carried on.
+  * When returning `{:ok, value, vctx}`, `value` will be the new accumulator.
+  * When returning `{:error, vctx}`, the vale accumulator is not changed, but the
+    new returned vctx with errors is carried on.
   * Returning an ok tuple after an error tuple on a previous item does not
     remove the errors from the validator struct, they are carried along.
 
-  The final return value is `{:ok, acc, vdr}` if all calls of the callback
-  returned an OK tuple, `{:error, vdr}` otherwise.
+  The final return value is `{:ok, acc, vctx}` if all calls of the callback
+  returned an OK tuple, `{:error, vctx}` otherwise.
 
   This is useful to call all possible validators for a given piece of data,
   collecting all possible errors without stopping, but still returning an error
   in the end if some error arose.
   """
-  def iterate(enum, init, vdr, fun) when is_function(fun, 3) do
-    {new_acc, new_vdr} =
-      Enum.reduce(enum, {init, vdr}, fn item, {acc, vdr} ->
-        res = fun.(item, acc, vdr)
+  def iterate(enum, init, vctx, fun) when is_function(fun, 3) do
+    {new_acc, new_vctx} =
+      Enum.reduce(enum, {init, vctx}, fn item, {acc, vctx} ->
+        res = fun.(item, acc, vctx)
 
         case res do
           # When returning :ok, the errors may be empty or not, depending on
           # previous iterations.
-          {:ok, new_acc, %__MODULE__{} = new_vdr} ->
-            {new_acc, new_vdr}
+          {:ok, new_acc, %__MODULE__{} = new_vctx} ->
+            {new_acc, new_vctx}
 
           # When returning :error, an error MUST be set
-          {:error, %__MODULE__{errors: [_ | _]} = new_vdr} ->
-            {acc, new_vdr}
+          {:error, %__MODULE__{errors: [_ | _]} = new_vctx} ->
+            {acc, new_vctx}
 
           other ->
             raise "Invalid return from #{inspect(fun)} called with #{inspect(item)}: #{inspect(other)}"
         end
       end)
 
-    return(new_acc, new_vdr)
+    return(new_acc, new_vctx)
   end
 
-  def validate_nested(data, key, subvalidators, vdr) when is_binary(key) when is_integer(key) do
-    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vdr
+  def validate_nested(data, key, subvalidators, vctx) when is_binary(key) when is_integer(key) do
+    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vctx
     # We do not carry sub errors so custom validation does not have to check for
     # error presence when iterating with map/reduce (although they should use
     # iterate/4).
-    sub_vdr = %__MODULE__{
+    sub_vctx = %__MODULE__{
       path: [key | path],
       errors: [],
       validators: all_validators,
@@ -174,29 +174,29 @@ defmodule JSV.Validator do
       evaluated: [%{} | evaluated]
     }
 
-    case validate(data, subvalidators, sub_vdr) do
-      {:ok, data, %__MODULE__{} = sub_vdr} ->
+    case validate(data, subvalidators, sub_vctx) do
+      {:ok, data, %__MODULE__{} = sub_vctx} ->
         # There should not be errors in sub at this point ?
-        new_vdr = vdr |> add_evaluated(key) |> merge_errors(sub_vdr)
-        {:ok, data, new_vdr}
+        new_vctx = vctx |> add_evaluated(key) |> merge_errors(sub_vctx)
+        {:ok, data, new_vctx}
 
-      {:error, %__MODULE__{errors: [_ | _]} = sub_vdr} ->
-        {:error, merge_errors(vdr, sub_vdr)}
+      {:error, %__MODULE__{errors: [_ | _]} = sub_vctx} ->
+        {:error, merge_errors(vctx, sub_vctx)}
     end
   end
 
-  def validate_ref(data, ref, vdr) do
-    with_scope(vdr, ref, fn vdr ->
-      do_validate_ref(data, ref, vdr)
+  def validate_ref(data, ref, vctx) do
+    with_scope(vctx, ref, fn vctx ->
+      do_validate_ref(data, ref, vctx)
     end)
   end
 
-  defp do_validate_ref(data, ref, vdr) do
-    subvalidators = checkout_ref(vdr, ref)
+  defp do_validate_ref(data, ref, vctx) do
+    subvalidators = checkout_ref(vctx, ref)
 
-    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vdr
+    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vctx
     # TODO separate validator must have its isolated evaluated paths list
-    separate_vdr = %__MODULE__{
+    separate_vctx = %__MODULE__{
       path: path,
       errors: [],
       validators: all_validators,
@@ -204,58 +204,58 @@ defmodule JSV.Validator do
       evaluated: evaluated
     }
 
-    case validate(data, subvalidators, separate_vdr) do
-      {:ok, data, %__MODULE__{} = separate_vdr} ->
+    case validate(data, subvalidators, separate_vctx) do
+      {:ok, data, %__MODULE__{} = separate_vctx} ->
         # There should not be errors in sub at this point ?
-        new_vdr = vdr |> merge_evaluated(separate_vdr) |> merge_errors(separate_vdr)
-        {:ok, data, new_vdr}
+        new_vctx = vctx |> merge_evaluated(separate_vctx) |> merge_errors(separate_vctx)
+        {:ok, data, new_vctx}
 
-      {:error, %__MODULE__{errors: [_ | _]} = separate_vdr} ->
-        {:error, merge_errors(vdr, separate_vdr)}
+      {:error, %__MODULE__{errors: [_ | _]} = separate_vctx} ->
+        {:error, merge_errors(vctx, separate_vctx)}
     end
   end
 
-  defp merge_errors(vdr, sub) do
-    %__MODULE__{errors: vdr_errors} = vdr
+  defp merge_errors(vctx, sub) do
+    %__MODULE__{errors: vctx_errors} = vctx
     %__MODULE__{errors: sub_errors} = sub
-    %__MODULE__{vdr | errors: do_merge_errors(vdr_errors, sub_errors)}
+    %__MODULE__{vctx | errors: do_merge_errors(vctx_errors, sub_errors)}
   end
 
   defp do_merge_errors([], sub_errors) do
     sub_errors
   end
 
-  defp do_merge_errors(vdr_errors, []) do
-    vdr_errors
+  defp do_merge_errors(vctx_errors, []) do
+    vctx_errors
   end
 
-  defp do_merge_errors(vdr_errors, sub_errors) do
+  defp do_merge_errors(vctx_errors, sub_errors) do
     # TODO maybe append but for now we will flatten only when rendering/formatting errors
-    [vdr_errors, sub_errors]
+    [vctx_errors, sub_errors]
   end
 
-  defp merge_evaluated(vdr, sub) do
-    %__MODULE__{evaluated: [top_vdr | rest_vdr]} = vdr
+  defp merge_evaluated(vctx, sub) do
+    %__MODULE__{evaluated: [top_vctx | rest_vctx]} = vctx
     %__MODULE__{evaluated: [top_sub | _rest_sub]} = sub
-    %__MODULE__{vdr | evaluated: [Map.merge(top_vdr, top_sub) | rest_vdr]}
+    %__MODULE__{vctx | evaluated: [Map.merge(top_vctx, top_sub) | rest_vctx]}
   end
 
-  defp squash_evaluated(vdr) do
-    %{evaluated: [to_squash, old_top | rest]} = vdr
-    %__MODULE__{vdr | evaluated: [Map.merge(to_squash, old_top) | rest]}
+  defp squash_evaluated(vctx) do
+    %{evaluated: [to_squash, old_top | rest]} = vctx
+    %__MODULE__{vctx | evaluated: [Map.merge(to_squash, old_top) | rest]}
   end
 
-  def return(data, %__MODULE__{errors: []} = vdr) do
-    {:ok, data, vdr}
+  def return(data, %__MODULE__{errors: []} = vctx) do
+    {:ok, data, vctx}
   end
 
-  def return(_data, %__MODULE__{errors: [_ | _]} = vdr) do
-    {:error, vdr}
+  def return(_data, %__MODULE__{errors: [_ | _]} = vctx) do
+    {:error, vctx}
   end
 
-  def checkout_ref(%{scope: scope} = vdr, {:dynamic_anchor, ns, anchor}) do
-    case checkout_dynamic_ref(scope, vdr, anchor) do
-      :error -> checkout_ref(vdr, {:anchor, ns, anchor})
+  def checkout_ref(%{scope: scope} = vctx, {:dynamic_anchor, ns, anchor}) do
+    case checkout_dynamic_ref(scope, vctx, anchor) do
+      :error -> checkout_ref(vctx, {:anchor, ns, anchor})
       {:ok, v} -> v
     end
   end
@@ -264,12 +264,12 @@ defmodule JSV.Validator do
     Map.fetch!(vds, vkey)
   end
 
-  defp checkout_dynamic_ref([h | scope], vdr, anchor) do
+  defp checkout_dynamic_ref([h | scope], vctx, anchor) do
     # Recursion first as the outermost scope should have priority. If the
     # dynamic ref resolution fails with all outer scopes, then actually try to
     # resolve from this scope.
-    with :error <- checkout_dynamic_ref(scope, vdr, anchor) do
-      Map.fetch(vdr.validators, {:dynamic_anchor, h, anchor})
+    with :error <- checkout_dynamic_ref(scope, vctx, anchor) do
+      Map.fetch(vctx.validators, {:dynamic_anchor, h, anchor})
     end
   end
 
@@ -277,39 +277,39 @@ defmodule JSV.Validator do
     :error
   end
 
-  def boolean_schema_error(vdr, %BooleanSchema{valid?: false}, data) do
-    %Error{kind: :boolean_schema, data: data, path: vdr.path, formatter: nil, args: []}
+  def boolean_schema_error(vctx, %BooleanSchema{valid?: false}, data) do
+    %Error{kind: :boolean_schema, data: data, path: vctx.path, formatter: nil, args: []}
   end
 
-  defmacro with_error(vdr, kind, data, args) do
+  defmacro with_error(vctx, kind, data, args) do
     quote bind_quoted: binding() do
-      JSV.Validator.__with_error__(__MODULE__, vdr, kind, data, args)
+      JSV.Validator.__with_error__(__MODULE__, vctx, kind, data, args)
     end
   end
 
   @doc false
-  def __with_error__(module, %__MODULE__{} = vdr, kind, data, args) do
-    error = %Error{kind: kind, data: data, path: vdr.path, formatter: module, args: args}
-    add_error(vdr, error)
+  def __with_error__(module, %__MODULE__{} = vctx, kind, data, args) do
+    error = %Error{kind: kind, data: data, path: vctx.path, formatter: module, args: args}
+    add_error(vctx, error)
   end
 
-  defp add_error(vdr, error) do
-    %__MODULE__{errors: errors} = vdr
-    %__MODULE__{vdr | errors: [error | errors]}
+  defp add_error(vctx, error) do
+    %__MODULE__{errors: errors} = vctx
+    %__MODULE__{vctx | errors: [error | errors]}
   end
 
-  defp add_evaluated(vdr, key) do
-    %{evaluated: [current | ev]} = vdr
+  defp add_evaluated(vctx, key) do
+    %{evaluated: [current | ev]} = vctx
     current = Map.put(current, key, true)
-    %__MODULE__{vdr | evaluated: [current | ev]}
+    %__MODULE__{vctx | evaluated: [current | ev]}
   end
 
-  def list_evaluaded(vdr) do
-    %{evaluated: [current | _]} = vdr
+  def list_evaluaded(vctx) do
+    %{evaluated: [current | _]} = vctx
     Map.keys(current)
   end
 
-  def format_errors(%__MODULE__{} = vdr) do
-    vdr.errors |> :lists.flatten() |> Enum.map(&Error.format/1) |> Enum.sort_by(& &1.at, :desc)
+  def format_errors(%__MODULE__{} = vctx) do
+    vctx.errors |> :lists.flatten() |> Enum.map(&Error.format/1) |> Enum.sort_by(& &1.at, :desc)
   end
 end

@@ -230,8 +230,8 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
-  def validate(data, vds, vdr) do
-    Validator.iterate(vds, data, vdr, &validate_keyword/3)
+  def validate(data, vds, vctx) do
+    Validator.iterate(vds, data, vctx, &validate_keyword/3)
   end
 
   defp properties_validations(_data, nil) do
@@ -267,7 +267,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end)
   end
 
-  def validate_keyword({:properties@jsv, {props_schemas, patterns_schemas, additionals_schema}}, data, vdr)
+  def validate_keyword({:properties@jsv, {props_schemas, patterns_schemas, additionals_schema}}, data, vctx)
       when is_map(data) do
     for_props = properties_validations(data, props_schemas)
     for_patterns = pattern_properties_validations(data, patterns_schemas)
@@ -287,104 +287,104 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     # second. A possible fix is to discard previously casted value on second
     # schema but we will loose all cast from nested schemas.
 
-    Validator.iterate(all_validations, data, vdr, fn
-      {_kind, key, subschema, _pattern} = propcase, data, vdr ->
-        case Validator.validate_nested(Map.fetch!(data, key), key, subschema, vdr) do
-          {:ok, casted, vdr} -> {:ok, Map.put(data, key, casted), vdr}
-          {:error, vdr} -> {:error, with_property_error(vdr, data, propcase)}
+    Validator.iterate(all_validations, data, vctx, fn
+      {_kind, key, subschema, _pattern} = propcase, data, vctx ->
+        case Validator.validate_nested(Map.fetch!(data, key), key, subschema, vctx) do
+          {:ok, casted, vctx} -> {:ok, Map.put(data, key, casted), vctx}
+          {:error, vctx} -> {:error, with_property_error(vctx, data, propcase)}
         end
     end)
   end
 
   pass validate_keyword({:properties@jsv, _})
 
-  def validate_keyword({:items@jsv, {items, prefix_items}}, data, vdr) when is_list(data) do
+  def validate_keyword({:items@jsv, {items, prefix_items}}, data, vctx) when is_list(data) do
     all_schemas = Stream.concat(List.wrap(prefix_items), Stream.cycle([items]))
 
     index_items = Stream.with_index(data)
 
     zipped = Enum.zip(index_items, all_schemas)
 
-    {rev_items, vdr} =
-      Enum.reduce(zipped, {[], vdr}, fn
-        {{item, _index}, nil}, {casted, vdr} ->
+    {rev_items, vctx} =
+      Enum.reduce(zipped, {[], vctx}, fn
+        {{item, _index}, nil}, {casted, vctx} ->
           # TODO add evaluated path to validator
-          {[item | casted], vdr}
+          {[item | casted], vctx}
 
-        {{item, index}, subschema}, {casted, vdr} ->
-          case Validator.validate_nested(item, index, subschema, vdr) do
-            {:ok, casted_item, vdr} -> {[casted_item | casted], vdr}
-            {:error, vdr} -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
+        {{item, index}, subschema}, {casted, vctx} ->
+          case Validator.validate_nested(item, index, subschema, vctx) do
+            {:ok, casted_item, vctx} -> {[casted_item | casted], vctx}
+            {:error, vctx} -> {[item | casted], Validator.with_error(vctx, :item, item, index: index)}
           end
       end)
 
-    Validator.return(:lists.reverse(rev_items), vdr)
+    Validator.return(:lists.reverse(rev_items), vctx)
   end
 
   pass validate_keyword({:items@jsv, _})
 
-  def validate_keyword({:oneOf, subvalidators}, data, vdr) do
-    case validate_split(subvalidators, data, vdr) do
-      {[{_, data}], _, vdr} ->
-        {:ok, data, vdr}
+  def validate_keyword({:oneOf, subvalidators}, data, vctx) do
+    case validate_split(subvalidators, data, vctx) do
+      {[{_, data}], _, vctx} ->
+        {:ok, data, vctx}
 
       {[], _, _} ->
         # TODO compute branch error of all invalid
-        {:error, Validator.with_error(vdr, :oneOf, data, validated_schemas: [])}
+        {:error, Validator.with_error(vctx, :oneOf, data, validated_schemas: [])}
 
       {[_ | _] = too_much, _, _} ->
         validated_schemas = Enum.map(too_much, &elem(&1, 0))
-        {:error, Validator.with_error(vdr, :oneOf, data, validated_schemas: validated_schemas)}
+        {:error, Validator.with_error(vctx, :oneOf, data, validated_schemas: validated_schemas)}
     end
   end
 
-  def validate_keyword({:anyOf, subvalidators}, data, vdr) do
-    case validate_split(subvalidators, data, vdr) do
+  def validate_keyword({:anyOf, subvalidators}, data, vctx) do
+    case validate_split(subvalidators, data, vctx) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
       # TODO compute branch error of all invalid validations
-      {[{_, data} | _], _, vdr} -> {:ok, data, vdr}
-      {[], _, vdr} -> {:error, Validator.with_error(vdr, :anyOf, data, validated_schemas: [])}
+      {[{_, data} | _], _, vctx} -> {:ok, data, vctx}
+      {[], _, vctx} -> {:error, Validator.with_error(vctx, :anyOf, data, validated_schemas: [])}
     end
   end
 
-  def validate_keyword({:allOf, subvalidators}, data, vdr) do
-    case validate_split(subvalidators, data, vdr) do
+  def validate_keyword({:allOf, subvalidators}, data, vctx) do
+    case validate_split(subvalidators, data, vctx) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
       # TODO merge evaluated
-      {[{_, data} | _], [], vdr} -> {:ok, data, vdr}
-      # TODO merge all error VDRs
-      {_, [{_, err_vdr} | _] = _invalid, _vdr} -> {:error, err_vdr}
+      {[{_, data} | _], [], vctx} -> {:ok, data, vctx}
+      # TODO merge all error vctxs
+      {_, [{_, err_vctx} | _] = _invalid, _vctx} -> {:error, err_vctx}
     end
   end
 
-  def validate_keyword({:if@jsv, {if_vds, then_vds, else_vds}}, data, vdr) do
-    case Validator.validate(data, if_vds, vdr) do
-      {:ok, _, vdr} ->
+  def validate_keyword({:if@jsv, {if_vds, then_vds, else_vds}}, data, vctx) do
+    case Validator.validate(data, if_vds, vctx) do
+      {:ok, _, vctx} ->
         case then_vds do
-          nil -> {:ok, data, vdr}
-          sub -> Validator.validate(data, sub, vdr)
+          nil -> {:ok, data, vctx}
+          sub -> Validator.validate(data, sub, vctx)
         end
 
       {:error, _} ->
         case else_vds do
-          nil -> {:ok, data, vdr}
-          sub -> Validator.validate(data, sub, vdr)
+          nil -> {:ok, data, vctx}
+          sub -> Validator.validate(data, sub, vctx)
         end
     end
   end
 
-  def validate_keyword({:contains@jsv, {subschema, n_min, n_max}}, data, vdr) when is_list(data) do
+  def validate_keyword({:contains@jsv, {subschema, n_min, n_max}}, data, vctx) when is_list(data) do
     # We need to keep the validator struct for validated items as they have to
     # be flagged as evaluated for unevaluatedItems support.
-    {:ok, count, vdr} =
+    {:ok, count, vctx} =
       data
       |> Enum.with_index()
-      |> Validator.iterate(0, vdr, fn {item, index}, count, vdr ->
-        case Validator.validate_nested(item, index, subschema, vdr) do
-          {:ok, _, vdr} -> {:ok, count + 1, vdr}
-          {:error, _} -> {:ok, count, vdr}
+      |> Validator.iterate(0, vctx, fn {item, index}, count, vctx ->
+        case Validator.validate_nested(item, index, subschema, vctx) do
+          {:ok, _, vctx} -> {:ok, count + 1, vctx}
+          {:error, _} -> {:ok, count, vctx}
         end
       end)
 
@@ -392,48 +392,48 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
     cond do
       count < n_min ->
-        {:error, Validator.with_error(vdr, :minContains, data, count: count, min_contains: n_min)}
+        {:error, Validator.with_error(vctx, :minContains, data, count: count, min_contains: n_min)}
 
       is_integer(n_max) and count > n_max ->
-        {:error, Validator.with_error(vdr, :maxContains, data, count: count, max_contains: n_max)}
+        {:error, Validator.with_error(vctx, :maxContains, data, count: count, max_contains: n_max)}
 
       true ->
-        {:ok, data, vdr}
+        {:ok, data, vctx}
     end
   end
 
   pass validate_keyword({:contains@jsv, _})
 
-  def validate_keyword({:dependentSchemas, schemas_map}, data, vdr) when is_map(data) do
-    Validator.iterate(schemas_map, data, vdr, fn
-      {parent_key, subschema}, data, vdr when is_map_key(data, parent_key) ->
-        Validator.validate(data, subschema, vdr)
+  def validate_keyword({:dependentSchemas, schemas_map}, data, vctx) when is_map(data) do
+    Validator.iterate(schemas_map, data, vctx, fn
+      {parent_key, subschema}, data, vctx when is_map_key(data, parent_key) ->
+        Validator.validate(data, subschema, vctx)
 
-      {_, _}, data, vdr ->
-        {:ok, data, vdr}
+      {_, _}, data, vctx ->
+        {:ok, data, vctx}
     end)
   end
 
   pass validate_keyword({:dependentSchemas, _})
 
-  def validate_keyword({:dependentRequired, dep_req}, data, vdr) do
-    Validation.validate_dependent_required(dep_req, data, vdr)
+  def validate_keyword({:dependentRequired, dep_req}, data, vctx) do
+    Validation.validate_dependent_required(dep_req, data, vctx)
   end
 
-  def validate_keyword({:not, schema}, data, vdr) do
-    case Validator.validate(data, schema, vdr) do
-      {:ok, data, vdr} -> {:error, Validator.with_error(vdr, :not, data, [])}
+  def validate_keyword({:not, schema}, data, vctx) do
+    case Validator.validate(data, schema, vctx) do
+      {:ok, data, vctx} -> {:error, Validator.with_error(vctx, :not, data, [])}
       # TODO maybe we need to merge "evaluted" properties
-      {:error, _} -> {:ok, data, vdr}
+      {:error, _} -> {:ok, data, vctx}
     end
   end
 
-  def validate_keyword({:propertyNames, subschema}, data, vdr) when is_map(data) do
+  def validate_keyword({:propertyNames, subschema}, data, vctx) when is_map(data) do
     data
     |> Map.keys()
-    |> Validator.iterate(data, vdr, fn key, data, vdr ->
-      case Validator.validate(key, subschema, vdr) do
-        {:ok, _, vdr} -> {:ok, data, vdr}
+    |> Validator.iterate(data, vctx, fn key, data, vctx ->
+      case Validator.validate(key, subschema, vctx) do
+        {:ok, _, vctx} -> {:ok, data, vctx}
         {:error, _} = err -> err
       end
     end)
@@ -444,28 +444,28 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   # Split the validators between those that validate the data and those who
   # don't.
-  IO.warn("@todo return each vdr")
+  IO.warn("@todo return each vctx")
 
-  defp validate_split(validators, data, vdr) do
-    # TODO return VDR for each matched or unmatched schema, do not return a
-    # global VDR
-    {valids, invalids, vdr} =
-      Enum.reduce(validators, {[], [], vdr}, fn subvalidator, {valids, invalids, vdr} ->
-        case Validator.validate_detach(data, subvalidator, vdr) do
-          {:ok, data, vdr} -> {[{subvalidator, data} | valids], invalids, vdr}
+  defp validate_split(validators, data, vctx) do
+    # TODO return vctx for each matched or unmatched schema, do not return a
+    # global vctx
+    {valids, invalids, vctx} =
+      Enum.reduce(validators, {[], [], vctx}, fn subvalidator, {valids, invalids, vctx} ->
+        case Validator.validate_detach(data, subvalidator, vctx) do
+          {:ok, data, vctx} -> {[{subvalidator, data} | valids], invalids, vctx}
           # We continue with the good validator in the acc
-          {:error, err_vdr} -> {valids, [{subvalidator, err_vdr} | invalids], vdr}
+          {:error, err_vctx} -> {valids, [{subvalidator, err_vctx} | invalids], vctx}
         end
       end)
 
-    {:lists.reverse(valids), :lists.reverse(invalids), vdr}
+    {:lists.reverse(valids), :lists.reverse(invalids), vctx}
   end
 
-  defp with_property_error(vdr, data, {kind, key, _, pattern}) do
+  defp with_property_error(vctx, data, {kind, key, _, pattern}) do
     case kind do
-      :property -> Validator.with_error(vdr, :properties, data, key: key)
-      :pattern -> Validator.with_error(vdr, :patternProperties, data, pattern: pattern, key: key)
-      :additional -> Validator.with_error(vdr, :additionalProperties, data, key: key)
+      :property -> Validator.with_error(vctx, :properties, data, key: key)
+      :pattern -> Validator.with_error(vctx, :patternProperties, data, pattern: pattern, key: key)
+      :additional -> Validator.with_error(vctx, :additionalProperties, data, key: key)
     end
   end
 
