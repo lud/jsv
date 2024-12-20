@@ -67,8 +67,6 @@ defmodule JSV.Vocabulary.V202012.Format do
     end
   end
 
-  IO.warn("TODO support validation opt-in at runtime")
-
   def validate(data, [format: {module, format}], vdr) when is_binary(data) do
     # TODO option to return casted value + TODO add low module priority
     case module.validate_cast(format, data) do

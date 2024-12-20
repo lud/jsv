@@ -19,7 +19,8 @@ defmodule JSV.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :public_key, :crypto]
+      extra_applications: [:logger, :public_key, :crypto],
+      mod: {JSV.Application, []}
     ]
   end
 
@@ -43,7 +44,7 @@ defmodule JSV.MixProject do
   defp deps do
     [
       # Actual dependencies
-      {:jason, "~> 1.0"},
+      {:jason, "~> 1.0", override: true},
       {:decimal, "~> 2.0"},
       {:nimble_options, "~> 1.0"},
 
@@ -63,7 +64,6 @@ defmodule JSV.MixProject do
 
       # Test
       {:excoveralls, "~> 0.18", only: :test},
-      {:mutex, "~> 3.0", only: [:dev, :test]},
       json_schema_test_suite()
     ]
   end

@@ -133,7 +133,7 @@ defmodule JSV.Test.JsonSchemaSuite do
   end
 
   def build_schema(json_schema, build_opts) do
-    case JSV.build(json_schema, [resolver: JSV.Test.TestResolver] ++ build_opts) do
+    case JSV.build(json_schema, [resolver: {JSV.Test.TestResolver, [fake_opts: true]}] ++ build_opts) do
       {:ok, schema} -> schema
       {:error, reason} -> flunk(denorm_failure(json_schema, reason, []))
     end

@@ -15,6 +15,8 @@ defmodule JSV.FormatValidator.Default.Optional do
   end
 end
 
+IO.warn("rename Default to BuiltIn")
+
 defmodule JSV.FormatValidator.Default do
   import JSV.FormatValidator.Default.Optional, only: [mod_exists?: 1, optional_support: 2]
   alias JSV.FormatValidator.Default.Optional

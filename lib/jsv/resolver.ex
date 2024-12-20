@@ -415,11 +415,22 @@ defmodule JSV.Resolver do
     fetch_raw_schema(rsv, ns)
   end
 
-  defp call_resolver(resolver, url) do
-    case resolver.resolve(url) do
+  defp call_resolver({resolver, resolver_opts}, url) when is_atom(resolver) do
+    case resolver.resolve(url, resolver_opts) do
       {:ok, resolved} -> {:ok, url, resolved}
-      {:error, _} = err -> err
+      {:error, reason} -> {:error, to_resolver_reason(reason)}
     end
+  end
+
+  defp call_resolver(resolver, url) when is_atom(resolver) do
+    case resolver.resolve(url, []) do
+      {:ok, resolved} -> {:ok, url, resolved}
+      {:error, reason} -> {:error, to_resolver_reason(reason)}
+    end
+  end
+
+  defp to_resolver_reason(reason) do
+    {:resolver_error, reason}
   end
 
   defp merge_id(nil, child) do

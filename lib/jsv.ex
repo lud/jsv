@@ -7,7 +7,7 @@ defmodule JSV do
 
   @build_opts_schema [
     resolver: [
-      type: :atom,
+      type: {:or, [:atom, :mod_arg]},
       required: true,
       doc: "The resolver implementation module to retrieve schemas identified by an URL."
     ],
