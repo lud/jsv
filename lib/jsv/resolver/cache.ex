@@ -3,23 +3,30 @@ defmodule JSV.Resolver.Cache do
 
   @gen_opts ~w(name timeout debug spawn_opt hibernate_after)a
 
+  @start_link_opts NimbleOptions.new!(
+                     @gen_opts
+                     |> Enum.map(&{&1, type: :any, doc: false})
+                     |> Keyword.put(:name,
+                       type: :atom,
+                       required: true,
+                       doc: "The name for the cache and the public ETS table."
+                     )
+                   )
+
+  @doc """
+  Starts a cache identified with a name.
+
+  ### Options
+
+  #{NimbleOptions.docs(@start_link_opts)}
+
+  This function also supports other `GenServer` options.
+  """
   def start_link(opts) do
-    :ok = validate_opts!(opts)
+    opts = NimbleOptions.validate!(opts, @start_link_opts)
     name = Keyword.fetch!(opts, :name)
     {gen_opts, opts} = Keyword.split(opts, @gen_opts)
     GenServer.start_link(__MODULE__, [{:name, name} | opts], gen_opts)
-  end
-
-  IO.warn("TODO use nimbleoptions")
-
-  defp validate_opts!(opts) do
-    case Keyword.fetch(opts, :name) do
-      {:ok, atom} when is_atom(atom) -> {:ok, opts}
-      {:ok, other} -> raise ArgumentError, "invalid :name option, got: #{other}"
-      :error -> raise ArgumentError, ":name option is required"
-    end
-
-    :ok
   end
 
   def get_or_generate(name, key, fun) do
@@ -28,7 +35,7 @@ defmodule JSV.Resolver.Cache do
     end
   end
 
-  def maybe_generate(name, key, fun) do
+  defp maybe_generate(name, key, fun) do
     case GenServer.call(name, {:maybe_generate, key, fun}) do
       {:ok, :generated} -> lookup!(name, key)
       {:error, _} = err -> err
