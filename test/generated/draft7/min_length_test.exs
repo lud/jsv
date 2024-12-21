@@ -25,31 +25,31 @@ defmodule JSV.Generated.Draft7.MinLengthTest do
     test "longer is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "exact length is valid", c do
       data = "fo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "too short is invalid", c do
       data = "f"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores non-strings", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "one grapheme is not long enough", c do
       data = "💩"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -69,13 +69,13 @@ defmodule JSV.Generated.Draft7.MinLengthTest do
     test "longer is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "too short is invalid", c do
       data = "f"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

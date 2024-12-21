@@ -30,13 +30,13 @@ defmodule JSV.Generated.Draft7.DefaultTest do
     test "valid when property is specified", c do
       data = %{"foo" => 13}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "still valid when the invalid default is used", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -62,13 +62,13 @@ defmodule JSV.Generated.Draft7.DefaultTest do
     test "valid when property is specified", c do
       data = %{"bar" => "good"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "still valid when the invalid default is used", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -95,19 +95,19 @@ defmodule JSV.Generated.Draft7.DefaultTest do
     test "an explicit property value is checked against maximum (passing)", c do
       data = %{"alpha" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "an explicit property value is checked against maximum (failing)", c do
       data = %{"alpha" => 5}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "missing properties are not filled in with the default", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

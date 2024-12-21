@@ -28,13 +28,13 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "valid when valid against lone if", c do
       data = 0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid when invalid against lone if", c do
       data = "hello"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -57,13 +57,13 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "valid when valid against lone then", c do
       data = 0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid when invalid against lone then", c do
       data = "hello"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -86,13 +86,13 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "valid when valid against lone else", c do
       data = 0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid when invalid against lone else", c do
       data = "hello"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -118,19 +118,19 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "valid through then", c do
       data = -1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid through then", c do
       data = -100
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid when if test fails", c do
       data = 3
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -156,19 +156,19 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "valid when if test passes", c do
       data = -1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid through else", c do
       data = 4
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid through else", c do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -197,25 +197,25 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "valid through then", c do
       data = -1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid through then", c do
       data = -100
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid through else", c do
       data = 4
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid through else", c do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -252,13 +252,13 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "valid, but would have been invalid through then", c do
       data = -100
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid, but would have been invalid through else", c do
       data = 3
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -285,13 +285,13 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "boolean schema true in if always chooses the then path (valid)", c do
       data = "then"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "boolean schema true in if always chooses the then path (invalid)", c do
       data = "else"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -318,13 +318,13 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "boolean schema false in if always chooses the else path (invalid)", c do
       data = "then"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "boolean schema false in if always chooses the else path (valid)", c do
       data = "else"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -353,25 +353,25 @@ defmodule JSV.Generated.Draft202012.IfThenElseTest do
     test "yes redirects to then and passes", c do
       data = "yes"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "other redirects to else and passes", c do
       data = "other"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "no redirects to then and fails", c do
       data = "no"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid redirects to else and fails", c do
       data = "invalid"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

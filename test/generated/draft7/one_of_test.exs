@@ -32,25 +32,25 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "first oneOf valid", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "second oneOf valid", c do
       data = 2.5
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "both oneOf valid", c do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "neither oneOf valid", c do
       data = 1.5
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -78,19 +78,19 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "mismatch base schema", c do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "one oneOf valid", c do
       data = "foobar"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "both oneOf valid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -114,7 +114,7 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "any value is invalid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -138,7 +138,7 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "any value is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -162,7 +162,7 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "any value is invalid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -186,7 +186,7 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "any value is invalid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -227,25 +227,25 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "first oneOf valid (complex)", c do
       data = %{"bar" => 2}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "second oneOf valid (complex)", c do
       data = %{"foo" => "baz"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "both oneOf valid (complex)", c do
       data = %{"bar" => 2, "foo" => "baz"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "neither oneOf valid (complex)", c do
       data = %{"bar" => "quux", "foo" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -270,13 +270,13 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "one valid - valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "both valid - invalid", c do
       data = 123
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -310,25 +310,25 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "both invalid - invalid", c do
       data = %{"bar" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "first valid - valid", c do
       data = %{"bar" => 2, "foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "second valid - valid", c do
       data = %{"baz" => 3, "foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "both valid - invalid", c do
       data = %{"bar" => 2, "baz" => 3, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -366,25 +366,25 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "first oneOf valid", c do
       data = %{"bar" => 8}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "second oneOf valid", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "both oneOf valid", c do
       data = %{"bar" => 8, "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "neither oneOf valid", c do
       data = %{"baz" => "quux"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -412,13 +412,13 @@ defmodule JSV.Generated.Draft7.OneOfTest do
     test "null is valid", c do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "anything non-null is invalid", c do
       data = 123
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

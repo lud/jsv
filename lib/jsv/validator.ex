@@ -1,28 +1,3 @@
-defmodule JSV.Validator.Error do
-  @enforce_keys [:kind, :data, :args, :formatter, :path]
-  defstruct @enforce_keys
-
-  @opaque t :: %__MODULE__{}
-
-  def format(%__MODULE__{} = error) do
-    %__MODULE__{kind: kind, data: data, path: path, formatter: formatter, args: args} = error
-    formatter = formatter || __MODULE__
-    args_map = Map.new(args)
-
-    {message, detail} =
-      case formatter.format_error(kind, args_map, data) do
-        message when is_binary(message) -> {message, args_map}
-        {message, detail} when is_binary(message) -> {message, detail}
-      end
-
-    %{kind: kind, at: :lists.reverse(path), message: message, detail: detail}
-  end
-
-  def format_error(:boolean_schema, %{}, _data) do
-    "value was rejected due to boolean schema false"
-  end
-end
-
 defmodule JSV.Validator do
   alias JSV
   alias JSV.BooleanSchema
@@ -30,16 +5,17 @@ defmodule JSV.Validator do
   alias JSV.Subschema
   alias JSV.Validator.Error
 
-  # TODO remove `%__MODULE__{}=`
-
-  @enforce_keys [:path, :validators, :scope, :errors, :evaluated]
+  # :eval_path stores both the current keyword nesting leading to an error, and
+  # the namespace changes for error absolute location.
+  @enforce_keys [:data_path, :eval_path, :validators, :scope, :errors, :evaluated]
   defstruct @enforce_keys
 
   @opaque t :: %__MODULE__{}
 
   def new(validators, scope) do
     %__MODULE__{
-      path: [],
+      data_path: [],
+      eval_path: [],
       validators: validators,
       scope: scope,
       errors: [],
@@ -61,17 +37,17 @@ defmodule JSV.Validator do
   end
 
   def validate(data, {:alias_of, key}, %__MODULE__{} = vctx) do
-    with_scope(vctx, key, fn vctx ->
+    with_scope(vctx, key, _eval_path = {:alias_of, key}, fn vctx ->
       validate(data, Map.fetch!(vctx.validators, key), vctx)
     end)
   end
 
-  def validate(data, validators, %__MODULE__{} = vctx) do
-    do_validate(data, validators, vctx)
+  def validate(data, sub_schema, %__MODULE__{} = vctx) do
+    do_validate(data, sub_schema, vctx)
   end
 
-  defp with_scope(vctx, sub_key, fun) do
-    %{scope: scopes} = vctx
+  defp with_scope(vctx, sub_key, add_eval_path, fun) do
+    %{scope: scopes, eval_path: eval_path} = vctx
 
     # Premature optimization that can be removed: skip appending scope if it is
     # the same as the current one.
@@ -80,7 +56,7 @@ defmodule JSV.Validator do
         fun.(vctx)
 
       {new_scope, scopes} ->
-        case fun.(%__MODULE__{vctx | scope: [new_scope | scopes]}) do
+        case fun.(%__MODULE__{vctx | scope: [new_scope | scopes], eval_path: [add_eval_path | eval_path]}) do
           {:ok, data, vctx} -> {:ok, data, %__MODULE__{vctx | scope: scopes}}
           {:error, vctx} -> {:error, %__MODULE__{vctx | scope: scopes}}
         end
@@ -161,13 +137,24 @@ defmodule JSV.Validator do
     return(new_acc, new_vctx)
   end
 
-  def validate_nested(data, key, subvalidators, vctx) when is_binary(key) when is_integer(key) do
-    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vctx
+  def validate_nested(data, key, add_eval_path, subvalidators, vctx)
+      when is_binary(key)
+      when is_integer(key) do
+    %__MODULE__{
+      data_path: data_path,
+      validators: all_validators,
+      scope: scope,
+      evaluated: evaluated,
+      eval_path: eval_path
+    } = vctx
+
     # We do not carry sub errors so custom validation does not have to check for
     # error presence when iterating with map/reduce (although they should use
     # iterate/4).
     sub_vctx = %__MODULE__{
-      path: [key | path],
+      data_path: [key | data_path],
+      # TODO append eval path
+      eval_path: [add_eval_path | eval_path],
       errors: [],
       validators: all_validators,
       scope: scope,
@@ -185,8 +172,9 @@ defmodule JSV.Validator do
     end
   end
 
-  def validate_ref(data, ref, vctx) do
-    with_scope(vctx, ref, fn vctx ->
+  # Kind is for the eval path
+  def validate_ref(data, ref, eval_path, vctx) do
+    with_scope(vctx, ref, {:ref, eval_path, ref}, fn vctx ->
       do_validate_ref(data, ref, vctx)
     end)
   end
@@ -194,10 +182,19 @@ defmodule JSV.Validator do
   defp do_validate_ref(data, ref, vctx) do
     subvalidators = checkout_ref(vctx, ref)
 
-    %__MODULE__{path: path, validators: all_validators, scope: scope, evaluated: evaluated} = vctx
-    # TODO separate validator must have its isolated evaluated paths list
+    %__MODULE__{
+      data_path: data_path,
+      validators: all_validators,
+      scope: scope,
+      evaluated: evaluated,
+      eval_path: eval_path
+    } = vctx
+
+    # TODO separate validator must have its isolated evaluated data_paths list
     separate_vctx = %__MODULE__{
-      path: path,
+      data_path: data_path,
+      # TODO append eval path
+      eval_path: eval_path,
       errors: [],
       validators: all_validators,
       scope: scope,
@@ -278,7 +275,14 @@ defmodule JSV.Validator do
   end
 
   def boolean_schema_error(vctx, %BooleanSchema{valid?: false}, data) do
-    %Error{kind: :boolean_schema, data: data, path: vctx.path, formatter: nil, args: []}
+    %Error{
+      kind: :boolean_schema,
+      data: data,
+      data_path: vctx.data_path,
+      eval_path: vctx.eval_path,
+      formatter: nil,
+      args: []
+    }
   end
 
   defmacro with_error(vctx, kind, data, args) do
@@ -289,7 +293,15 @@ defmodule JSV.Validator do
 
   @doc false
   def __with_error__(module, %__MODULE__{} = vctx, kind, data, args) do
-    error = %Error{kind: kind, data: data, path: vctx.path, formatter: module, args: args}
+    error = %Error{
+      kind: kind,
+      data: data,
+      data_path: vctx.data_path,
+      eval_path: vctx.eval_path,
+      formatter: module,
+      args: args
+    }
+
     add_error(vctx, error)
   end
 
@@ -309,7 +321,7 @@ defmodule JSV.Validator do
     Map.keys(current)
   end
 
-  def format_errors(%__MODULE__{} = vctx) do
-    vctx.errors |> :lists.flatten() |> Enum.map(&Error.format/1) |> Enum.sort_by(& &1.at, :desc)
+  def flat_errors(%__MODULE__{errors: errors}) do
+    :lists.flatten(errors)
   end
 end

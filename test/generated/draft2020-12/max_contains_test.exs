@@ -26,13 +26,13 @@ defmodule JSV.Generated.Draft202012.MaxContainsTest do
     test "one item valid against lone maxContains", c do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "two items still valid against lone maxContains", c do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -56,31 +56,31 @@ defmodule JSV.Generated.Draft202012.MaxContainsTest do
     test "empty data", c do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "all elements match, valid maxContains", c do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "all elements match, invalid maxContains", c do
       data = [1, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "some elements match, valid maxContains", c do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "some elements match, invalid maxContains", c do
       data = [1, 2, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -104,13 +104,13 @@ defmodule JSV.Generated.Draft202012.MaxContainsTest do
     test "one element matches, valid maxContains", c do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "too many elements match, invalid maxContains", c do
       data = [1, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -135,19 +135,19 @@ defmodule JSV.Generated.Draft202012.MaxContainsTest do
     test "actual < minContains < maxContains", c do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "minContains < actual < maxContains", c do
       data = [1, 1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "minContains < maxContains < actual", c do
       data = [1, 1, 1, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

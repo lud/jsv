@@ -25,13 +25,13 @@ defmodule JSV.Generated.Draft7.Optional.BignumTest do
     test "a bignum is an integer", c do
       data = 12_345_678_910_111_213_141_516_171_819_202_122_232_425_262_728_293_031
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a negative bignum is an integer", c do
       data = -12_345_678_910_111_213_141_516_171_819_202_122_232_425_262_728_293_031
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -51,13 +51,13 @@ defmodule JSV.Generated.Draft7.Optional.BignumTest do
     test "a bignum is a number", c do
       data = 98_249_283_749_234_923_498_293_171_823_948_729_348_710_298_301_928_331
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a negative bignum is a number", c do
       data = -98_249_283_749_234_923_498_293_171_823_948_729_348_710_298_301_928_331
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -77,7 +77,7 @@ defmodule JSV.Generated.Draft7.Optional.BignumTest do
     test "a bignum is not a string", c do
       data = 98_249_283_749_234_923_498_293_171_823_948_729_348_710_298_301_928_331
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -97,7 +97,7 @@ defmodule JSV.Generated.Draft7.Optional.BignumTest do
     test "comparison works for high numbers", c do
       data = 18_446_744_073_709_551_600
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -117,7 +117,7 @@ defmodule JSV.Generated.Draft7.Optional.BignumTest do
     test "comparison works for high numbers", c do
       data = 9.727837981879871e26
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -137,7 +137,7 @@ defmodule JSV.Generated.Draft7.Optional.BignumTest do
     test "comparison works for very negative numbers", c do
       data = -18_446_744_073_709_551_600
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -157,7 +157,7 @@ defmodule JSV.Generated.Draft7.Optional.BignumTest do
     test "comparison works for very negative numbers", c do
       data = -9.727837981879871e26
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

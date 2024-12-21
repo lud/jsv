@@ -27,13 +27,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -58,19 +58,19 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with valid unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with invalid unevaluated properties", c do
       data = %{"foo" => "fo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -92,13 +92,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -125,13 +125,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -158,13 +158,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -192,13 +192,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no additional properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with additional properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -234,13 +234,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no additional properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with additional properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -276,13 +276,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no additional properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with additional properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -314,13 +314,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no additional properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with additional properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -355,13 +355,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no nested unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with nested unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -420,25 +420,25 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "when one matches and has no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when one matches and has unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "not-baz", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when two match and has no unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when two match and has unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "foo", "quux" => "not-quux"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -487,13 +487,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo", "quux" => "quux"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -532,7 +532,7 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -584,25 +584,25 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "when if is true and has no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "then"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is true and has unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "then"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is false and has no unevaluated properties", c do
       data = %{"baz" => "baz"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is false and has unevaluated properties", c do
       data = %{"baz" => "baz", "foo" => "else"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -644,25 +644,25 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "when if is true and has no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "then"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is true and has unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "then"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is false and has no unevaluated properties", c do
       data = %{"baz" => "baz"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is false and has unevaluated properties", c do
       data = %{"baz" => "baz", "foo" => "else"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -704,25 +704,25 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "when if is true and has no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "then"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is true and has unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "then"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is false and has no unevaluated properties", c do
       data = %{"baz" => "baz"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is false and has unevaluated properties", c do
       data = %{"baz" => "baz", "foo" => "else"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -761,13 +761,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -797,13 +797,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -840,13 +840,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -883,13 +883,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -939,13 +939,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with unevaluated properties", c do
       data = %{"bar" => "bar", "baz" => "baz", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -975,7 +975,7 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "always fails", c do
       data = %{"foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1005,7 +1005,7 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "always fails", c do
       data = %{"foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1037,13 +1037,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no nested unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with nested unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1075,13 +1075,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no nested unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with nested unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1113,13 +1113,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no nested unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with nested unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1151,13 +1151,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no nested unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with nested unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1191,13 +1191,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no nested unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with nested unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1231,13 +1231,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "with no nested unevaluated properties", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "with nested unevaluated properties", c do
       data = %{"bar" => "bar", "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1282,13 +1282,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "no extra properties", c do
       data = %{"foo" => %{"bar" => "test"}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "uncle keyword evaluation is not significant", c do
       data = %{"foo" => %{"bar" => "test", "faz" => "test"}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1324,19 +1324,19 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "base case: both properties present", c do
       data = %{"bar" => 1, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "in place applicator siblings, bar is missing", c do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "in place applicator siblings, foo is missing", c do
       data = %{"bar" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1372,19 +1372,19 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "base case: both properties present", c do
       data = %{"bar" => 1, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "in place applicator siblings, bar is missing", c do
       data = %{"foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "in place applicator siblings, foo is missing", c do
       data = %{"bar" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1411,43 +1411,43 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "Empty is valid", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "Single is valid", c do
       data = %{"x" => %{}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "Unevaluated on 1st level is invalid", c do
       data = %{"x" => %{}, "y" => %{}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "Nested is valid", c do
       data = %{"x" => %{"x" => %{}}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "Unevaluated on 2nd level is invalid", c do
       data = %{"x" => %{"x" => %{}, "y" => %{}}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "Deep nested is valid", c do
       data = %{"x" => %{"x" => %{"x" => %{}}}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "Unevaluated on 3rd level is invalid", c do
       data = %{"x" => %{"x" => %{"x" => %{}, "y" => %{}}}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1508,49 +1508,49 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "Empty is invalid (no x or y)", c do
       data = %{}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a and b are invalid (no x or y)", c do
       data = %{"a" => 1, "b" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "x and y are invalid", c do
       data = %{"x" => 1, "y" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a and x are valid", c do
       data = %{"a" => 1, "x" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a and y are valid", c do
       data = %{"a" => 1, "y" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a and b and x are valid", c do
       data = %{"a" => 1, "b" => 1, "x" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a and b and y are valid", c do
       data = %{"a" => 1, "b" => 1, "y" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a and b and x and y are invalid", c do
       data = %{"a" => 1, "b" => 1, "x" => 1, "y" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1635,127 +1635,127 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "Empty is invalid", c do
       data = %{}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a is valid", c do
       data = %{"a" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "b is valid", c do
       data = %{"b" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "c is valid", c do
       data = %{"c" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "d is valid", c do
       data = %{"d" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a + b is invalid", c do
       data = %{"a" => 1, "b" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a + c is invalid", c do
       data = %{"a" => 1, "c" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "a + d is invalid", c do
       data = %{"a" => 1, "d" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "b + c is invalid", c do
       data = %{"b" => 1, "c" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "b + d is invalid", c do
       data = %{"b" => 1, "d" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "c + d is invalid", c do
       data = %{"c" => 1, "d" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "xx is valid", c do
       data = %{"xx" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "xx + foox is valid", c do
       data = %{"foox" => 1, "xx" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "xx + foo is invalid", c do
       data = %{"foo" => 1, "xx" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "xx + a is invalid", c do
       data = %{"a" => 1, "xx" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "xx + b is invalid", c do
       data = %{"b" => 1, "xx" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "xx + c is invalid", c do
       data = %{"c" => 1, "xx" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "xx + d is invalid", c do
       data = %{"d" => 1, "xx" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "all is valid", c do
       data = %{"all" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "all + foo is valid", c do
       data = %{"all" => 1, "foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "all + a is invalid", c do
       data = %{"a" => 1, "all" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1776,37 +1776,37 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "ignores booleans", c do
       data = true
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores integers", c do
       data = 123
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores floats", c do
       data = 1.0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores arrays", c do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores strings", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores null", c do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1829,7 +1829,7 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "allows null valued properties", c do
       data = %{"foo" => nil}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1855,13 +1855,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "allows only number properties", c do
       data = %{"a" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "string property is invalid", c do
       data = %{"a" => "b"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1889,13 +1889,13 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "valid in case if is evaluated", c do
       data = %{"foo" => "a"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid in case if is evaluated", c do
       data = %{"bar" => "a"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -1927,19 +1927,19 @@ defmodule JSV.Generated.Draft202012.UnevaluatedPropertiesTest do
     test "unevaluatedProperties doesn't consider dependentSchemas", c do
       data = %{"foo" => ""}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "unevaluatedProperties doesn't see bar when foo2 is absent", c do
       data = %{"bar" => ""}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "unevaluatedProperties sees bar when foo2 is present", c do
       data = %{"bar" => "", "foo2" => ""}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

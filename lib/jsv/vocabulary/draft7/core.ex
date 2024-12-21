@@ -23,7 +23,7 @@ defmodule JSV.Vocabulary.Draft7.Core do
 
     with {:ok, ref} <- Ref.parse(raw_ref, ref_relative_to_ns) do
       # reset the acc as $ref overrides any other keyword
-      Fallback.ok_put_ref(ref, [], builder)
+      Fallback.ok_put_ref(ref, :"$ref", [], builder)
     end
   end
 

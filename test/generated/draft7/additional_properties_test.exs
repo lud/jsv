@@ -32,37 +32,37 @@ defmodule JSV.Generated.Draft7.AdditionalPropertiesTest do
     test "no additional properties is valid", c do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "an additional property is invalid", c do
       data = %{"bar" => 2, "foo" => 1, "quux" => "boom"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores arrays", c do
       data = [1, 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores strings", c do
       data = "foobarbaz"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores other non-objects", c do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "patternProperties are not additional properties", c do
       data = %{"foo" => 1, "vroom" => 2}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -85,13 +85,13 @@ defmodule JSV.Generated.Draft7.AdditionalPropertiesTest do
     test "matching the pattern is valid", c do
       data = %{"ármányos" => 2}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "not matching the pattern is invalid", c do
       data = %{"élmény" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -117,19 +117,19 @@ defmodule JSV.Generated.Draft7.AdditionalPropertiesTest do
     test "no additional properties is valid", c do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "an additional valid property is valid", c do
       data = %{"bar" => 2, "foo" => 1, "quux" => true}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "an additional invalid property is invalid", c do
       data = %{"bar" => 2, "foo" => 1, "quux" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -151,13 +151,13 @@ defmodule JSV.Generated.Draft7.AdditionalPropertiesTest do
     test "an additional valid property is valid", c do
       data = %{"foo" => true}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "an additional invalid property is invalid", c do
       data = %{"foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -180,7 +180,7 @@ defmodule JSV.Generated.Draft7.AdditionalPropertiesTest do
     test "additional properties are allowed", c do
       data = %{"bar" => 2, "foo" => 1, "quux" => true}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -209,7 +209,7 @@ defmodule JSV.Generated.Draft7.AdditionalPropertiesTest do
     test "properties defined in allOf are not examined", c do
       data = %{"bar" => true, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -231,7 +231,7 @@ defmodule JSV.Generated.Draft7.AdditionalPropertiesTest do
     test "allows null values", c do
       data = %{"foo" => nil}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

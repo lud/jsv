@@ -2,6 +2,7 @@ defmodule JSV do
   alias JSV.BooleanSchema
   alias JSV.Builder
   alias JSV.Root
+  alias JSV.Validator
 
   @default_default_meta "https://json-schema.org/draft/2020-12/schema"
 
@@ -38,13 +39,6 @@ defmodule JSV do
 
   #{NimbleOptions.docs(@build_opts_schema)}
   """
-  IO.warn("""
-  call this function build_opts because the resolver is not an independent
-  entity, it is tied to the root schema.
-
-  rename attach_root to resolve_root. Or maybe call that "prepare"
-  """)
-
   def build(raw_schema, opts) when is_map(raw_schema) do
     case NimbleOptions.validate(opts, @build_opts_nimble) do
       {:ok, opts} ->
@@ -74,9 +68,22 @@ defmodule JSV do
 
   def validate(data, %JSV.Root{} = schema) do
     case validation_entrypoint(schema, data) do
-      {:ok, casted_data, _} -> {:ok, casted_data}
-      {:error, %JSV.Validator{errors: errors}} -> {:error, {:schema_validation, errors}}
+      {:ok, casted_data, _} ->
+        {:ok, casted_data}
+
+      {:error, %Validator{} = validator} ->
+        {:error, {:schema_validation, Validator.flat_errors(validator)}}
     end
+  end
+
+  def format_errors(errors) when is_list(errors) do
+    JSV.ErrorFormatter.format_errors(errors)
+  end
+
+  # TODO provide a way to return ordered json for errors, or just provide a
+  # preprocess function.
+  def format_errors(%Validator{} = validator) do
+    format_errors(Validator.flat_errors(validator))
   end
 
   @doc false

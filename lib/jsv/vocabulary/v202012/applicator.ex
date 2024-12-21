@@ -45,7 +45,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     take_sub(:items, items, acc, builder)
   end
 
-  take_keyword :prefixItems, prefix_items, acc, builder, _ do
+  take_keyword :prefixItems, prefix_items when is_list(prefix_items), acc, builder, _ do
     prefix_items
     |> Helpers.reduce_ok({[], builder}, fn item, {subacc, builder} ->
       case Builder.build_sub(item, builder) do
@@ -240,7 +240,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   defp properties_validations(data, properties) do
     Enum.flat_map(properties, fn
-      {key, subschema} when is_map_key(data, key) -> [{:property, key, subschema, nil}]
+      {key, subschema} when is_map_key(data, key) -> [{:properties, key, subschema, nil}]
       _ -> []
     end)
   end
@@ -253,7 +253,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     for {{pattern, re}, subschema} <- pattern_properties,
         {key, _} <- data,
         Regex.match?(re, key) do
-      {:pattern, key, subschema, pattern}
+      {:patternProperties, key, subschema, pattern}
     end
   end
 
@@ -262,7 +262,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       if List.keymember?(other_validations, key, 1) do
         []
       else
-        [{:additional, key, schema, nil}]
+        [{:additionalProperties, key, schema, nil}]
       end
     end)
   end
@@ -288,8 +288,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     # schema but we will loose all cast from nested schemas.
 
     Validator.iterate(all_validations, data, vctx, fn
-      {_kind, key, subschema, _pattern} = propcase, data, vctx ->
-        case Validator.validate_nested(Map.fetch!(data, key), key, subschema, vctx) do
+      {kind, key, subschema, pattern} = propcase, data, vctx ->
+        eval_path = eval_path(kind, pattern || key)
+
+        case Validator.validate_nested(Map.fetch!(data, key), key, eval_path, subschema, vctx) do
           {:ok, casted, vctx} -> {:ok, Map.put(data, key, casted), vctx}
           {:error, vctx} -> {:error, with_property_error(vctx, data, propcase)}
         end
@@ -298,23 +300,41 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   pass validate_keyword({:properties@jsv, _})
 
-  def validate_keyword({:items@jsv, {items, prefix_items}}, data, vctx) when is_list(data) do
-    all_schemas = Stream.concat(List.wrap(prefix_items), Stream.cycle([items]))
+  def validate_keyword({:items@jsv, {items_schema, prefix_items_schemas}}, data, vctx) when is_list(data) do
+    prefix_stream =
+      case prefix_items_schemas do
+        nil -> []
+        list -> Enum.map(list, &{:prefixItems, &1})
+      end
 
-    index_items = Stream.with_index(data)
+    rest_stream = Stream.cycle([{:items, items_schema}])
+    all_stream = Stream.concat(prefix_stream, rest_stream)
+    data_items_index = Stream.with_index(data)
 
-    zipped = Enum.zip(index_items, all_schemas)
+    # Zipping items with their schemas. If the schema only specifies
+    # prefixItems, then items_schema is nil and the zip will associate with nil.
+    zipped =
+      Enum.zip_with([data_items_index, all_stream], fn
+        [{data_item, index}, {kind, schema}] -> {kind, data_item, index, schema}
+      end)
 
     {rev_items, vctx} =
       Enum.reduce(zipped, {[], vctx}, fn
-        {{item, _index}, nil}, {casted, vctx} ->
-          # TODO add evaluated path to validator
-          {[item | casted], vctx}
+        {_kind, data_item, _index, nil = _subschema}, {casted, vctx} ->
+          # TODO add evaluated path to validator?
+          {[data_item | casted], vctx}
 
-        {{item, index}, subschema}, {casted, vctx} ->
-          case Validator.validate_nested(item, index, subschema, vctx) do
-            {:ok, casted_item, vctx} -> {[casted_item | casted], vctx}
-            {:error, vctx} -> {[item | casted], Validator.with_error(vctx, :item, item, index: index)}
+        {kind, data_item, index, subschema}, {casted, vctx} ->
+          # For prefix items eval path we reuse the data index as the schema
+          # index. It's wrong but it's the right value.
+          eval_path = eval_path(kind, index)
+
+          case Validator.validate_nested(data_item, index, eval_path, subschema, vctx) do
+            {:ok, casted_item, vctx} ->
+              {[casted_item | casted], vctx}
+
+            {:error, vctx} ->
+              {[data_item | casted], Validator.with_error(vctx, kind, data_item, index: index)}
           end
       end)
 
@@ -382,7 +402,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       data
       |> Enum.with_index()
       |> Validator.iterate(0, vctx, fn {item, index}, count, vctx ->
-        case Validator.validate_nested(item, index, subschema, vctx) do
+        case Validator.validate_nested(item, index, :contains, subschema, vctx) do
           {:ok, _, vctx} -> {:ok, count + 1, vctx}
           {:error, _} -> {:ok, count, vctx}
         end
@@ -440,7 +460,18 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   pass validate_keyword({:propertyNames, _})
+
   # ---------------------------------------------------------------------------
+
+  defp eval_path(kind, arg) do
+    case kind do
+      :prefixItems -> [:prefixItems, arg]
+      :items -> :items
+      :properties -> [:properties, arg]
+      :additionalProperties -> :additionalProperties
+      :patternProperties -> [:patternProperties, arg]
+    end
+  end
 
   # Split the validators between those that validate the data and those who
   # don't.
@@ -463,9 +494,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   defp with_property_error(vctx, data, {kind, key, _, pattern}) do
     case kind do
-      :property -> Validator.with_error(vctx, :properties, data, key: key)
-      :pattern -> Validator.with_error(vctx, :patternProperties, data, pattern: pattern, key: key)
-      :additional -> Validator.with_error(vctx, :additionalProperties, data, key: key)
+      :properties -> Validator.with_error(vctx, :properties, data, key: key)
+      :patternProperties -> Validator.with_error(vctx, :patternProperties, data, pattern: pattern, key: key)
+      :additionalProperties -> Validator.with_error(vctx, :additionalProperties, data, key: key)
     end
   end
 
@@ -490,9 +521,14 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     "list contains more than #{max_contains} items validating the 'contains' schema, found #{count} items"
   end
 
-  def format_error(:item, args, _) do
+  def format_error(:items, args, _) do
     %{index: index} = args
     "item at index #{index} does not validate the 'items' schema"
+  end
+
+  def format_error(:prefixItems, args, _) do
+    %{index: index} = args
+    "item at index #{index} does not validate the 'prefixItems[#{index}]' schema"
   end
 
   def format_error(:properties, %{key: key}, _) do

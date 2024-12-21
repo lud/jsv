@@ -30,13 +30,13 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "additional items match schema", c do
       data = [nil, 2, 3, 4]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "additional items do not match schema", c do
       data = [nil, 2, 3, "foo"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -61,13 +61,13 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "valid with a array of type integers", c do
       data = [1, 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid with a array of mixed types", c do
       data = [1, "2", "3"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -88,7 +88,7 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "all items match schema", c do
       data = [1, 2, 3, 4, 5]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -113,31 +113,31 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "empty array", c do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "fewer number of items present (1)", c do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "fewer number of items present (2)", c do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "equal number of items present", c do
       data = [1, 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "additional items are not permitted", c do
       data = [1, 2, 3, 4]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -157,13 +157,13 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "items defaults to empty schema so everything is valid", c do
       data = [1, 2, 3, 4, 5]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "ignores non-arrays", c do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -187,7 +187,7 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "only the first item is validated", c do
       data = [1, "foo", false]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -218,7 +218,7 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "items defined in allOf are not examined", c do
       data = [1, nil]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -257,7 +257,7 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "items defined in allOf are not examined", c do
       data = [1, "hello"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -284,13 +284,13 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "valid items", c do
       data = ["x", 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "wrong type of second item", c do
       data = ["x", "y"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -313,13 +313,13 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "heterogeneous invalid instance", c do
       data = ["foo", "bar", 37]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "valid instance", c do
       data = [nil]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -341,7 +341,7 @@ defmodule JSV.Generated.Draft7.AdditionalItemsTest do
     test "allows null elements", c do
       data = [nil]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

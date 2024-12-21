@@ -34,7 +34,7 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     data
     |> Enum.filter(fn {k, _v} -> k not in evaluated end)
     |> Validator.iterate(data, vctx, fn {k, v}, data, vctx ->
-      case Validator.validate_nested(v, k, subschema, vctx) do
+      case Validator.validate_nested(v, k, :unevaluatedProperties, subschema, vctx) do
         {:ok, _, vctx} -> {:ok, data, vctx}
         {:error, vctx} -> {:error, vctx}
       end
@@ -50,7 +50,7 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
     |> Enum.with_index(0)
     |> Enum.reject(fn {_, index} -> index in evaluated end)
     |> Validator.iterate(data, vctx, fn {item, index}, data, vctx ->
-      case Validator.validate_nested(item, index, subschema, vctx) do
+      case Validator.validate_nested(item, index, :unevaluatedItems, subschema, vctx) do
         {:ok, _, vctx} -> {:ok, data, vctx}
         {:error, vctx} -> {:error, vctx}
       end

@@ -59,4 +59,10 @@ defmodule JSV.Ref do
     |> String.replace("~0", "~")
     |> URI.decode()
   end
+
+  def escape_json_pointer(str) do
+    str
+    |> String.replace("/", "~1")
+    |> String.replace("~", "~0")
+  end
 end

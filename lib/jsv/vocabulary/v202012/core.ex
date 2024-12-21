@@ -13,7 +13,7 @@ defmodule JSV.Vocabulary.V202012.Core do
   take_keyword :"$ref", raw_ref, acc, builder, _ do
     with {:ok, ref} <- Ref.parse(raw_ref, builder.ns),
          {:ok, ref, builder} <- maybe_swap_ref(ref, builder) do
-      ok_put_ref(ref, acc, builder)
+      ok_put_ref(ref, :"$ref", acc, builder)
     end
   end
 
@@ -37,10 +37,10 @@ defmodule JSV.Vocabulary.V202012.Core do
       # The "dynamic" information is carried in the ref from Ref.parse_dynamic,
       # so we just return a :ref tuple. This allows to treat dynamic refs
       # without corresponding dynamic anchors as regular refs.
-      ok_put_ref(ref, acc, builder)
+      ok_put_ref(ref, :"$dynamicRef", acc, builder)
     else
-      {:error, {:no_such_dynamic_anchor, _}} -> ok_put_ref(raw_ref, acc, builder)
-      {:ok, %{dynamic?: false} = ref} -> ok_put_ref(ref, acc, builder)
+      {:error, {:no_such_dynamic_anchor, _}} -> ok_put_ref(raw_ref, :"$dynamicRef", acc, builder)
+      {:ok, %{dynamic?: false} = ref} -> ok_put_ref(ref, :"$dynamicRef", acc, builder)
       {:error, _} = err -> err
     end
   end
@@ -63,14 +63,14 @@ defmodule JSV.Vocabulary.V202012.Core do
     list
   end
 
-  def ok_put_ref(%Ref{} = ref, acc, builder) do
+  def ok_put_ref(%Ref{} = ref, eval_path, acc, builder) do
     builder = Builder.stage_build(builder, ref)
-    {:ok, [{:ref, Key.of(ref)} | acc], builder}
+    {:ok, [{:ref, eval_path, Key.of(ref)} | acc], builder}
   end
 
-  def ok_put_ref(raw_ref, acc, builder) when is_binary(raw_ref) do
+  def ok_put_ref(raw_ref, eval_path, acc, builder) when is_binary(raw_ref) do
     with {:ok, ref} <- Ref.parse(raw_ref, builder.ns) do
-      ok_put_ref(ref, acc, builder)
+      ok_put_ref(ref, eval_path, acc, builder)
     end
   end
 
@@ -141,8 +141,8 @@ defmodule JSV.Vocabulary.V202012.Core do
     Validator.iterate(vds, data, vctx, &validate_keyword/3)
   end
 
-  def validate_keyword({:ref, ref}, data, vctx) do
-    Validator.validate_ref(data, ref, vctx)
+  def validate_keyword({:ref, eval_path, ref}, data, vctx) do
+    Validator.validate_ref(data, ref, eval_path, vctx)
   end
 
   # ---------------------------------------------------------------------------

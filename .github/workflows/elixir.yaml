@@ -3,11 +3,6 @@ name: Elixir Checks
 on:
   push:
     branches:
-      - main
-      - feat/**
-      - f/**
-      - chore/**
-      - fix/**
       - ci/**
   pull_request:
     branches:

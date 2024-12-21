@@ -75,7 +75,7 @@ defmodule JSV.Test.JsonSchemaSuite do
     end
   end
 
-  def run_test(json_schema, schema, data, expected_valid) do
+  def run_test(json_schema, schema, data, expected_valid, opts \\ []) do
     {valid?, %Validator{} = validator} =
       case JSV.validation_entrypoint(schema, data) do
         {:ok, casted, vctx} ->
@@ -84,6 +84,7 @@ defmodule JSV.Test.JsonSchemaSuite do
           {true, vctx}
 
         {:error, validator} ->
+          _ = test_error_format(validator, opts)
           {false, validator}
       end
 
@@ -94,7 +95,6 @@ defmodule JSV.Test.JsonSchemaSuite do
         :ok
 
       {false, false} ->
-        _ = test_error_format(validator)
         :ok
 
       _ ->
@@ -120,16 +120,24 @@ defmodule JSV.Test.JsonSchemaSuite do
     end
   end
 
-  defp test_error_format(validator) do
-    formatted = Validator.format_errors(validator)
+  defp test_error_format(validator, opts) do
+    formatted = JSV.format_errors(validator)
     assert is_list(formatted)
 
     Enum.each(formatted, fn err ->
-      _ = assert {:ok, message} = Map.fetch(err, :message)
-      _ = assert is_binary(message)
+      _ = assert false == err.valid
+      _ = assert is_list(err.errors)
+      _ = assert is_binary(err.evaluationPath)
+      _ = assert is_binary(err.schemaLocation)
+      _ = assert is_binary(err.instanceLocation)
     end)
 
-    assert {:ok, _} = Jason.encode(formatted)
+    # Json encodable
+    assert {:ok, json_errors} = Jason.encode(formatted, pretty: true)
+
+    if opts[:print_errors] do
+      IO.puts(["\n", json_errors])
+    end
   end
 
   def build_schema(json_schema, build_opts) do

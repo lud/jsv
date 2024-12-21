@@ -27,13 +27,13 @@ defmodule JSV.Generated.Draft202012.Optional.FormatAssertionTest do
     test "format-assertion: false: valid string", c do
       data = "127.0.0.1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "format-assertion: false: invalid string", c do
       data = "not-an-ipv4"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -55,13 +55,13 @@ defmodule JSV.Generated.Draft202012.Optional.FormatAssertionTest do
     test "format-assertion: true: valid string", c do
       data = "127.0.0.1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "format-assertion: true: invalid string", c do
       data = "not-an-ipv4"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

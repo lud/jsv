@@ -19,6 +19,8 @@ defmodule JSV.Resolver do
           }
   end
 
+  @callback resolve(url :: String.t(), opts :: term) :: {:ok, map() | boolean()} | {:error, term}
+
   @draft_202012_vocabulary %{
     "https://json-schema.org/draft/2020-12/vocab/core" => Vocabulary.V202012.Core,
     "https://json-schema.org/draft/2020-12/vocab/validation" => Vocabulary.V202012.Validation,
@@ -63,22 +65,17 @@ defmodule JSV.Resolver do
 
   IO.warn("todo allow atom keys in here")
 
-  IO.warn("""
-  The library should provide a default resolver implementation that uses httpc
-  to fetch remote resources with
-
-  * A file cache for iterations between runs
-  * A ram cache based on ETS for runtime, skip it for compilation
-  * An option to list URL prefixes, so we can restrict allowed prefixes.
-    Defaults to ["https://json-schema.org/"].
-  """)
-
   def resolve_root(rsv, raw_schema) when is_map(raw_schema) do
     # Bootstrap of the recursive resolving of schemas, metaschemas and
     # anchors/$ids. We just need to set the :root value in the context as the
     # $id (or `:root` atom if not set) of the top schema.
 
-    root_ns = Map.get(raw_schema, "$id", :root)
+    root_ns =
+      case Map.get(raw_schema, "$id", :root) do
+        :root -> :root
+        url -> ensure_uri_ns(url)
+      end
+
     # rsv = %__MODULE__{rsv | root: root_ns}
     ^root_ns = Key.of(root_ns)
 
@@ -215,7 +212,18 @@ defmodule JSV.Resolver do
         uri -> uri
       end
 
-    URI.to_string(uri)
+    uri
+    |> fix_made_up_ns_path()
+    |> URI.to_string()
+  end
+
+  defp fix_made_up_ns_path(uri) do
+    case uri.path do
+      "" -> uri
+      "/" <> _ -> uri
+      nil -> %URI{uri | path: ""}
+      other -> %URI{uri | path: "/" <> other}
+    end
   end
 
   defp scan_subschema(raw_schema, ns, nss, meta, acc) when is_map(raw_schema) do

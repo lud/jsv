@@ -25,13 +25,13 @@ defmodule JSV.Generated.Draft7.DefinitionsTest do
     test "valid definition schema", c do
       data = %{"definitions" => %{"foo" => %{"type" => "integer"}}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "invalid definition schema", c do
       data = %{"definitions" => %{"foo" => %{"type" => 1}}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

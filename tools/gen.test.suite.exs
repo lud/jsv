@@ -222,7 +222,7 @@ defmodule GenTestSuite do
             test <%= inspect(ttest.description) %>, c do
               data = <%= inspect(ttest.data, limit: :infinity, pretty: true) %>
               expected_valid = <%= inspect(ttest.valid?) %>
-              JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+              JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
             end
             <% end %>
           <% end %>

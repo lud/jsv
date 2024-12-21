@@ -52,19 +52,19 @@ defmodule JSV.Generated.Draft7.Optional.IdTest do
     test "exact match to enum, and type matches", c do
       data = %{"$id" => "https://localhost:1234/id/my_identifier.json", "type" => "null"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "match $ref to id", c do
       data = "a string to match #/definitions/id_in_enum"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "no match on enum or $ref to id", c do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -97,13 +97,13 @@ defmodule JSV.Generated.Draft7.Optional.IdTest do
     test "skip traversing definition for a valid result", c do
       data = "skip not_a_real_anchor"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "const at const_not_anchor does not match", c do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -136,13 +136,13 @@ defmodule JSV.Generated.Draft7.Optional.IdTest do
     test "skip traversing definition for a valid result", c do
       data = "skip not_a_real_id"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "const at const_not_id does not match", c do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end

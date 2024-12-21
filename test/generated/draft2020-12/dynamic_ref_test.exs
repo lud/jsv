@@ -36,13 +36,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "An array of strings is valid", c do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "An array containing non-strings is invalid", c do
       data = ["foo", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -73,13 +73,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "An array of strings is valid", c do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "An array containing non-strings is invalid", c do
       data = ["foo", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -110,13 +110,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "An array of strings is valid", c do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "An array containing non-strings is invalid", c do
       data = ["foo", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -157,13 +157,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "An array of strings is valid", c do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "An array containing non-strings is invalid", c do
       data = ["foo", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -205,13 +205,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "An array of strings is invalid", c do
       data = ["foo", "bar"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "An array of numbers is valid", c do
       data = [24, 42]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -256,13 +256,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "An array of strings is valid", c do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "An array containing non-strings is invalid", c do
       data = ["foo", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -303,7 +303,7 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "Any array is valid", c do
       data = ["foo", 42]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -344,7 +344,7 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "Any array is valid", c do
       data = ["foo", 42]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -386,7 +386,7 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "Any array is valid", c do
       data = ["foo", 42]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -436,13 +436,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "The recursive part is valid against the root", c do
       data = %{"bar" => %{"baz" => %{"foo" => "pass"}}, "foo" => "pass"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "The recursive part is not valid against the root", c do
       data = %{"bar" => %{"baz" => %{"foo" => "fail"}}, "foo" => "pass"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -492,7 +492,7 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "The recursive part doesn't need to validate against the root", c do
       data = %{"bar" => %{"baz" => %{"foo" => "fail"}}, "foo" => "pass"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -567,25 +567,25 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "number list with number values", c do
       data = %{"kindOfList" => "numbers", "list" => [1.1]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "number list with string values", c do
       data = %{"kindOfList" => "numbers", "list" => ["foo"]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "string list with number values", c do
       data = %{"kindOfList" => "strings", "list" => [1.1]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "string list with string values", c do
       data = %{"kindOfList" => "strings", "list" => ["foo"]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -640,19 +640,19 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "string matches /$defs/thingy, but the $dynamicRef does not stop here", c do
       data = "a string"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "first_scope is not in dynamic scope for the $dynamicRef", c do
       data = 42
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "/then/$defs/thingy is the final stop for the $dynamicRef", c do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -676,13 +676,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "instance with misspelled field", c do
       data = %{"children" => [%{"daat" => 1}]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "instance with correct field", c do
       data = %{"children" => [%{"data" => 1}]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -716,19 +716,19 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "incorrect parent schema", c do
       data = %{"a" => true}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "incorrect extended schema", c do
       data = %{"elements" => [%{"b" => 1}]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "correct extended schema", c do
       data = %{"elements" => [%{"a" => 1}]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -768,19 +768,19 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "incorrect parent schema", c do
       data = %{"a" => true}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "incorrect extended schema", c do
       data = %{"elements" => [%{"b" => 1}]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "correct extended schema", c do
       data = %{"elements" => [%{"a" => 1}]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -820,19 +820,19 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "incorrect parent schema", c do
       data = %{"a" => true}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "incorrect extended schema", c do
       data = %{"elements" => [%{"b" => 1}]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "correct extended schema", c do
       data = %{"elements" => [%{"a" => 1}]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -852,13 +852,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "number is valid", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "non-number is invalid", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -890,13 +890,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "follow $dynamicRef to a true schema", c do
       data = %{"true" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "follow $dynamicRef to a false schema", c do
       data = %{"false" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -953,13 +953,13 @@ defmodule JSV.Generated.Draft202012.DynamicRefTest do
     test "integer property passes", c do
       data = %{"bar-item" => %{"content" => 42}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
 
     test "string property fails", c do
       data = %{"bar-item" => %{"content" => "value"}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
     end
   end
 end
