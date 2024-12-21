@@ -63,11 +63,7 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
   def validate_keyword({:items@jsv, {items_schemas, additional_items_schema}}, data, vctx)
       when is_list(items_schemas) and (is_map(additional_items_schema) or is_nil(additional_items_schema)) and
              is_list(data) do
-    prefix_stream =
-      case items_schemas do
-        nil -> []
-        list -> Enum.map(list, &{:items_as_prefix, &1})
-      end
+    prefix_stream = Enum.map(items_schemas, &{:items_as_prefix, &1})
 
     rest_stream = Stream.cycle([{:additionalItems, additional_items_schema}])
     all_stream = Stream.concat(prefix_stream, rest_stream)
@@ -126,6 +122,8 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     Validator.return(:lists.reverse(rev_items), vctx)
   end
 
+  # this also passes when items schema is nil. In that case the additionalItems
+  # schema is not used, every item is valid.
   pass validate_keyword({:items@jsv, _})
 
   def validate_keyword(vd, data, vctx) do

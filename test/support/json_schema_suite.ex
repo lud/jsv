@@ -133,7 +133,7 @@ defmodule JSV.Test.JsonSchemaSuite do
     end)
 
     # Json encodable
-    assert {:ok, json_errors} = Jason.encode(formatted, pretty: true)
+    _ = assert {:ok, json_errors} = Jason.encode(formatted, pretty: true)
 
     if opts[:print_errors] do
       IO.puts(["\n", json_errors])
