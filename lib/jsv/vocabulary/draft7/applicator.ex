@@ -73,28 +73,12 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
     # prefixItems, then items_schema is nil and the zip will associate with nil.
     zipped =
       Enum.zip_with([data_items_index, all_stream], fn
-        [{data_item, index}, {kind, schema}] -> {kind, data_item, index, schema}
+        [{data_item, index}, {kind, schema}] -> {kind, index, data_item, schema}
       end)
 
-    {rev_items, vctx} =
-      Enum.reduce(zipped, {[], vctx}, fn
-        {_kind, data_item, _index, nil = _subschema}, {casted, vctx} ->
-          # TODO add evaluated path to validator
-          {[data_item | casted], vctx}
-
-        {kind, data_item, index, subschema}, {casted, vctx} ->
-          eval_path = eval_path(kind, index)
-
-          case Validator.validate_nested(data_item, index, eval_path, subschema, vctx) do
-            {:ok, casted_item, vctx} -> {[casted_item | casted], vctx}
-            {:error, vctx} -> {[data_item | casted], Validator.with_error(vctx, kind, data_item, index: index)}
-          end
-      end)
-
-    Validator.return(:lists.reverse(rev_items), vctx)
+    {validated_items, vctx} = validate_items(zipped, vctx)
+    Validator.return(validated_items, vctx)
   end
-
-  IO.warn("todo refactor items clause, we can reuse the same mapper function")
 
   # Items is a map, we will not use additional items.
   def validate_keyword({:items@jsv, {items_schema, _}}, data, vctx)
@@ -105,21 +89,11 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
 
     zipped =
       Enum.zip_with([data_items_index, all_stream], fn
-        [{data_item, index}, {kind, schema}] -> {kind, data_item, index, schema}
+        [{data_item, index}, {kind, schema}] -> {kind, index, data_item, schema}
       end)
 
-    {rev_items, vctx} =
-      Enum.reduce(zipped, {[], vctx}, fn
-        {kind, data_item, index, subschema}, {casted, vctx} ->
-          eval_path = eval_path(kind, index)
-
-          case Validator.validate_nested(data_item, index, eval_path, subschema, vctx) do
-            {:ok, casted_item, vctx} -> {[casted_item | casted], vctx}
-            {:error, vctx} -> {[data_item | casted], Validator.with_error(vctx, :items, data_item, index: index)}
-          end
-      end)
-
-    Validator.return(:lists.reverse(rev_items), vctx)
+    {validated_items, vctx} = validate_items(zipped, vctx)
+    Validator.return(validated_items, vctx)
   end
 
   # this also passes when items schema is nil. In that case the additionalItems
@@ -128,6 +102,27 @@ defmodule JSV.Vocabulary.Draft7.Applicator do
 
   def validate_keyword(vd, data, vctx) do
     Fallback.validate_keyword(vd, data, vctx)
+  end
+
+  # Validate all items in a stream of {kind, index, item_data, subschema}.
+  # The subschema can be nil which makes the item automatically valid.
+  defp validate_items(stream, vctx) do
+    {rev_items, vctx} =
+      Enum.reduce(stream, {[], vctx}, fn
+        {_kind, _index, data_item, nil = _subschema}, {casted, vctx} ->
+          # TODO add evaluated path to validator
+          {[data_item | casted], vctx}
+
+        {kind, index, data_item, subschema}, {casted, vctx} ->
+          eval_path = eval_path(kind, index)
+
+          case Validator.validate_nested(data_item, index, eval_path, subschema, vctx) do
+            {:ok, casted_item, vctx} -> {[casted_item | casted], vctx}
+            {:error, vctx} -> {[data_item | casted], Validator.with_error(vctx, kind, data_item, index: index)}
+          end
+      end)
+
+    {:lists.reverse(rev_items), vctx}
   end
 
   defp eval_path(kind, arg) do
