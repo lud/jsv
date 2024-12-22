@@ -1,5 +1,6 @@
 defmodule JSV.Vocabulary.V202012.Applicator do
   alias JSV.Builder
+  alias JSV.ErrorFormatter
   alias JSV.Helpers
   alias JSV.Validator
   alias JSV.Vocabulary.V202012.Validation
@@ -46,36 +47,29 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   take_keyword :prefixItems, prefix_items when is_list(prefix_items), acc, builder, _ do
-    prefix_items
-    |> Helpers.reduce_ok({[], builder}, fn item, {subacc, builder} ->
-      case Builder.build_sub(item, builder) do
-        {:ok, subvalidators, builder} -> {:ok, {[subvalidators | subacc], builder}}
-        {:error, _} = err -> err
-      end
-    end)
-    |> case do
-      {:ok, {subvalidators, builder}} -> {:ok, [{:prefixItems, :lists.reverse(subvalidators)} | acc], builder}
+    case build_sub_list(prefix_items, builder) do
+      {:ok, subvalidators, builder} -> {:ok, [{:prefixItems, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
   take_keyword :allOf, [_ | _] = all_of, acc, builder, _ do
     case build_sub_list(all_of, builder) do
-      {:ok, subvalidators, builder} -> {:ok, [{:allOf, :lists.reverse(subvalidators)} | acc], builder}
+      {:ok, subvalidators, builder} -> {:ok, [{:allOf, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
   take_keyword :anyOf, [_ | _] = any_of, acc, builder, _ do
     case build_sub_list(any_of, builder) do
-      {:ok, subvalidators, builder} -> {:ok, [{:anyOf, :lists.reverse(subvalidators)} | acc], builder}
+      {:ok, subvalidators, builder} -> {:ok, [{:anyOf, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
 
   take_keyword :oneOf, [_ | _] = one_of, acc, builder, _ do
     case build_sub_list(one_of, builder) do
-      {:ok, subvalidators, builder} -> {:ok, [{:oneOf, :lists.reverse(subvalidators)} | acc], builder}
+      {:ok, subvalidators, builder} -> {:ok, [{:oneOf, subvalidators} | acc], builder}
       {:error, _} = err -> err
     end
   end
@@ -344,38 +338,45 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   pass validate_keyword({:items@jsv, _})
 
   def validate_keyword({:oneOf, subvalidators}, data, vctx) do
-    case validate_split(subvalidators, data, vctx) do
-      {[{_, data}], _, vctx} ->
+    case validate_split(subvalidators, :oneOf, data, vctx) do
+      {[{_, data, _detached_vctx}], _, vctx} ->
         {:ok, data, vctx}
 
       {[], _, _} ->
         # TODO compute branch error of all invalid
-        {:error, Validator.with_error(vctx, :oneOf, data, validated_schemas: [])}
+        {:error, Validator.with_error(vctx, :oneOf, data, validated: [])}
 
       {[_ | _] = too_much, _, _} ->
-        validated_schemas = Enum.map(too_much, &elem(&1, 0))
-        {:error, Validator.with_error(vctx, :oneOf, data, validated_schemas: validated_schemas)}
+        validated = Enum.map(too_much, fn {index, _, vctx} -> {index, vctx} end)
+
+        {:error, Validator.with_error(vctx, :oneOf, data, validated: validated)}
     end
   end
 
   def validate_keyword({:anyOf, subvalidators}, data, vctx) do
-    case validate_split(subvalidators, data, vctx) do
+    # TODO return early once we validate at least one schema. There is no need
+    # to continue validation afterwards.
+    case validate_split(subvalidators, :anyOf, data, vctx) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
-      # TODO compute branch error of all invalid validations
-      {[{_, data} | _], _, vctx} -> {:ok, data, vctx}
-      {[], _, vctx} -> {:error, Validator.with_error(vctx, :anyOf, data, validated_schemas: [])}
+      {[{_, data, _detached_vctx} | _], _, vctx} ->
+        {:ok, data, vctx}
+
+      {[], invalids, vctx} ->
+        {:error, Validator.with_error(vctx, :anyOf, data, invalidated: invalids)}
     end
   end
 
   def validate_keyword({:allOf, subvalidators}, data, vctx) do
-    case validate_split(subvalidators, data, vctx) do
+    case validate_split(subvalidators, :allOf, data, vctx) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
       # TODO merge evaluated
-      {[{_, data} | _], [], vctx} -> {:ok, data, vctx}
-      # TODO merge all error vctxs
-      {_, [{_, err_vctx} | _] = _invalid, _vctx} -> {:error, err_vctx}
+      {[{_, data, _detached_vctx} | _], [], vctx} ->
+        {:ok, data, vctx}
+
+      {_, invalids, vctx} ->
+        {:error, Validator.with_error(vctx, :allOf, data, invalidated: invalids)}
     end
   end
 
@@ -473,19 +474,21 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  # Split the validators between those that validate the data and those who
-  # don't.
-  IO.warn("@todo return each vctx")
-
-  defp validate_split(validators, data, vctx) do
+  defp validate_split(validators, kind, data, vctx) do
     # TODO return vctx for each matched or unmatched schema, do not return a
     # global vctx
-    {valids, invalids, vctx} =
-      Enum.reduce(validators, {[], [], vctx}, fn subvalidator, {valids, invalids, vctx} ->
-        case Validator.validate_detach(data, subvalidator, vctx) do
-          {:ok, data, vctx} -> {[{subvalidator, data} | valids], invalids, vctx}
-          # We continue with the good validator in the acc
-          {:error, err_vctx} -> {valids, [{subvalidator, err_vctx} | invalids], vctx}
+    {valids, invalids, vctx, _} =
+      Enum.reduce(validators, {[], [], vctx, _index = 0}, fn subvalidator, {valids, invalids, vctx, index} ->
+        case Validator.validate_detach(data, [kind, index], subvalidator, vctx) do
+          {:ok, data, detached_vctx} ->
+            # Valid subschemas must produce "annotations" for the data they
+            # validate. For us it means that we merge the evaluated properties
+            # for successful schemas.
+            vctx = Validator.merge_evaluated(vctx, detached_vctx)
+            {[{index, data, detached_vctx} | valids], invalids, vctx, index + 1}
+
+          {:error, err_vctx} ->
+            {valids, [{index, err_vctx} | invalids], vctx, index + 1}
         end
       end)
 
@@ -543,19 +546,44 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     "property '#{key}' did not conform to the patternProperties schema for pattern /#{pattern}/"
   end
 
-  def format_error(:oneOf, %{validated_schemas: []}, _data) do
-    {"value did not conform to one of the given schemas", %{}}
+  def format_error(:oneOf, %{validated: []}, _data) do
+    {"value did not conform to any of the given schemas", %{}}
   end
 
-  def format_error(:oneOf, %{validated_schemas: _validated_schemas}, _data) do
-    {"value validated more than one of the given schemas", %{}}
+  def format_error(:oneOf, %{validated: validated}, _data) do
+    # Best effort for now, we are not accumulating annotations for valid data,
+    # so we only return the paths of the multiples schemas that were validated
+    validated =
+      Enum.map(validated, fn {_index, vctx} ->
+        sub_validator_path = ErrorFormatter.format_schema_path(vctx.eval_path)
+        %{valid: true, schemaLocation: sub_validator_path}
+      end)
+
+    {"value did conform to more than one of the given schemas", %{validated: validated}}
   end
 
-  def format_error(:anyOf, %{validated_schemas: []}, _data) do
-    "value did not conform to any of the given schemas"
+  def format_error(:anyOf, %{invalidated: invalidated}, _data) do
+    invalidated = format_invalidated_subs(invalidated)
+
+    {"value did not conform to any of the given schemas", %{invalidated: invalidated}}
+  end
+
+  def format_error(:allOf, %{invalidated: invalidated}, _data) do
+    invalidated = format_invalidated_subs(invalidated)
+
+    {"value did not conform to all of the given schemas", %{invalidated: invalidated}}
   end
 
   def format_error(:not, _, _data) do
     "value must not validate the schema given in 'not'"
+  end
+
+  defp format_invalidated_subs(invalidated) do
+    Enum.map(invalidated, fn {_index, vctx} ->
+      sub_validator_path = ErrorFormatter.format_schema_path(vctx.eval_path)
+      sub_errors = Validator.flat_errors(vctx)
+
+      %{valid: false, schemaLocation: sub_validator_path, errors: ErrorFormatter.format_errors(sub_errors)}
+    end)
   end
 end

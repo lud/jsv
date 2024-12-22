@@ -27,7 +27,7 @@ defmodule JSV.Validator do
   # The validator struct is the 3rd argument to mimic the callback on the
   # vocabulary modules where builder and validators are passed as a context as
   # last argument.
-  def validate(data, dialect_or_boolean_schema, vctx)
+  def validate(data, subschema, vctx)
 
   def validate(data, %BooleanSchema{} = bs, %__MODULE__{} = vctx) do
     case BooleanSchema.valid?(bs) do
@@ -65,21 +65,20 @@ defmodule JSV.Validator do
 
   @doc """
   Validate the data with the given validators but separate the current
-  evaluation context during the validation, to squash it afterwards.
+  evaluation context during the validation.
 
-  This means that currently evaluated properties or items will not be seen as
-  evaluated during the validation (detach), and properties or items evaluated by
-  the validators will be added back (squash) to the current scope of the given
-  validator struct.
+  Currently evaluated properties or items will not be seen as evaluated during
+  the validation by the given `subschema`.
+
+
   """
-  def validate_detach(data, dialect_or_boolean_schema, vctx) do
-    %{evaluated: parent_evaluated} = vctx
-    # TODO no need to add the parent in the list?
-    sub_vctx = %__MODULE__{vctx | evaluated: [%{} | parent_evaluated]}
+  def validate_detach(data, add_eval_path, subschema, vctx) do
+    %{eval_path: eval_path} = vctx
+    sub_vctx = %__MODULE__{vctx | evaluated: [%{}], eval_path: [add_eval_path | eval_path]}
 
-    case validate(data, dialect_or_boolean_schema, sub_vctx) do
-      {:ok, data, new_sub} -> {:ok, data, squash_evaluated(new_sub)}
-      {:error, new_sub} -> {:error, squash_evaluated(new_sub)}
+    case validate(data, subschema, sub_vctx) do
+      {:ok, data, new_sub} -> {:ok, data, new_sub}
+      {:error, new_sub} -> {:error, new_sub}
     end
   end
 
@@ -231,15 +230,10 @@ defmodule JSV.Validator do
     [vctx_errors, sub_errors]
   end
 
-  defp merge_evaluated(vctx, sub) do
+  def merge_evaluated(vctx, sub) do
     %__MODULE__{evaluated: [top_vctx | rest_vctx]} = vctx
     %__MODULE__{evaluated: [top_sub | _rest_sub]} = sub
     %__MODULE__{vctx | evaluated: [Map.merge(top_vctx, top_sub) | rest_vctx]}
-  end
-
-  defp squash_evaluated(vctx) do
-    %{evaluated: [to_squash, old_top | rest]} = vctx
-    %__MODULE__{vctx | evaluated: [Map.merge(to_squash, old_top) | rest]}
   end
 
   def return(data, %__MODULE__{errors: []} = vctx) do

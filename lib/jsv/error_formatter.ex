@@ -60,12 +60,22 @@ defmodule JSV.ErrorFormatter do
       |> take_last_ns_path_segments([])
       |> format_path()
 
-    schema_path =
-      flat_path
-      |> take_eval_path_segments([])
-      |> format_path()
+    schema_path = flat_path_to_schema_path(flat_path)
 
     {absolute_path, schema_path}
+  end
+
+  @doc false
+  def format_schema_path(eval_path) do
+    flat_path = flatten_path(eval_path)
+
+    flat_path_to_schema_path(flat_path)
+  end
+
+  defp flat_path_to_schema_path(flat_path) do
+    flat_path
+    |> take_eval_path_segments([])
+    |> format_path()
   end
 
   # eval path is built in reverse while iterating the schemas by consing to the

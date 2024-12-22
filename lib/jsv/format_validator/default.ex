@@ -1,4 +1,5 @@
 defmodule JSV.FormatValidator.Default.Optional do
+  @moduledoc false
   def optional_support(format, supported?) when is_boolean(supported?) do
     if supported? do
       List.wrap(format)
@@ -14,8 +15,6 @@ defmodule JSV.FormatValidator.Default.Optional do
     end
   end
 end
-
-IO.warn("rename Default to BuiltIn")
 
 defmodule JSV.FormatValidator.Default do
   import JSV.FormatValidator.Default.Optional, only: [mod_exists?: 1, optional_support: 2]
