@@ -1,79 +1,8 @@
 defmodule JSV.Test.JsonSchemaSuite do
   alias JSV.Validator
-  use ExUnit.CaseTemplate
-  @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
-  require Logger
   import ExUnit.Assertions
-
-  def stream_cases(suite, all_enabled) do
-    suite_dir = suite_dir!(suite)
-
-    suite_dir
-    |> Path.join("**/**.json")
-    |> Path.wildcard()
-    |> Stream.transform(
-      fn -> {_discarded = [], all_enabled} end,
-      fn path, {discarded, enabled} ->
-        rel_path = Path.relative_to(path, suite_dir)
-
-        # We delete the {file, opts} entry in the enabled map when we use it, so
-        # we can print unexpected configs (useful when the JSON schema test
-        # suite maintainers delete some test files).
-
-        case Map.pop(enabled, rel_path, :error) do
-          {:unsupported, rest_enabled} -> {[], {discarded, rest_enabled}}
-          {:error, ^enabled} -> {[], {[rel_path | discarded], enabled}}
-          {opts, rest_enabled} -> {[%{path: path, rel_path: rel_path, opts: opts}], {discarded, rest_enabled}}
-        end
-      end,
-      fn {discarded, rest_enabled} ->
-        print_unchecked(suite, discarded)
-        print_unexpected(suite, rest_enabled)
-      end
-    )
-    |> Stream.map(fn item ->
-      %{path: path, opts: opts} = item
-
-      Map.put(item, :test_cases, marshall_file(path, opts))
-    end)
-  end
-
-  defp marshall_file(source_path, opts) do
-    # If validate is false, all tests in the file are skipped.
-    validate = Keyword.get(opts, :validate, true)
-    # TODO remove, This should not be used anymore
-    true = validate
-
-    ignored = Keyword.get(opts, :ignore, [])
-    elixir = Keyword.get(opts, :elixir, nil)
-
-    source_path
-    |> File.read!()
-    |> Jason.decode!()
-    |> Enum.map(fn tcase ->
-      %{"description" => tc_descr, "schema" => schema, "tests" => tests} = tcase
-      tcase_ignored = tc_descr in ignored
-
-      tests =
-        Enum.map(tests, fn ttest ->
-          %{"description" => tt_descr, "data" => data, "valid" => valid} = ttest
-          ttest_ignored = tt_descr in ignored
-
-          %{description: tt_descr, data: data, valid?: valid, skip?: ttest_ignored or tcase_ignored or not validate}
-        end)
-
-      %{description: tc_descr, schema: schema, tests: tests, elixir_version_check: elixir}
-    end)
-  end
-
-  def suite_dir!(suite) do
-    path = Path.join(@root_suites_dir, suite)
-
-    case File.dir?(path) do
-      true -> path
-      false -> raise ArgumentError, "unknown suite #{suite}, could not find directory #{path}"
-    end
-  end
+  require Logger
+  use ExUnit.CaseTemplate
 
   def run_test(json_schema, schema, data, expected_valid, opts \\ []) do
     {valid?, %Validator{} = validator} =
@@ -165,45 +94,6 @@ defmodule JSV.Test.JsonSchemaSuite do
       inspect(reason, pretty: true)
     end}
     """
-  end
-
-  defp print_unchecked(suite, []) do
-    IO.puts("All cases checked out for #{suite}")
-  end
-
-  defp print_unchecked(suite, paths) do
-    total = length(paths)
-    maxprint = 20
-    more? = total > maxprint
-
-    print_list =
-      paths
-      |> Enum.sort_by(fn
-        "optional/format/" <> _ = rel_path -> {2, rel_path}
-        "optional/" <> _ = rel_path -> {1, rel_path}
-        rel_path -> {0, rel_path}
-      end)
-      |> Enum.take(maxprint)
-      |> Enum.map_intersperse(?\n, fn filename -> "{#{inspect(filename)}, []}," end)
-
-    """
-    Unchecked test cases in #{suite}:
-    #{print_list}
-    #{(more? && "... (#{total - maxprint} more)") || ""}
-    """
-    |> IO.warn([])
-  end
-
-  defp print_unexpected(_suite, map) when map_size(map) == 0 do
-    # no noise
-  end
-
-  defp print_unexpected(suite, map) do
-    """
-    Unexpected test cases in #{suite}:
-    #{map |> Map.to_list() |> Enum.map_join("\n", &inspect/1)}
-    """
-    |> IO.warn([])
   end
 
   def version_check(elixir_version_req) do

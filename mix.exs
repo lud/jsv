@@ -7,6 +7,8 @@ defmodule JSV.MixProject do
       description: "Yet another JSON Schema Validator with complete support for the latest specifications.",
       version: "0.0.1",
       elixir: "~> 1.15",
+      # no protocol consolidation for the generation of the test suite
+      consolidate_protocols: false,
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),

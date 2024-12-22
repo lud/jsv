@@ -60,3 +60,5 @@ defmodule JSV.Schema do
     :writeOnly
   ]
 end
+
+IO.warn("try by adding the struct in atom tests")

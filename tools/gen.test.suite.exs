@@ -1,8 +1,10 @@
-defmodule GenTestSuite do
+defmodule JSV.GenTestSuite do
   alias CliMate.CLI
   alias JSV.JsonTools
   alias JSV.Test.JsonSchemaSuite
   require EEx
+
+  @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
 
   @enabled_specific_202012 %{
     "anchor.json" => [],
@@ -47,7 +49,13 @@ defmodule GenTestSuite do
   }
 
   @enabled_common %{
-    "additionalProperties.json" => [],
+    "additionalProperties.json" => [
+      atom_ignore: [
+        # those tests use regexes in pattern properties.
+        "additionalProperties being false does not allow other properties",
+        "non-ASCII pattern with additionalProperties"
+      ]
+    ],
     "allOf.json" => [],
     "anyOf.json" => [],
     "boolean_schema.json" => [],
@@ -208,16 +216,16 @@ defmodule GenTestSuite do
           if JsonSchemaSuite.version_check(<%= inspect(tcase.elixir_version_check) %>) do
         <% end %>
 
-        describe <%= inspect(tcase.description <> ":") %> do
+        describe <%= inspect(tcase.description) %> do
 
           setup do
-
-            json_schema = Jason.decode!(<%= decoding_schema(tcase.schema) %>)
+            json_schema = <%= render_ordered_schema(tcase.schema, @keys_format) %>
             schema = JsonSchemaSuite.build_schema(json_schema, <%= inspect(@schema_build_opts, limit: :infinity, pretty: true) %>)
             {:ok, json_schema: json_schema, schema: schema}
           end
 
           <%= for ttest <- tcase.tests do %>
+
             <%= if not ttest.skip? do %>
             test <%= inspect(ttest.description) %>, c do
               data = <%= inspect(ttest.data, limit: :infinity, pretty: true) %>
@@ -225,6 +233,8 @@ defmodule GenTestSuite do
               JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
             end
             <% end %>
+
+
           <% end %>
         end
 
@@ -243,31 +253,77 @@ defmodule GenTestSuite do
   def run(argv) do
     %{options: _options, arguments: %{suite: suite}} = CLI.parse_or_halt!(argv, @command)
 
-    do_run(suite)
+    do_run(suite, :binary)
+    do_run(suite, :atom, 1)
     Mix.Task.run("format")
   end
 
-  defp do_run(suite) do
-    test_directory = "test/generated/#{suite}"
-    namespace = Module.concat([JSV, Generated, Macro.camelize(String.replace(suite, "-", ""))])
+  # Format can be :binary or :atom, it changes the way the schemas will be
+  # represented in the tests
+  defp do_run(suite_name, format, max_tests \\ :infinity) do
+    {subnamespace, subdir} =
+      case format do
+        :binary -> {"BinaryKeys", "binary_keys"}
+        :atom -> {"AtomKeys", "atom_keys"}
+      end
+
+    test_directory = "test/generated/#{subdir}/#{suite_name}"
+    namespace = Module.concat([JSV, Generated, Macro.camelize(String.replace(suite_name, "-", "")), subnamespace])
 
     CLI.warn("Deleting current test files directory #{test_directory}")
     _ = File.rm_rf!(test_directory)
 
     enabled =
-      case Map.fetch(@enabled, suite) do
+      case Map.fetch(@enabled, suite_name) do
         {:ok, false} -> Map.new([])
         {:ok, map} when is_map(map) -> map
-        :error -> raise ArgumentError, "No suite configuration for #{inspect(suite)}"
+        :error -> raise ArgumentError, "No suite configuration for #{inspect(suite_name)}"
       end
 
-    schema_options = [default_meta: default_meta(suite)]
+    enabled = maybe_add_atom_ignored(enabled, format)
 
-    suite
-    |> JsonSchemaSuite.stream_cases(enabled)
-    |> Stream.map(&gen_test_mod(&1, test_directory, namespace, schema_options))
+    schema_options = [default_meta: default_meta(suite_name)]
+
+    suite_name
+    |> stream_cases(enabled)
+    |> take_max_tests(max_tests)
+    # |> Task.async_stream(&gen_test_mod(&1, test_directory, namespace, jason_keys, schema_options),
+    # timeout: :infinity,
+    # ordered: false
+    # )
+    |> Stream.map(&gen_test_mod(&1, test_directory, namespace, format, schema_options))
     |> Enum.count()
     |> then(&IO.puts("Wrote #{&1} files"))
+  end
+
+  defp maybe_add_atom_ignored(enabled, :atom) do
+    add_atom_ignored(enabled)
+  end
+
+  defp maybe_add_atom_ignored(enabled, _) do
+    enabled
+  end
+
+  defp add_atom_ignored(enabled) do
+    Map.new(enabled, fn {jsonpath, opts} ->
+      opts =
+        if is_list(opts) do
+          add_ignored = Keyword.get(opts, :atom_ignore, [])
+          Keyword.update(opts, :ignore, add_ignored, &(add_ignored ++ &1))
+        else
+          opts
+        end
+
+      {jsonpath, opts}
+    end)
+  end
+
+  defp take_max_tests(stream, :infinity) do
+    stream
+  end
+
+  defp take_max_tests(stream, n) do
+    Stream.take(stream, n)
   end
 
   defp default_meta("draft7") do
@@ -278,19 +334,146 @@ defmodule GenTestSuite do
     "https://json-schema.org/draft/2020-12/schema"
   end
 
-  defp gen_test_mod(mod_info, test_directory, namespace, schema_options) do
+  def stream_cases(suite, all_enabled) do
+    suite_dir = suite_dir!(suite)
+
+    suite_dir
+    |> Path.join("**/**.json")
+    |> Path.wildcard()
+    |> Enum.sort()
+    |> Stream.transform(
+      fn -> {_discarded = [], all_enabled} end,
+      fn path, {discarded, enabled} ->
+        rel_path = Path.relative_to(path, suite_dir)
+
+        # We delete the {file, opts} entry in the enabled map when we use it, so
+        # we can print unexpected configs (useful when the JSON schema test
+        # suite maintainers delete some test files).
+
+        case Map.pop(enabled, rel_path, :error) do
+          {:unsupported, rest_enabled} -> {[], {discarded, rest_enabled}}
+          {:error, ^enabled} -> {[], {[rel_path | discarded], enabled}}
+          {opts, rest_enabled} -> {[%{path: path, rel_path: rel_path, opts: opts}], {discarded, rest_enabled}}
+        end
+      end,
+      fn {discarded, rest_enabled} ->
+        # Cases found in the JSON files that were not configured in
+        # `all_enabled`, and so not returned in the stream
+        print_unchecked(suite, discarded)
+
+        # Cases configured in `all_enabled` that were not found as JSON files.
+        print_unexpected(suite, rest_enabled)
+      end
+    )
+    |> Stream.map(fn item ->
+      %{path: path, opts: opts} = item
+      Map.put(item, :test_cases, marshall_file(path, opts))
+    end)
+  end
+
+  defp marshall_file(source_path, opts) do
+    # If validate is false, all tests in the file are skipped.
+    validate = Keyword.get(opts, :validate, true)
+    # TODO remove, This should not be used anymore
+    true = validate
+
+    ignore = Keyword.get(opts, :ignore, [])
+    elixir = Keyword.get(opts, :elixir, nil)
+
+    source_path
+    |> File.read!()
+    |> Jason.decode!()
+    |> Stream.flat_map(fn tcase ->
+      %{"description" => tc_descr, "schema" => schema, "tests" => tests} = tcase
+      tcase_ignored = tc_descr in ignore
+
+      tests =
+        Enum.map(tests, fn ttest ->
+          %{"description" => tt_descr, "data" => data, "valid" => valid} = ttest
+          ttest_ignored = tt_descr in ignore
+
+          %{
+            description: tt_descr,
+            data: data,
+            valid?: valid,
+            skip?: ttest_ignored or tcase_ignored or not validate,
+            ignore: ignore
+          }
+        end)
+
+      all_ignored? = Enum.all?(tests, & &1.skip?)
+
+      if all_ignored? do
+        []
+      else
+        [%{description: tc_descr, schema: schema, tests: tests, elixir_version_check: elixir}]
+      end
+    end)
+  end
+
+  def suite_dir!(suite) do
+    path = Path.join(@root_suites_dir, suite)
+
+    case File.dir?(path) do
+      true -> path
+      false -> raise ArgumentError, "unknown suite #{suite}, could not find directory #{path}"
+    end
+  end
+
+  defp print_unchecked(suite, []) do
+    IO.puts("All cases checked out for #{suite}")
+  end
+
+  defp print_unchecked(suite, paths) do
+    total = length(paths)
+    maxprint = 20
+    more? = total > maxprint
+
+    print_list =
+      paths
+      |> Enum.sort_by(fn
+        "optional/format/" <> _ = rel_path -> {2, rel_path}
+        "optional/" <> _ = rel_path -> {1, rel_path}
+        rel_path -> {0, rel_path}
+      end)
+      |> Enum.take(maxprint)
+      |> Enum.map_intersperse(?\n, fn filename -> "{#{inspect(filename)}, []}," end)
+
+    """
+    Unchecked test cases in #{suite}:
+    #{print_list}
+    #{(more? && "... (#{total - maxprint} more)") || ""}
+    """
+    |> IO.warn([])
+  end
+
+  defp print_unexpected(_suite, map) when map_size(map) == 0 do
+    # no noise
+  end
+
+  defp print_unexpected(suite, map) do
+    """
+    Unexpected test cases in #{suite}:
+    #{map |> Map.to_list() |> Enum.map_join("\n", &inspect/1)}
+    """
+    |> IO.warn([])
+  end
+
+  defp gen_test_mod(mod_info, test_directory, namespace, format, schema_options) do
     module_name = module_name(mod_info, namespace)
 
     case_build_opts = get_in(mod_info, [:opts, :schema_build_opts]) || []
     schema_build_opts = Keyword.merge(schema_options, case_build_opts)
 
-    assigns = Map.merge(mod_info, %{module_name: module_name, schema_build_opts: schema_build_opts})
+    assigns =
+      Map.merge(mod_info, %{module_name: module_name, schema_build_opts: schema_build_opts, keys_format: format})
 
     module_contents = module_template(assigns)
     module_path = module_path(test_directory, namespace, module_name)
 
     File.mkdir_p!(Path.dirname(module_path))
-    File.write!(module_path, module_contents)
+    File.write!(module_path, module_contents, [:sync])
+    module_path
   end
 
   @re_modpath ~r/\.ex$/
@@ -329,23 +512,91 @@ defmodule GenTestSuite do
     $defs
     definitions
     type
+    properties
+    required
   ) |> Enum.with_index() |> Map.new()
 
-  defp decoding_schema(data) do
-    # return a string enclosed with triple double quotes without indentation.
-    # Using sigil ~S to allow UTF-8 escape sequences.
-    inner =
-      JsonTools.encode_ordered!(
-        data,
-        fn {k, _} ->
-          order = Map.get(@key_order, k, 999_999)
-          {order, k}
-        end,
-        pretty: true
-      )
+  defp render_ordered_schema(schema, key_format) when is_map(schema) do
+    schema =
+      case key_format do
+        :binary -> schema
+        :atom -> schema |> Jason.encode!() |> Jason.decode!(keys: :atoms)
+      end
 
-    [~c'\n~S"""\n', inner, ~c'\n"""\n']
+    ordered_map = JSV.OrderedMap.from_map(schema)
+    inspect(ordered_map, pretty: true)
+  end
+
+  defp render_ordered_schema(schema, _) when is_boolean(schema) do
+    inspect(schema)
   end
 end
 
-GenTestSuite.run(System.argv())
+defmodule JSV.OrderedMap do
+  @key_order ["$schema", "$id", "comment", "$defs", "definitions", "type", "properties", "required"]
+             |> Enum.with_index()
+             |> Map.new()
+
+  defstruct ordlist: []
+
+  def from_map(map) do
+    ordlist =
+      map
+      |> Map.to_list()
+      |> Enum.sort_by(fn {k, _} -> order_of(k) end)
+      |> Enum.map(fn {k, v} -> {k, cast_sub(v)} end)
+
+    %__MODULE__{ordlist: ordlist}
+  end
+
+  defp cast_sub(map) when is_map(map) do
+    from_map(map)
+  end
+
+  defp cast_sub(list) when is_list(list) do
+    Enum.map(list, &cast_sub(&1))
+  end
+
+  defp cast_sub(tuple) when is_tuple(tuple) do
+    raise "we should not have tuples in JSON data"
+  end
+
+  defp cast_sub(sub) do
+    sub
+  end
+
+  defp order_of(key) do
+    Map.get(@key_order, key, 999_999)
+  end
+end
+
+defimpl Inspect, for: JSV.OrderedMap do
+  import Inspect.Algebra
+
+  def inspect(omap, opts) do
+    list = omap.ordlist
+
+    fun =
+      if Inspect.List.keyword?(list) do
+        &Inspect.List.keyword/2
+      else
+        sep = color(" => ", :map, opts)
+        &to_assoc(&1, &2, sep)
+      end
+
+    map_container_doc(omap.ordlist, "", opts, fun)
+  end
+
+  defp to_assoc({key, value}, opts, sep) do
+    concat(concat(to_doc(key, opts), sep), to_doc(value, opts))
+  end
+
+  defp map_container_doc(list, name, opts, fun) do
+    open = color("%" <> name <> "{", :map, opts)
+    sep = color(",", :map, opts)
+    close = color("}", :map, opts)
+    container_doc(open, list, close, opts, fun, separator: sep, break: :strict)
+  end
+end
+
+JSV.GenTestSuite.run(System.argv())
