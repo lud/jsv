@@ -15,12 +15,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AllOfTest do
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         allOf: [
           %JSV.Schema{
-            required: ["bar"],
-            properties: %{bar: %JSV.Schema{type: "integer"}}
+            properties: %{bar: %JSV.Schema{type: "integer"}},
+            required: ["bar"]
           },
           %JSV.Schema{
-            required: ["foo"],
-            properties: %{foo: %JSV.Schema{type: "string"}}
+            properties: %{foo: %JSV.Schema{type: "string"}},
+            required: ["foo"]
           }
         ]
       }
@@ -57,19 +57,19 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AllOfTest do
   describe "allOf with base schema" do
     setup do
       json_schema = %JSV.Schema{
-        required: ["bar"],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        properties: %{bar: %JSV.Schema{type: "integer"}},
+        required: ["bar"],
         allOf: [
           %JSV.Schema{
-            required: ["foo"],
-            properties: %{foo: %JSV.Schema{type: "string"}}
+            properties: %{foo: %JSV.Schema{type: "string"}},
+            required: ["foo"]
           },
           %JSV.Schema{
-            required: ["baz"],
-            properties: %{baz: %JSV.Schema{type: "null"}}
+            properties: %{baz: %JSV.Schema{type: "null"}},
+            required: ["baz"]
           }
-        ],
-        properties: %{bar: %JSV.Schema{type: "integer"}}
+        ]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

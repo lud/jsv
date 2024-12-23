@@ -12,9 +12,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RequiredTest do
   describe "required validation" do
     setup do
       json_schema = %JSV.Schema{
-        required: ["foo"],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        properties: %{foo: %JSV.Schema{}, bar: %JSV.Schema{}}
+        properties: %{bar: %JSV.Schema{}, foo: %JSV.Schema{}},
+        required: ["foo"]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -73,9 +73,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RequiredTest do
   describe "required with empty array" do
     setup do
       json_schema = %JSV.Schema{
-        required: [],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        properties: %{foo: %JSV.Schema{}}
+        properties: %{foo: %JSV.Schema{}},
+        required: []
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -92,8 +92,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RequiredTest do
   describe "required with escaped characters" do
     setup do
       json_schema = %JSV.Schema{
-        required: ["foo\nbar", "foo\"bar", "foo\\bar", "foo\rbar", "foo\tbar", "foo\fbar"],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        required: ["foo\nbar", "foo\"bar", "foo\\bar", "foo\rbar", "foo\tbar", "foo\fbar"]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -124,8 +124,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RequiredTest do
   describe "required properties whose names are Javascript object property names" do
     setup do
       json_schema = %JSV.Schema{
-        required: ["__proto__", "toString", "constructor"],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        required: ["__proto__", "toString", "constructor"]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

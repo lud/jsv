@@ -13,8 +13,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AdditionalPropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        additionalProperties: %JSV.Schema{type: "boolean"},
-        properties: %{foo: %JSV.Schema{}, bar: %JSV.Schema{}}
+        properties: %{bar: %JSV.Schema{}, foo: %JSV.Schema{}},
+        additionalProperties: %JSV.Schema{type: "boolean"}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -68,7 +68,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AdditionalPropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        properties: %{foo: %JSV.Schema{}, bar: %JSV.Schema{}}
+        properties: %{bar: %JSV.Schema{}, foo: %JSV.Schema{}}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -148,12 +148,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AdditionalPropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        properties: %{foo2: %JSV.Schema{}},
         additionalProperties: false,
         dependentSchemas: %{
           foo: %JSV.Schema{},
           foo2: %JSV.Schema{properties: %{bar: %JSV.Schema{}}}
-        },
-        properties: %{foo2: %JSV.Schema{}}
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Ipv4Test do
   describe "validation of IP addresses" do
     setup do
       json_schema = %JSV.Schema{
-        format: "ipv4",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        format: "ipv4"
       }
 
       schema =

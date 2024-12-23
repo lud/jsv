@@ -14,8 +14,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.PropertiesTest do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         properties: %{
-          foo: %JSV.Schema{type: "integer"},
-          bar: %JSV.Schema{type: "string"}
+          bar: %JSV.Schema{type: "string"},
+          foo: %JSV.Schema{type: "integer"}
         }
       }
 
@@ -64,12 +64,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.PropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        additionalProperties: %JSV.Schema{type: "integer"},
-        patternProperties: %{"f.o": %JSV.Schema{minItems: 2}},
         properties: %{
-          foo: %JSV.Schema{type: "array", maxItems: 3},
-          bar: %JSV.Schema{type: "array"}
-        }
+          bar: %JSV.Schema{type: "array"},
+          foo: %JSV.Schema{type: "array", maxItems: 3}
+        },
+        patternProperties: %{"f.o": %JSV.Schema{minItems: 2}},
+        additionalProperties: %JSV.Schema{type: "integer"}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -129,7 +129,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.PropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        properties: %{foo: true, bar: false}
+        properties: %{bar: false, foo: true}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -166,11 +166,11 @@ defmodule JSV.Generated.Draft202012.AtomKeys.PropertiesTest do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         properties: %{
-          "foo\nbar": %JSV.Schema{type: "number"},
-          "foo\"bar": %JSV.Schema{type: "number"},
           "foo\tbar": %JSV.Schema{type: "number"},
+          "foo\nbar": %JSV.Schema{type: "number"},
           "foo\fbar": %JSV.Schema{type: "number"},
           "foo\rbar": %JSV.Schema{type: "number"},
+          "foo\"bar": %JSV.Schema{type: "number"},
           "foo\\bar": %JSV.Schema{type: "number"}
         }
       }

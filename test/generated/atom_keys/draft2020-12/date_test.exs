@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DateTest do
   describe "validation of date strings" do
     setup do
       json_schema = %JSV.Schema{
-        format: "date",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        format: "date"
       }
 
       schema =

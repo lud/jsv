@@ -120,8 +120,6 @@ defmodule JSV.FormatValidationTest do
     end
   end
 
-  IO.warn("@todo test output of error messages")
-
   describe "common formats -" do
     defp run_cases(format, valids, invalids) do
       schema = format_schema(format)
@@ -131,7 +129,7 @@ defmodule JSV.FormatValidationTest do
           {:ok, ^value} ->
             :ok
 
-          {:error, _} ->
+          {:error, {:schema_validation, _}} ->
             flunk("""
             Expected value #{inspect(value)} to be valid against format #{inspect(format)}.
             """)
@@ -145,7 +143,7 @@ defmodule JSV.FormatValidationTest do
             Expected value #{inspect(value)} to not be valid against format #{inspect(format)}.
             """)
 
-          {:error, _} ->
+          {:error, {:schema_validation, _}} ->
             :ok
         end
       end)

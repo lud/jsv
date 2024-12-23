@@ -96,8 +96,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.MultipleOfTest do
   describe "float division = inf" do
     setup do
       json_schema = %JSV.Schema{
-        type: "integer",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "integer",
         multipleOf: 0.123456789
       }
 
@@ -115,8 +115,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.MultipleOfTest do
   describe "small multiple of large integer" do
     setup do
       json_schema = %JSV.Schema{
-        type: "integer",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "integer",
         multipleOf: 1.0e-8
       }
 

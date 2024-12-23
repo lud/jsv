@@ -16,8 +16,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DependentSchemasTest do
         dependentSchemas: %{
           bar: %JSV.Schema{
             properties: %{
-              foo: %JSV.Schema{type: "integer"},
-              bar: %JSV.Schema{type: "integer"}
+              bar: %JSV.Schema{type: "integer"},
+              foo: %JSV.Schema{type: "integer"}
             }
           }
         }
@@ -80,7 +80,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DependentSchemasTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        dependentSchemas: %{foo: true, bar: false}
+        dependentSchemas: %{bar: false, foo: true}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -155,13 +155,13 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DependentSchemasTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        properties: %{foo: %JSV.Schema{}},
         dependentSchemas: %{
           foo: %JSV.Schema{
-            additionalProperties: false,
-            properties: %{bar: %JSV.Schema{}}
+            properties: %{bar: %JSV.Schema{}},
+            additionalProperties: false
           }
-        },
-        properties: %{foo: %JSV.Schema{}}
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

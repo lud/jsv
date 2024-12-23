@@ -13,8 +13,8 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnchorTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "$defs" => %{"A" => %{"type" => "integer", "$anchor" => "foo"}},
-        "$ref" => "#foo"
+        "$ref" => "#foo",
+        "$defs" => %{"A" => %{"$anchor" => "foo", "type" => "integer"}}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -38,14 +38,14 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnchorTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$ref" => "http://localhost:1234/draft2020-12/bar#foo",
         "$defs" => %{
           "A" => %{
             "$id" => "http://localhost:1234/draft2020-12/bar",
-            "type" => "integer",
-            "$anchor" => "foo"
+            "$anchor" => "foo",
+            "type" => "integer"
           }
-        },
-        "$ref" => "http://localhost:1234/draft2020-12/bar#foo"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -70,13 +70,13 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnchorTest do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "$id" => "http://localhost:1234/draft2020-12/root",
+        "$ref" => "http://localhost:1234/draft2020-12/nested.json#foo",
         "$defs" => %{
           "A" => %{
             "$id" => "nested.json",
-            "$defs" => %{"B" => %{"type" => "integer", "$anchor" => "foo"}}
+            "$defs" => %{"B" => %{"$anchor" => "foo", "type" => "integer"}}
           }
-        },
-        "$ref" => "http://localhost:1234/draft2020-12/nested.json#foo"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -101,16 +101,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnchorTest do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "$id" => "http://localhost:1234/draft2020-12/foobar",
+        "$ref" => "child1#my_anchor",
         "$defs" => %{
           "A" => %{
             "$id" => "child1",
             "allOf" => [
-              %{"$id" => "child2", "type" => "number", "$anchor" => "my_anchor"},
-              %{"type" => "string", "$anchor" => "my_anchor"}
+              %{"$id" => "child2", "$anchor" => "my_anchor", "type" => "number"},
+              %{"$anchor" => "my_anchor", "type" => "string"}
             ]
           }
-        },
-        "$ref" => "child1#my_anchor"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

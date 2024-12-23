@@ -90,8 +90,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems with uniform items" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{type: "string"},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: %JSV.Schema{type: "string"},
         unevaluatedItems: false
       }
 
@@ -134,8 +134,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems with items and prefixItems" do
     setup do
       json_schema = %JSV.Schema{
-        items: true,
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: true,
         prefixItems: [%JSV.Schema{type: "string"}],
         unevaluatedItems: false
       }
@@ -154,8 +154,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems with items" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{type: "number"},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: %JSV.Schema{type: "number"},
         unevaluatedItems: %JSV.Schema{type: "string"}
       }
 
@@ -359,8 +359,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems with not" do
     setup do
       json_schema = %JSV.Schema{
-        not: %JSV.Schema{not: %JSV.Schema{prefixItems: [true, %{const: "bar"}]}},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        not: %JSV.Schema{not: %JSV.Schema{prefixItems: [true, %{const: "bar"}]}},
         prefixItems: [%{const: "foo"}],
         unevaluatedItems: false
       }
@@ -379,11 +379,11 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems with if/then/else" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         else: %JSV.Schema{prefixItems: [true, true, true, %{const: "else"}]},
         if: %JSV.Schema{prefixItems: [true, %{const: "bar"}]},
-        then: %JSV.Schema{prefixItems: [true, true, %{const: "then"}]},
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         prefixItems: [%{const: "foo"}],
+        then: %JSV.Schema{prefixItems: [true, true, %{const: "then"}]},
         unevaluatedItems: false
       }
 
@@ -444,9 +444,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems with $ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$defs": %{bar: %JSV.Schema{prefixItems: [true, %JSV.Schema{type: "string"}]}},
-        "$ref": "#/$defs/bar",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "#/$defs/bar",
+        "$defs": %{bar: %JSV.Schema{prefixItems: [true, %JSV.Schema{type: "string"}]}},
         prefixItems: [%JSV.Schema{type: "string"}],
         unevaluatedItems: false
       }
@@ -471,9 +471,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems before $ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$defs": %{bar: %JSV.Schema{prefixItems: [true, %JSV.Schema{type: "string"}]}},
-        "$ref": "#/$defs/bar",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "#/$defs/bar",
+        "$defs": %{bar: %JSV.Schema{prefixItems: [true, %JSV.Schema{type: "string"}]}},
         prefixItems: [%JSV.Schema{type: "string"}],
         unevaluatedItems: false
       }
@@ -498,19 +498,22 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems with $dynamicRef" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://example.com/unevaluated-items-with-dynamic-ref/derived",
+        "$ref": "./baseSchema",
         "$defs": %{
           baseSchema: %JSV.Schema{
+            "$id": "./baseSchema",
+            "$dynamicRef": "#addons",
+            "$defs": %{
+              defaultAddons: %JSV.Schema{
+                "$dynamicAnchor": "addons",
+                "$comment": "Needed to satisfy the bookending requirement"
+              }
+            },
             type: "array",
             "$comment":
               "unevaluatedItems comes first so it's more likely to catch bugs with implementations that are sensitive to keyword ordering",
-            "$defs": %{
-              defaultAddons: %JSV.Schema{
-                "$comment": "Needed to satisfy the bookending requirement",
-                "$dynamicAnchor": "addons"
-              }
-            },
-            "$dynamicRef": "#addons",
-            "$id": "./baseSchema",
             prefixItems: [%JSV.Schema{type: "string"}],
             unevaluatedItems: false
           },
@@ -518,10 +521,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
             "$dynamicAnchor": "addons",
             prefixItems: [true, %JSV.Schema{type: "string"}]
           }
-        },
-        "$id": "https://example.com/unevaluated-items-with-dynamic-ref/derived",
-        "$ref": "./baseSchema",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -566,19 +566,19 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        properties: %{
+          foo: %JSV.Schema{
+            prefixItems: [%JSV.Schema{type: "string"}],
+            unevaluatedItems: false
+          }
+        },
         anyOf: [
           %JSV.Schema{
             properties: %{
               foo: %JSV.Schema{prefixItems: [true, %JSV.Schema{type: "string"}]}
             }
           }
-        ],
-        properties: %{
-          foo: %JSV.Schema{
-            prefixItems: [%JSV.Schema{type: "string"}],
-            unevaluatedItems: false
-          }
-        }
+        ]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -661,12 +661,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems and contains interact to control item dependency relationship" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         if: %JSV.Schema{contains: %{const: "a"}},
         then: %JSV.Schema{
           if: %JSV.Schema{contains: %{const: "b"}},
           then: %JSV.Schema{if: %JSV.Schema{contains: %{const: "c"}}}
         },
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         unevaluatedItems: false
       }
 
@@ -792,8 +792,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
   describe "unevaluatedItems can see annotations from if without then and else" do
     setup do
       json_schema = %JSV.Schema{
-        if: %JSV.Schema{prefixItems: [%{const: "a"}]},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        if: %JSV.Schema{prefixItems: [%{const: "a"}]},
         unevaluatedItems: false
       }
 

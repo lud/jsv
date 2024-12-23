@@ -15,14 +15,14 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.AnchorTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "$defs" => %{
           "anchor_in_enum" => %{
-            "enum" => [%{"type" => "null", "$anchor" => "my_anchor"}]
+            "enum" => [%{"$anchor" => "my_anchor", "type" => "null"}]
           },
           "real_identifier_in_schema" => %{
-            "type" => "string",
-            "$anchor" => "my_anchor"
+            "$anchor" => "my_anchor",
+            "type" => "string"
           },
           "zzz_anchor_in_const" => %{
-            "const" => %{"type" => "null", "$anchor" => "my_anchor"}
+            "const" => %{"$anchor" => "my_anchor", "type" => "null"}
           }
         },
         "anyOf" => [%{"$ref" => "#/$defs/anchor_in_enum"}, %{"$ref" => "#my_anchor"}]

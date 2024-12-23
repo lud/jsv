@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.PatternTest do
   describe "pattern validation" do
     setup do
       json_schema = %JSV.Schema{
-        pattern: "^a*$",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        pattern: "^a*$"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -72,8 +72,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.PatternTest do
   describe "pattern is not anchored" do
     setup do
       json_schema = %JSV.Schema{
-        pattern: "a+",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        pattern: "a+"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

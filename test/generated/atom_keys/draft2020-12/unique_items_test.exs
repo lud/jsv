@@ -261,8 +261,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UniqueItemsTest do
   describe "uniqueItems with an array of items and additionalItems=false" do
     setup do
       json_schema = %JSV.Schema{
-        items: false,
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: false,
         prefixItems: [%JSV.Schema{type: "boolean"}, %JSV.Schema{type: "boolean"}],
         uniqueItems: true
       }
@@ -476,8 +476,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UniqueItemsTest do
   describe "uniqueItems=false with an array of items and additionalItems=false" do
     setup do
       json_schema = %JSV.Schema{
-        items: false,
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: false,
         prefixItems: [%JSV.Schema{type: "boolean"}, %JSV.Schema{type: "boolean"}],
         uniqueItems: false
       }

@@ -12,19 +12,19 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.AnchorTest do
   describe "$anchor inside an enum is not a real identifier" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$defs": %{
           anchor_in_enum: %JSV.Schema{
-            enum: [%JSV.Schema{type: "null", "$anchor": "my_anchor"}]
+            enum: [%JSV.Schema{"$anchor": "my_anchor", type: "null"}]
           },
           real_identifier_in_schema: %JSV.Schema{
-            type: "string",
-            "$anchor": "my_anchor"
+            "$anchor": "my_anchor",
+            type: "string"
           },
           zzz_anchor_in_const: %{
-            const: %JSV.Schema{type: "null", "$anchor": "my_anchor"}
+            const: %JSV.Schema{"$anchor": "my_anchor", type: "null"}
           }
         },
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         anyOf: [
           %JSV.Schema{"$ref": "#/$defs/anchor_in_enum"},
           %JSV.Schema{"$ref": "#my_anchor"}

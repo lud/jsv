@@ -14,8 +14,8 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"bar" => %{}, "foo" => %{}},
-        "additionalProperties" => false,
-        "patternProperties" => %{"^v" => %{}}
+        "patternProperties" => %{"^v" => %{}},
+        "additionalProperties" => false
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -63,8 +63,8 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties" => false,
-        "patternProperties" => %{"^á" => %{}}
+        "patternProperties" => %{"^á" => %{}},
+        "additionalProperties" => false
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

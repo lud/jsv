@@ -1,8 +1,6 @@
 defmodule JSV.AtomToolsTest do
   alias JSV.AtomTools
-  alias JSV.Builder
   alias JSV.Schema
-  alias JSV.Test.TestResolver
   use ExUnit.Case, async: true
 
   test "remove all atoms from map" do

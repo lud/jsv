@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "a schema given for items" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{type: "integer"},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: %JSV.Schema{type: "integer"}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -48,8 +48,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "items with boolean schema (true)" do
     setup do
       json_schema = %JSV.Schema{
-        items: true,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: true
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -72,8 +72,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "items with boolean schema (false)" do
     setup do
       json_schema = %JSV.Schema{
-        items: false,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: false
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -96,8 +96,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "items and subitems" do
     setup do
       json_schema = %JSV.Schema{
-        type: "array",
-        items: false,
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$defs": %{
           item: %JSV.Schema{
             type: "array",
@@ -109,7 +108,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
           },
           "sub-item": %JSV.Schema{type: "object", required: ["foo"]}
         },
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "array",
+        items: false,
         prefixItems: [
           %JSV.Schema{"$ref": "#/$defs/item"},
           %JSV.Schema{"$ref": "#/$defs/item"},
@@ -187,6 +187,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "nested items" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         type: "array",
         items: %JSV.Schema{
           type: "array",
@@ -194,8 +195,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
             type: "array",
             items: %JSV.Schema{type: "array", items: %JSV.Schema{type: "number"}}
           }
-        },
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -224,8 +224,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "prefixItems with no additional items allowed" do
     setup do
       json_schema = %JSV.Schema{
-        items: false,
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: false,
         prefixItems: [%JSV.Schema{}, %JSV.Schema{}, %JSV.Schema{}]
       }
 
@@ -267,9 +267,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "items does not look in applicators, valid case" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{minimum: 5},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        allOf: [%JSV.Schema{prefixItems: [%JSV.Schema{minimum: 3}]}]
+        allOf: [%JSV.Schema{prefixItems: [%JSV.Schema{minimum: 3}]}],
+        items: %JSV.Schema{minimum: 5}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -292,8 +292,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "prefixItems validation adjusts the starting index for items" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{type: "integer"},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: %JSV.Schema{type: "integer"},
         prefixItems: [%JSV.Schema{type: "string"}]
       }
 
@@ -317,8 +317,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "items with heterogeneous array" do
     setup do
       json_schema = %JSV.Schema{
-        items: false,
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: false,
         prefixItems: [%JSV.Schema{}]
       }
 
@@ -342,8 +342,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ItemsTest do
   describe "items with null instance elements" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{type: "null"},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        items: %JSV.Schema{type: "null"}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

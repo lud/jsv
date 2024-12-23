@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DependenciesCompatibilityT
   describe "single dependency" do
     setup do
       json_schema = %JSV.Schema{
-        dependencies: %{bar: ["foo"]},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        dependencies: %{bar: ["foo"]}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -66,8 +66,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DependenciesCompatibilityT
   describe "empty dependents" do
     setup do
       json_schema = %JSV.Schema{
-        dependencies: %{bar: []},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        dependencies: %{bar: []}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -96,8 +96,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DependenciesCompatibilityT
   describe "multiple dependents required" do
     setup do
       json_schema = %JSV.Schema{
-        dependencies: %{quux: ["foo", "bar"]},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        dependencies: %{quux: ["foo", "bar"]}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -144,8 +144,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DependenciesCompatibilityT
   describe "dependencies with escaped characters" do
     setup do
       json_schema = %JSV.Schema{
-        dependencies: %{"foo\nbar": ["foo\rbar"], "foo\"bar": ["foo'bar"]},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        dependencies: %{"foo\nbar": ["foo\rbar"], "foo\"bar": ["foo'bar"]}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -180,15 +180,15 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DependenciesCompatibilityT
   describe "single schema dependency" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         dependencies: %{
           bar: %JSV.Schema{
             properties: %{
-              foo: %JSV.Schema{type: "integer"},
-              bar: %JSV.Schema{type: "integer"}
+              bar: %JSV.Schema{type: "integer"},
+              foo: %JSV.Schema{type: "integer"}
             }
           }
-        },
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -247,8 +247,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DependenciesCompatibilityT
   describe "boolean subschemas" do
     setup do
       json_schema = %JSV.Schema{
-        dependencies: %{foo: true, bar: false},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        dependencies: %{bar: false, foo: true}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -283,11 +283,11 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DependenciesCompatibilityT
   describe "schema dependencies with escaped characters" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         dependencies: %{
           "foo\tbar": %JSV.Schema{minProperties: 4},
           "foo'bar": %JSV.Schema{required: ["foo\"bar"]}
-        },
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

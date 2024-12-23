@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "remote ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/draft2020-12/integer.json",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/draft2020-12/integer.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -36,8 +36,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "fragment within remote ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/draft2020-12/subSchemas.json#/$defs/integer",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/draft2020-12/subSchemas.json#/$defs/integer"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -60,8 +60,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "anchor within remote ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/draft2020-12/locationIndependentIdentifier.json#foo",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/draft2020-12/locationIndependentIdentifier.json#foo"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -84,8 +84,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "ref within remote ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/draft2020-12/subSchemas.json#/$defs/refToInteger",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/draft2020-12/subSchemas.json#/$defs/refToInteger"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -108,12 +108,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "base URI change" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{
-          items: %JSV.Schema{"$ref": "folderInteger.json"},
-          "$id": "baseUriChange/"
-        },
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "http://localhost:1234/draft2020-12/",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        items: %JSV.Schema{
+          "$id": "baseUriChange/",
+          items: %JSV.Schema{"$ref": "folderInteger.json"}
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -136,16 +136,16 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "base URI change - change folder" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "http://localhost:1234/draft2020-12/scope_change_defs1.json",
         "$defs": %{
           baz: %JSV.Schema{
+            "$id": "baseUriChangeFolder/",
             type: "array",
-            items: %JSV.Schema{"$ref": "folderInteger.json"},
-            "$id": "baseUriChangeFolder/"
+            items: %JSV.Schema{"$ref": "folderInteger.json"}
           }
         },
-        "$id": "http://localhost:1234/draft2020-12/scope_change_defs1.json",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         properties: %{list: %JSV.Schema{"$ref": "baseUriChangeFolder/"}}
       }
 
@@ -169,20 +169,20 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "base URI change - change folder in subschema" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "http://localhost:1234/draft2020-12/scope_change_defs2.json",
         "$defs": %{
           baz: %JSV.Schema{
+            "$id": "baseUriChangeFolderInSubschema/",
             "$defs": %{
               bar: %JSV.Schema{
                 type: "array",
                 items: %JSV.Schema{"$ref": "folderInteger.json"}
               }
-            },
-            "$id": "baseUriChangeFolderInSubschema/"
+            }
           }
         },
-        "$id": "http://localhost:1234/draft2020-12/scope_change_defs2.json",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         properties: %{
           list: %JSV.Schema{"$ref": "baseUriChangeFolderInSubschema/#/$defs/bar"}
         }
@@ -208,9 +208,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "root ref in remote ref" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
-        "$id": "http://localhost:1234/draft2020-12/object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "http://localhost:1234/draft2020-12/object",
+        type: "object",
         properties: %{name: %JSV.Schema{"$ref": "name-defs.json#/$defs/orNull"}}
       }
 
@@ -240,9 +240,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "remote ref with ref to defs" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "http://localhost:1234/draft2020-12/schema-remote-ref-ref-defs1.json",
-        "$ref": "ref-and-defs.json",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$ref": "ref-and-defs.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -265,8 +265,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "Location-independent identifier in remote ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/draft2020-12/locationIndependentIdentifier.json#/$defs/refToInteger",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/draft2020-12/locationIndependentIdentifier.json#/$defs/refToInteger"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -289,8 +289,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "retrieved nested refs resolve relative to their URI not $id" do
     setup do
       json_schema = %JSV.Schema{
-        "$id": "http://localhost:1234/draft2020-12/some-id",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "http://localhost:1234/draft2020-12/some-id",
         properties: %{name: %JSV.Schema{"$ref": "nested/foo-ref-string.json"}}
       }
 
@@ -314,8 +314,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "remote HTTP ref with different $id" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/different-id-ref-string.json",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/different-id-ref-string.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -338,8 +338,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "remote HTTP ref with different URN $id" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/urn-ref-string.json",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/urn-ref-string.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -362,8 +362,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "remote HTTP ref with nested absolute ref" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/nested-absolute-ref-to-string.json",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/nested-absolute-ref-to-string.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -386,8 +386,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RefRemoteTest do
   describe "$ref to $ref finds detached $anchor" do
     setup do
       json_schema = %JSV.Schema{
-        "$ref": "http://localhost:1234/draft2020-12/detached-ref.json#/$defs/foo",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/draft2020-12/detached-ref.json#/$defs/foo"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

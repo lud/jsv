@@ -39,8 +39,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.RefOfUnknownKeywordTest do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         properties: %{
-          foo: %{"unknown-keyword": %JSV.Schema{type: "integer"}},
-          bar: %JSV.Schema{"$ref": "#/properties/foo/unknown-keyword"}
+          bar: %JSV.Schema{"$ref": "#/properties/foo/unknown-keyword"},
+          foo: %{"unknown-keyword": %JSV.Schema{type: "integer"}}
         }
       }
 
@@ -64,9 +64,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.RefOfUnknownKeywordTest do
   describe "reference internals of known non-applicator" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "/base",
         "$ref": "#/examples/0",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         examples: [%JSV.Schema{type: "string"}]
       }
 

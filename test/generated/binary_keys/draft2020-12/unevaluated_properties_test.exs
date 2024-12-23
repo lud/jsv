@@ -578,10 +578,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$ref" => "#/$defs/bar",
         "$defs" => %{"bar" => %{"properties" => %{"bar" => %{"type" => "string"}}}},
         "type" => "object",
         "properties" => %{"foo" => %{"type" => "string"}},
-        "$ref" => "#/$defs/bar",
         "unevaluatedProperties" => false
       }
 
@@ -606,10 +606,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$ref" => "#/$defs/bar",
         "$defs" => %{"bar" => %{"properties" => %{"bar" => %{"type" => "string"}}}},
         "type" => "object",
         "properties" => %{"foo" => %{"type" => "string"}},
-        "$ref" => "#/$defs/bar",
         "unevaluatedProperties" => false
       }
 
@@ -635,28 +635,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "$id" => "https://example.com/unevaluated-properties-with-dynamic-ref/derived",
+        "$ref" => "./baseSchema",
         "$defs" => %{
           "baseSchema" => %{
             "$id" => "./baseSchema",
+            "$dynamicRef" => "#addons",
             "$defs" => %{
               "defaultAddons" => %{
-                "$comment" => "Needed to satisfy the bookending requirement",
-                "$dynamicAnchor" => "addons"
+                "$dynamicAnchor" => "addons",
+                "$comment" => "Needed to satisfy the bookending requirement"
               }
             },
             "type" => "object",
             "properties" => %{"foo" => %{"type" => "string"}},
             "$comment" =>
               "unevaluatedProperties comes first so it's more likely to catch bugs with implementations that are sensitive to keyword ordering",
-            "$dynamicRef" => "#addons",
             "unevaluatedProperties" => false
           },
           "derived" => %{
-            "properties" => %{"bar" => %{"type" => "string"}},
-            "$dynamicAnchor" => "addons"
+            "$dynamicAnchor" => "addons",
+            "properties" => %{"bar" => %{"type" => "string"}}
           }
-        },
-        "$ref" => "./baseSchema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -1141,7 +1141,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
             "oneOf" => [
               %{"$ref" => "#/$defs/two"},
               %{"properties" => %{"b" => true}, "required" => ["b"]},
-              %{"required" => ["xx"], "patternProperties" => %{"x" => true}},
+              %{"patternProperties" => %{"x" => true}, "required" => ["xx"]},
               %{"required" => ["all"], "unevaluatedProperties" => true}
             ]
           },

@@ -63,8 +63,6 @@ defmodule JSV.Resolver do
     %__MODULE__{mod: module, default_meta: default_meta}
   end
 
-  IO.warn("todo allow atom keys in here")
-
   def resolve_root(rsv, raw_schema) when is_map(raw_schema) do
     # Bootstrap of the recursive resolving of schemas, metaschemas and
     # anchors/$ids. We just need to set the :root value in the context as the

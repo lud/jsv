@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "not" do
     setup do
       json_schema = %JSV.Schema{
-        not: %JSV.Schema{type: "integer"},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        not: %JSV.Schema{type: "integer"}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -36,8 +36,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "not multiple types" do
     setup do
       json_schema = %JSV.Schema{
-        not: %JSV.Schema{type: ["integer", "boolean"]},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        not: %JSV.Schema{type: ["integer", "boolean"]}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -66,11 +66,11 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "not more complex schema" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         not: %JSV.Schema{
           type: "object",
           properties: %{foo: %JSV.Schema{type: "string"}}
-        },
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -123,8 +123,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "forbid everything with empty schema" do
     setup do
       json_schema = %JSV.Schema{
-        not: %JSV.Schema{},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        not: %JSV.Schema{}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -189,8 +189,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "forbid everything with boolean schema true" do
     setup do
       json_schema = %JSV.Schema{
-        not: true,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        not: true
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -255,8 +255,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "allow everything with boolean schema false" do
     setup do
       json_schema = %JSV.Schema{
-        not: false,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        not: false
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -321,8 +321,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "double negation" do
     setup do
       json_schema = %JSV.Schema{
-        not: %JSV.Schema{not: %JSV.Schema{}},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        not: %JSV.Schema{not: %JSV.Schema{}}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -339,13 +339,13 @@ defmodule JSV.Generated.Draft202012.AtomKeys.NotTest do
   describe "collect annotations inside a 'not', even if collection is disabled" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         not: %JSV.Schema{
           "$comment":
             "this subschema must still produce annotations internally, even though the 'not' will ultimately discard them",
           anyOf: [true, %JSV.Schema{properties: %{foo: true}}],
           unevaluatedProperties: false
-        },
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

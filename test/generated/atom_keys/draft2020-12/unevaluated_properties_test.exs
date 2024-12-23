@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties true" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         unevaluatedProperties: true
       }
 
@@ -37,8 +37,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties schema" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         unevaluatedProperties: %JSV.Schema{type: "string", minLength: 3}
       }
 
@@ -68,8 +68,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties false" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         unevaluatedProperties: false
       }
 
@@ -93,8 +93,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with adjacent properties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
         unevaluatedProperties: false
       }
@@ -119,8 +119,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with adjacent patternProperties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         patternProperties: %{"^foo": %JSV.Schema{type: "string"}},
         unevaluatedProperties: false
       }
@@ -145,10 +145,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with adjacent additionalProperties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        additionalProperties: true,
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        additionalProperties: true,
         unevaluatedProperties: false
       }
 
@@ -172,10 +172,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with nested properties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        allOf: [%JSV.Schema{properties: %{bar: %JSV.Schema{type: "string"}}}],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        allOf: [%JSV.Schema{properties: %{bar: %JSV.Schema{type: "string"}}}],
         unevaluatedProperties: false
       }
 
@@ -199,12 +199,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with nested patternProperties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
+        properties: %{foo: %JSV.Schema{type: "string"}},
         allOf: [
           %JSV.Schema{patternProperties: %{"^bar": %JSV.Schema{type: "string"}}}
         ],
-        properties: %{foo: %JSV.Schema{type: "string"}},
         unevaluatedProperties: false
       }
 
@@ -228,10 +228,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with nested additionalProperties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        allOf: [%JSV.Schema{additionalProperties: true}],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        allOf: [%JSV.Schema{additionalProperties: true}],
         unevaluatedProperties: false
       }
 
@@ -255,10 +255,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with nested unevaluatedProperties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        allOf: [%JSV.Schema{unevaluatedProperties: true}],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        allOf: [%JSV.Schema{unevaluatedProperties: true}],
         unevaluatedProperties: %JSV.Schema{type: "string", maxLength: 2}
       }
 
@@ -282,14 +282,14 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with anyOf" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        anyOf: [
-          %JSV.Schema{required: ["bar"], properties: %{bar: %{const: "bar"}}},
-          %JSV.Schema{required: ["baz"], properties: %{baz: %{const: "baz"}}},
-          %JSV.Schema{required: ["quux"], properties: %{quux: %{const: "quux"}}}
-        ],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        anyOf: [
+          %JSV.Schema{properties: %{bar: %{const: "bar"}}, required: ["bar"]},
+          %JSV.Schema{properties: %{baz: %{const: "baz"}}, required: ["baz"]},
+          %JSV.Schema{properties: %{quux: %{const: "quux"}}, required: ["quux"]}
+        ],
         unevaluatedProperties: false
       }
 
@@ -325,13 +325,13 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with oneOf" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        oneOf: [
-          %JSV.Schema{required: ["bar"], properties: %{bar: %{const: "bar"}}},
-          %JSV.Schema{required: ["baz"], properties: %{baz: %{const: "baz"}}}
-        ],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        oneOf: [
+          %JSV.Schema{properties: %{bar: %{const: "bar"}}, required: ["bar"]},
+          %JSV.Schema{properties: %{baz: %{const: "baz"}}, required: ["baz"]}
+        ],
         unevaluatedProperties: false
       }
 
@@ -355,12 +355,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with not" do
     setup do
       json_schema = %JSV.Schema{
-        not: %JSV.Schema{
-          not: %JSV.Schema{required: ["bar"], properties: %{bar: %{const: "bar"}}}
-        },
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        not: %JSV.Schema{
+          not: %JSV.Schema{properties: %{bar: %{const: "bar"}}, required: ["bar"]}
+        },
         unevaluatedProperties: false
       }
 
@@ -378,17 +378,17 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with if/then/else" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         type: "object",
         else: %JSV.Schema{
-          required: ["baz"],
-          properties: %{baz: %JSV.Schema{type: "string"}}
+          properties: %{baz: %JSV.Schema{type: "string"}},
+          required: ["baz"]
         },
-        if: %JSV.Schema{required: ["foo"], properties: %{foo: %{const: "then"}}},
+        if: %JSV.Schema{properties: %{foo: %{const: "then"}}, required: ["foo"]},
         then: %JSV.Schema{
-          required: ["bar"],
-          properties: %{bar: %JSV.Schema{type: "string"}}
+          properties: %{bar: %JSV.Schema{type: "string"}},
+          required: ["bar"]
         },
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         unevaluatedProperties: false
       }
 
@@ -424,13 +424,13 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with if/then/else, then not defined" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         type: "object",
         else: %JSV.Schema{
-          required: ["baz"],
-          properties: %{baz: %JSV.Schema{type: "string"}}
+          properties: %{baz: %JSV.Schema{type: "string"}},
+          required: ["baz"]
         },
-        if: %JSV.Schema{required: ["foo"], properties: %{foo: %{const: "then"}}},
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        if: %JSV.Schema{properties: %{foo: %{const: "then"}}, required: ["foo"]},
         unevaluatedProperties: false
       }
 
@@ -466,13 +466,13 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with if/then/else, else not defined" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
-        if: %JSV.Schema{required: ["foo"], properties: %{foo: %{const: "then"}}},
-        then: %JSV.Schema{
-          required: ["bar"],
-          properties: %{bar: %JSV.Schema{type: "string"}}
-        },
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
+        if: %JSV.Schema{properties: %{foo: %{const: "then"}}, required: ["foo"]},
+        then: %JSV.Schema{
+          properties: %{bar: %JSV.Schema{type: "string"}},
+          required: ["bar"]
+        },
         unevaluatedProperties: false
       }
 
@@ -508,12 +508,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with dependentSchemas" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        dependentSchemas: %{
-          foo: %JSV.Schema{required: ["bar"], properties: %{bar: %{const: "bar"}}}
-        },
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        dependentSchemas: %{
+          foo: %JSV.Schema{properties: %{bar: %{const: "bar"}}, required: ["bar"]}
+        },
         unevaluatedProperties: false
       }
 
@@ -537,10 +537,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with boolean schemas" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        allOf: [true],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        allOf: [true],
         unevaluatedProperties: false
       }
 
@@ -564,10 +564,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with $ref" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
-        "$defs": %{bar: %JSV.Schema{properties: %{bar: %JSV.Schema{type: "string"}}}},
-        "$ref": "#/$defs/bar",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "#/$defs/bar",
+        "$defs": %{bar: %JSV.Schema{properties: %{bar: %JSV.Schema{type: "string"}}}},
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
         unevaluatedProperties: false
       }
@@ -592,10 +592,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties before $ref" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
-        "$defs": %{bar: %JSV.Schema{properties: %{bar: %JSV.Schema{type: "string"}}}},
-        "$ref": "#/$defs/bar",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "#/$defs/bar",
+        "$defs": %{bar: %JSV.Schema{properties: %{bar: %JSV.Schema{type: "string"}}}},
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
         unevaluatedProperties: false
       }
@@ -620,30 +620,30 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties with $dynamicRef" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://example.com/unevaluated-properties-with-dynamic-ref/derived",
+        "$ref": "./baseSchema",
         "$defs": %{
           baseSchema: %JSV.Schema{
-            type: "object",
-            "$comment":
-              "unevaluatedProperties comes first so it's more likely to catch bugs with implementations that are sensitive to keyword ordering",
+            "$id": "./baseSchema",
+            "$dynamicRef": "#addons",
             "$defs": %{
               defaultAddons: %JSV.Schema{
-                "$comment": "Needed to satisfy the bookending requirement",
-                "$dynamicAnchor": "addons"
+                "$dynamicAnchor": "addons",
+                "$comment": "Needed to satisfy the bookending requirement"
               }
             },
-            "$dynamicRef": "#addons",
-            "$id": "./baseSchema",
+            type: "object",
             properties: %{foo: %JSV.Schema{type: "string"}},
+            "$comment":
+              "unevaluatedProperties comes first so it's more likely to catch bugs with implementations that are sensitive to keyword ordering",
             unevaluatedProperties: false
           },
           derived: %JSV.Schema{
             "$dynamicAnchor": "addons",
             properties: %{bar: %JSV.Schema{type: "string"}}
           }
-        },
-        "$id": "https://example.com/unevaluated-properties-with-dynamic-ref/derived",
-        "$ref": "./baseSchema",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -708,10 +708,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "nested unevaluatedProperties, outer false, inner true, properties outside" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        allOf: [%JSV.Schema{unevaluatedProperties: true}],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        allOf: [%JSV.Schema{unevaluatedProperties: true}],
         unevaluatedProperties: false
       }
 
@@ -735,8 +735,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "nested unevaluatedProperties, outer false, inner true, properties inside" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         allOf: [
           %JSV.Schema{
             properties: %{foo: %JSV.Schema{type: "string"}},
@@ -766,10 +766,10 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "nested unevaluatedProperties, outer true, inner false, properties outside" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        allOf: [%JSV.Schema{unevaluatedProperties: false}],
+        type: "object",
         properties: %{foo: %JSV.Schema{type: "string"}},
+        allOf: [%JSV.Schema{unevaluatedProperties: false}],
         unevaluatedProperties: true
       }
 
@@ -793,8 +793,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "nested unevaluatedProperties, outer true, inner false, properties inside" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         allOf: [
           %JSV.Schema{
             properties: %{foo: %JSV.Schema{type: "string"}},
@@ -824,8 +824,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "cousin unevaluatedProperties, true and false, true with properties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         allOf: [
           %JSV.Schema{
             properties: %{foo: %JSV.Schema{type: "string"}},
@@ -855,8 +855,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "cousin unevaluatedProperties, true and false, false with properties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         allOf: [
           %JSV.Schema{unevaluatedProperties: true},
           %JSV.Schema{
@@ -886,22 +886,22 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "property is evaluated in an uncle schema to unevaluatedProperties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        anyOf: [
-          %JSV.Schema{
-            properties: %{
-              foo: %JSV.Schema{properties: %{faz: %JSV.Schema{type: "string"}}}
-            }
-          }
-        ],
+        type: "object",
         properties: %{
           foo: %JSV.Schema{
             type: "object",
             properties: %{bar: %JSV.Schema{type: "string"}},
             unevaluatedProperties: false
           }
-        }
+        },
+        anyOf: [
+          %JSV.Schema{
+            properties: %{
+              foo: %JSV.Schema{properties: %{faz: %JSV.Schema{type: "string"}}}
+            }
+          }
+        ]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -924,8 +924,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "in-place applicator siblings, allOf has unevaluated" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         allOf: [%JSV.Schema{properties: %{foo: true}, unevaluatedProperties: false}],
         anyOf: [%JSV.Schema{properties: %{bar: true}}]
       }
@@ -956,8 +956,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "in-place applicator siblings, anyOf has unevaluated" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         allOf: [%JSV.Schema{properties: %{foo: true}}],
         anyOf: [%JSV.Schema{properties: %{bar: true}, unevaluatedProperties: false}]
       }
@@ -988,8 +988,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties + single cyclic ref" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         properties: %{x: %JSV.Schema{"$ref": "#"}},
         unevaluatedProperties: false
       }
@@ -1044,18 +1044,18 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties + ref inside allOf / oneOf" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$defs": %{
           one: %JSV.Schema{properties: %{a: true}},
-          two: %JSV.Schema{required: ["x"], properties: %{x: true}}
+          two: %JSV.Schema{properties: %{x: true}, required: ["x"]}
         },
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         allOf: [
           %JSV.Schema{"$ref": "#/$defs/one"},
           %JSV.Schema{properties: %{b: true}},
           %JSV.Schema{
             oneOf: [
               %JSV.Schema{"$ref": "#/$defs/two"},
-              %JSV.Schema{required: ["y"], properties: %{y: true}}
+              %JSV.Schema{properties: %{y: true}, required: ["y"]}
             ]
           }
         ],
@@ -1118,26 +1118,26 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "dynamic evalation inside nested refs" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$defs": %{
           one: %JSV.Schema{
             oneOf: [
               %JSV.Schema{"$ref": "#/$defs/two"},
-              %JSV.Schema{required: ["b"], properties: %{b: true}},
-              %JSV.Schema{required: ["xx"], patternProperties: %{x: true}},
+              %JSV.Schema{properties: %{b: true}, required: ["b"]},
+              %JSV.Schema{patternProperties: %{x: true}, required: ["xx"]},
               %JSV.Schema{required: ["all"], unevaluatedProperties: true}
             ]
           },
           two: %JSV.Schema{
             oneOf: [
-              %JSV.Schema{required: ["c"], properties: %{c: true}},
-              %JSV.Schema{required: ["d"], properties: %{d: true}}
+              %JSV.Schema{properties: %{c: true}, required: ["c"]},
+              %JSV.Schema{properties: %{d: true}, required: ["d"]}
             ]
           }
         },
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         oneOf: [
           %JSV.Schema{"$ref": "#/$defs/one"},
-          %JSV.Schema{required: ["a"], properties: %{a: true}}
+          %JSV.Schema{properties: %{a: true}, required: ["a"]}
         ],
         unevaluatedProperties: false
       }
@@ -1367,8 +1367,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
   describe "unevaluatedProperties can see annotations from if without then and else" do
     setup do
       json_schema = %JSV.Schema{
-        if: %JSV.Schema{patternProperties: %{foo: %JSV.Schema{type: "string"}}},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        if: %JSV.Schema{patternProperties: %{foo: %JSV.Schema{type: "string"}}},
         unevaluatedProperties: false
       }
 
@@ -1393,11 +1393,11 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        properties: %{foo2: %JSV.Schema{}},
         dependentSchemas: %{
           foo: %JSV.Schema{},
           foo2: %JSV.Schema{properties: %{bar: %JSV.Schema{}}}
         },
-        properties: %{foo2: %JSV.Schema{}},
         unevaluatedProperties: false
       }
 

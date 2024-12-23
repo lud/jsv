@@ -68,8 +68,8 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.PropertiesTest do
           "bar" => %{"type" => "array"},
           "foo" => %{"type" => "array", "maxItems" => 3}
         },
-        "additionalProperties" => %{"type" => "integer"},
-        "patternProperties" => %{"f.o" => %{"minItems" => 2}}
+        "patternProperties" => %{"f.o" => %{"minItems" => 2}},
+        "additionalProperties" => %{"type" => "integer"}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

@@ -48,8 +48,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AnyOfTest do
   describe "anyOf with base schema" do
     setup do
       json_schema = %JSV.Schema{
-        type: "string",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "string",
         anyOf: [%JSV.Schema{maxLength: 2}, %JSV.Schema{minLength: 4}]
       }
 
@@ -136,12 +136,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AnyOfTest do
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         anyOf: [
           %JSV.Schema{
-            required: ["bar"],
-            properties: %{bar: %JSV.Schema{type: "integer"}}
+            properties: %{bar: %JSV.Schema{type: "integer"}},
+            required: ["bar"]
           },
           %JSV.Schema{
-            required: ["foo"],
-            properties: %{foo: %JSV.Schema{type: "string"}}
+            properties: %{foo: %JSV.Schema{type: "string"}},
+            required: ["foo"]
           }
         ]
       }

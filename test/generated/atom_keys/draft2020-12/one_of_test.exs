@@ -48,8 +48,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.OneOfTest do
   describe "oneOf with base schema" do
     setup do
       json_schema = %JSV.Schema{
-        type: "string",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "string",
         oneOf: [%JSV.Schema{minLength: 2}, %JSV.Schema{maxLength: 4}]
       }
 
@@ -154,12 +154,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.OneOfTest do
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         oneOf: [
           %JSV.Schema{
-            required: ["bar"],
-            properties: %{bar: %JSV.Schema{type: "integer"}}
+            properties: %{bar: %JSV.Schema{type: "integer"}},
+            required: ["bar"]
           },
           %JSV.Schema{
-            required: ["foo"],
-            properties: %{foo: %JSV.Schema{type: "string"}}
+            properties: %{foo: %JSV.Schema{type: "string"}},
+            required: ["foo"]
           }
         ]
       }
@@ -220,8 +220,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.OneOfTest do
   describe "oneOf with required" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         oneOf: [
           %JSV.Schema{required: ["foo", "bar"]},
           %JSV.Schema{required: ["foo", "baz"]}
@@ -262,8 +262,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.OneOfTest do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         oneOf: [
-          %JSV.Schema{required: ["bar"], properties: %{bar: true, baz: true}},
-          %JSV.Schema{required: ["foo"], properties: %{foo: true}}
+          %JSV.Schema{properties: %{bar: true, baz: true}, required: ["bar"]},
+          %JSV.Schema{properties: %{foo: true}, required: ["foo"]}
         ]
       }
 

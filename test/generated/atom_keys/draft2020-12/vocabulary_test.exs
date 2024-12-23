@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.VocabularyTest do
   describe "schema that uses custom metaschema with with no validation vocabulary" do
     setup do
       json_schema = %JSV.Schema{
-        "$id": "https://schema/using/no/validation",
         "$schema": "http://localhost:1234/draft2020-12/metaschema-no-validation.json",
+        "$id": "https://schema/using/no/validation",
         properties: %{badProperty: false, numberProperty: %JSV.Schema{minimum: 10}}
       }
 
@@ -43,8 +43,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.VocabularyTest do
   describe "ignore unrecognized optional vocabulary" do
     setup do
       json_schema = %JSV.Schema{
-        type: "number",
-        "$schema": "http://localhost:1234/draft2020-12/metaschema-optional-vocabulary.json"
+        "$schema": "http://localhost:1234/draft2020-12/metaschema-optional-vocabulary.json",
+        type: "number"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

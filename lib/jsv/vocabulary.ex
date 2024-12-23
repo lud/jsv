@@ -104,7 +104,7 @@ defmodule JSV.Vocabulary do
       quote generated: true do
         @impl true
         def handle_keyword(
-              {unquote(atom_form), unquote(bind_value)},
+              {unquote(string_form), unquote(bind_value)},
               unquote(bind_acc),
               unquote(bind_builder),
               unquote(bind_raw_schema)
@@ -113,9 +113,13 @@ defmodule JSV.Vocabulary do
           unquote(block)
         end
 
-        def handle_keyword({unquote(string_form), value}, acc, builder, raw_schema) do
-          handle_keyword({unquote(atom_form), value}, acc, builder, raw_schema)
-        end
+        # We do not support atom keywords right now as we convert all schemas to
+        # binary form before building the validators.
+        #
+        # def handle_keyword({x = unquote(atom_form), value}, acc, builder,
+        #   raw_schema) do raise "got #{inspect(x)}"
+        #   handle_keyword({unquote(string_form), value}, acc, builder,
+        # raw_schema) end
       end
 
     # tap(quoted, &IO.puts(Macro.to_string(&1)))

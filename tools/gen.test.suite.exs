@@ -1,6 +1,5 @@
 defmodule JSV.GenTestSuite do
   alias CliMate.CLI
-  alias JSV.Test.JsonSchemaSuite
   require EEx
 
   @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
@@ -521,7 +520,23 @@ defmodule JSV.GenTestSuite do
 end
 
 defmodule JSV.SchemaDumpWrapper do
-  @key_order ["$schema", "$id", "comment", "$defs", "definitions", "type", "properties", "required"]
+  @key_order [
+               "$schema",
+               "$id",
+               "$anchor",
+               "$dynamicAnchor",
+               "title",
+               "comment",
+               "$ref",
+               "$dynamicRef",
+               "$defs",
+               "definitions",
+               "type",
+               "properties",
+               "patternProperties",
+               "additionalProperties",
+               "required"
+             ]
              |> Enum.with_index()
              |> Map.new()
 
@@ -555,7 +570,10 @@ defmodule JSV.SchemaDumpWrapper do
   end
 
   defp order_of(key) do
-    Map.get(@key_order, key, 999_999)
+    case Map.fetch(@key_order, to_string(key)) do
+      {:ok, order} -> {0, order}
+      :error -> {1, key}
+    end
   end
 end
 

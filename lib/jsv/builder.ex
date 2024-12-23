@@ -184,29 +184,29 @@ defmodule JSV.Builder do
     end
   end
 
-  def build_sub(%{"$id" => id}, %__MODULE__{} = builder) do
+  def build_sub(%{"$id" => id}, builder) do
     with {:ok, key} <- RNS.derive(builder.ns, id) do
       {:ok, {:alias_of, key}, stage_build(builder, key)}
     end
   end
 
-  def build_sub(raw_schema, %__MODULE__{} = builder) when is_map(raw_schema) when is_boolean(raw_schema) do
+  def build_sub(raw_schema, builder) when is_map(raw_schema) when is_boolean(raw_schema) do
     do_build_sub(raw_schema, builder)
   end
 
-  defp do_build_sub(valid?, %__MODULE__{} = builder) when is_boolean(valid?) do
+  defp do_build_sub(valid?, builder) when is_boolean(valid?) do
     {:ok, BooleanSchema.of(valid?), builder}
   end
 
-  defp do_build_sub(raw_schema, %__MODULE__{} = builder) when is_map(raw_schema) do
-    {_leftovers, schema_validators, %__MODULE__{} = builder} =
+  defp do_build_sub(raw_schema, builder) when is_map(raw_schema) do
+    {_leftovers, schema_validators, builder} =
       Enum.reduce(builder.vocabularies, {raw_schema, [], builder}, fn module_or_tuple,
                                                                       {remaining_pairs, schema_validators, builder} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
         {module, init_opts} = mod_and_init_opts(module_or_tuple)
 
-        {remaining_pairs, mod_validators, %__MODULE__{} = builder} =
+        {remaining_pairs, mod_validators, builder} =
           build_mod_validators(remaining_pairs, module, init_opts, builder, raw_schema)
 
         case mod_validators do
@@ -239,7 +239,7 @@ defmodule JSV.Builder do
   end
 
   defp build_mod_validators(raw_pairs, module, init_opts, builder, raw_schema) when is_map(raw_schema) do
-    {leftovers, mod_acc, %__MODULE__{} = builder} =
+    {leftovers, mod_acc, builder} =
       Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), builder}, fn pair, {leftovers, mod_acc, builder} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.

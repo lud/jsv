@@ -18,13 +18,13 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.DynamicRefTest do
           "bar" => %{
             "$id" => "bar",
             "$defs" => %{
-              "content" => %{"type" => "string", "$dynamicAnchor" => "content"},
+              "content" => %{"$dynamicAnchor" => "content", "type" => "string"},
               "item" => %{
                 "$id" => "item",
                 "$defs" => %{
                   "defaultContent" => %{
-                    "type" => "integer",
-                    "$dynamicAnchor" => "content"
+                    "$dynamicAnchor" => "content",
+                    "type" => "integer"
                   }
                 },
                 "type" => "object",

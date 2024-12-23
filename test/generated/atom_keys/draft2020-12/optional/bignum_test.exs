@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.BignumTest do
   describe "integer" do
     setup do
       json_schema = %JSV.Schema{
-        type: "integer",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "integer"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -36,8 +36,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.BignumTest do
   describe "number" do
     setup do
       json_schema = %JSV.Schema{
-        type: "number",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "number"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -60,8 +60,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.BignumTest do
   describe "string" do
     setup do
       json_schema = %JSV.Schema{
-        type: "string",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "string"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -78,8 +78,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.BignumTest do
   describe "maximum integer comparison" do
     setup do
       json_schema = %JSV.Schema{
-        maximum: 18_446_744_073_709_551_615,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        maximum: 18_446_744_073_709_551_615
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

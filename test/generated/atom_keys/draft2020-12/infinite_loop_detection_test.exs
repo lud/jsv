@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.InfiniteLoopDetectionTest do
   describe "evaluating the same schema location against the same data location twice is not a sign of an infinite loop" do
     setup do
       json_schema = %JSV.Schema{
-        "$defs": %{int: %JSV.Schema{type: "integer"}},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$defs": %{int: %JSV.Schema{type: "integer"}},
         allOf: [
           %JSV.Schema{properties: %{foo: %JSV.Schema{"$ref": "#/$defs/int"}}},
           %JSV.Schema{additionalProperties: %JSV.Schema{"$ref": "#/$defs/int"}}

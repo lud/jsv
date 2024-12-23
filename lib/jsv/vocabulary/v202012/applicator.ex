@@ -118,7 +118,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end
   end
 
-  take_keyword :dependentSchemas, dependent_schemas, acc, builder, _ do
+  take_keyword :dependentSchemas, dependent_schemas when is_map(dependent_schemas), acc, builder, _ do
     dependent_schemas
     |> Helpers.reduce_ok({%{}, builder}, fn {k, depschema}, {acc, builder} ->
       case Builder.build_sub(depschema, builder) do
@@ -144,7 +144,8 @@ defmodule JSV.Vocabulary.V202012.Applicator do
         end
       end)
 
-    with {:ok, acc, builder} <- handle_keyword({:dependentSchemas, dependent_schemas}, acc, builder, raw_schema) do
+    with {:ok, acc, builder} <-
+           handle_keyword({"dependentSchemas", Map.new(dependent_schemas)}, acc, builder, raw_schema) do
       {:ok, [{:dependentRequired, dependent_required} | acc], builder}
     end
   end

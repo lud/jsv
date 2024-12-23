@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnknownTest do
   describe "unknown format" do
     setup do
       json_schema = %JSV.Schema{
-        format: "unknown",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        format: "unknown"
       }
 
       schema =

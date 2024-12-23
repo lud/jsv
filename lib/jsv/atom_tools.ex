@@ -2,56 +2,56 @@ defmodule JSV.AtomTools do
   @moduledoc false
   alias JSV.Schema
 
-  # Tries Map.fetch/2 with both atom and binary key.  The first attempt is made
-  # with the binary key because we expect to work more often with raw schemas.
-  #
-  # Schemas defined with atom, as structs, are expected to be used and
-  # transformed to validators at compile-time, where a loss of performance is
-  # acceptable.
-  defmacro map_fetch_prop(map, atom_form) when is_atom(atom_form) do
-    str_form = Atom.to_string(atom_form)
+  # # Tries Map.fetch/2 with both atom and binary key.  The first attempt is made
+  # # with the binary key because we expect to work more often with raw schemas.
+  # #
+  # # Schemas defined with atom, as structs, are expected to be used and
+  # # transformed to validators at compile-time, where a loss of performance is
+  # # acceptable.
+  # defmacro map_fetch_prop(map, atom_form) when is_atom(atom_form) do
+  #   str_form = Atom.to_string(atom_form)
 
-    quote bind_quoted: binding() do
-      case map do
-        %{^str_form => value} -> {:ok, value}
-        %{^atom_form => value} -> {:ok, value}
-        %{} -> :error
-        other -> :erlang.error({:badmap, other}, [map, atom_form])
-      end
-    end
-  end
+  #   quote bind_quoted: binding() do
+  #     case map do
+  #       %{^str_form => value} -> {:ok, value}
+  #       %{^atom_form => value} -> {:ok, value}
+  #       %{} -> :error
+  #       other -> :erlang.error({:badmap, other}, [map, atom_form])
+  #     end
+  #   end
+  # end
 
-  defmacro map_fetch_prop!(map, atom_form) when is_atom(atom_form) do
-    str_form = Atom.to_string(atom_form)
+  # defmacro map_fetch_prop!(map, atom_form) when is_atom(atom_form) do
+  #   str_form = Atom.to_string(atom_form)
 
-    quote bind_quoted: binding() do
-      case map do
-        %{^str_form => value} -> value
-        %{^atom_form => value} -> value
-        %{} -> raise KeyError, key: atom_form, term: map
-        other -> :erlang.error({:badmap, other}, [map, atom_form])
-      end
-    end
-  end
+  #   quote bind_quoted: binding() do
+  #     case map do
+  #       %{^str_form => value} -> value
+  #       %{^atom_form => value} -> value
+  #       %{} -> raise KeyError, key: atom_form, term: map
+  #       other -> :erlang.error({:badmap, other}, [map, atom_form])
+  #     end
+  #   end
+  # end
 
-  defmacro map_get_prop(map, atom_form, default) when is_atom(atom_form) do
-    str_form = Atom.to_string(atom_form)
+  # defmacro map_get_prop(map, atom_form, default) when is_atom(atom_form) do
+  #   str_form = Atom.to_string(atom_form)
 
-    quote bind_quoted: binding() do
-      case map do
-        %{^str_form => value} -> value
-        %{^atom_form => value} -> value
-        %{} -> default
-        other -> :erlang.error({:badmap, other}, [map, atom_form, default])
-      end
-    end
-  end
+  #   quote bind_quoted: binding() do
+  #     case map do
+  #       %{^str_form => value} -> value
+  #       %{^atom_form => value} -> value
+  #       %{} -> default
+  #       other -> :erlang.error({:badmap, other}, [map, atom_form, default])
+  #     end
+  #   end
+  # end
 
-  # This is the only place in this library where the string $id is defined. So
-  # we are sure to always use the atom/binary compatible functions.
-  defmacro id_bin do
-    "$id"
-  end
+  # # This is the only place in this library where the string $id is defined. So
+  # # we are sure to always use the atom/binary compatible functions.
+  # defmacro id_bin do
+  #   "$id"
+  # end
 
   def fmap_atom_to_binary(term) do
     # Checking before is faster (benchmark in ./tools)

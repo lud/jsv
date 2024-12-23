@@ -144,9 +144,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ContainsTest do
   describe "items + contains" do
     setup do
       json_schema = %JSV.Schema{
-        items: %JSV.Schema{multipleOf: 2},
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        contains: %JSV.Schema{multipleOf: 3}
+        contains: %JSV.Schema{multipleOf: 3},
+        items: %JSV.Schema{multipleOf: 2}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

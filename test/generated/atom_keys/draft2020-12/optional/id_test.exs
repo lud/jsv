@@ -12,27 +12,27 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.IdTest do
   describe "$id inside an enum is not a real identifier" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$defs": %{
           id_in_enum: %JSV.Schema{
             enum: [
               %JSV.Schema{
-                type: "null",
-                "$id": "https://localhost:1234/draft2020-12/id/my_identifier.json"
+                "$id": "https://localhost:1234/draft2020-12/id/my_identifier.json",
+                type: "null"
               }
             ]
           },
           real_id_in_schema: %JSV.Schema{
-            type: "string",
-            "$id": "https://localhost:1234/draft2020-12/id/my_identifier.json"
+            "$id": "https://localhost:1234/draft2020-12/id/my_identifier.json",
+            type: "string"
           },
           zzz_id_in_const: %{
             const: %JSV.Schema{
-              type: "null",
-              "$id": "https://localhost:1234/draft2020-12/id/my_identifier.json"
+              "$id": "https://localhost:1234/draft2020-12/id/my_identifier.json",
+              type: "null"
             }
           }
         },
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         anyOf: [
           %JSV.Schema{"$ref": "#/$defs/id_in_enum"},
           %JSV.Schema{

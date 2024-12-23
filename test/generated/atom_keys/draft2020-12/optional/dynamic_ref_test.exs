@@ -12,30 +12,30 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.DynamicRefTest do
   describe "$dynamicRef skips over intermediate resources - pointer reference across resource boundary" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://test.json-schema.org/dynamic-ref-skips-intermediate-resource/optional/main",
         "$defs": %{
           bar: %JSV.Schema{
-            type: "array",
-            items: %JSV.Schema{"$ref": "item"},
+            "$id": "bar",
             "$defs": %{
+              content: %JSV.Schema{"$dynamicAnchor": "content", type: "string"},
               item: %JSV.Schema{
-                type: "object",
+                "$id": "item",
                 "$defs": %{
                   defaultContent: %JSV.Schema{
-                    type: "integer",
-                    "$dynamicAnchor": "content"
+                    "$dynamicAnchor": "content",
+                    type: "integer"
                   }
                 },
-                "$id": "item",
+                type: "object",
                 properties: %{content: %JSV.Schema{"$dynamicRef": "#content"}}
-              },
-              content: %JSV.Schema{type: "string", "$dynamicAnchor": "content"}
+              }
             },
-            "$id": "bar"
+            type: "array",
+            items: %JSV.Schema{"$ref": "item"}
           }
         },
-        "$id": "https://test.json-schema.org/dynamic-ref-skips-intermediate-resource/optional/main",
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         properties: %{"bar-item": %JSV.Schema{"$ref": "bar#/$defs/item"}}
       }
 

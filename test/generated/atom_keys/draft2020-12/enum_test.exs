@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "simple enum validation" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [1, 2, 3],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [1, 2, 3]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -36,8 +36,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "heterogeneous enum validation" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [6, "foo", [], true, %{foo: 12}],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [6, "foo", [], true, %{foo: 12}]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -78,8 +78,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "heterogeneous enum-with-null validation" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [6, nil],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [6, nil]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -108,13 +108,13 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enums in properties" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
-        required: ["bar"],
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
         properties: %{
-          foo: %JSV.Schema{enum: ["foo"]},
-          bar: %JSV.Schema{enum: ["bar"]}
-        }
+          bar: %JSV.Schema{enum: ["bar"]},
+          foo: %JSV.Schema{enum: ["foo"]}
+        },
+        required: ["bar"]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -161,8 +161,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with escaped characters" do
     setup do
       json_schema = %JSV.Schema{
-        enum: ["foo\nbar", "foo\rbar"],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: ["foo\nbar", "foo\rbar"]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -191,8 +191,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with false does not match 0" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [false],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [false]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -221,8 +221,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with [false] does not match [0]" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [[false]],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [[false]]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -251,8 +251,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with true does not match 1" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [true],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [true]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -281,8 +281,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with [true] does not match [1]" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [[true]],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [[true]]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -311,8 +311,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with 0 does not match false" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [0],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [0]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -341,8 +341,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with [0] does not match [false]" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [[0]],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [[0]]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -371,8 +371,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with 1 does not match true" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [1],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [1]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -401,8 +401,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "enum with [1] does not match [true]" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [[1]],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [[1]]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -431,8 +431,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
   describe "nul characters in strings" do
     setup do
       json_schema = %JSV.Schema{
-        enum: [<<104, 101, 108, 108, 111, 0, 116, 104, 101, 114, 101>>],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        enum: [<<104, 101, 108, 108, 111, 0, 116, 104, 101, 114, 101>>]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

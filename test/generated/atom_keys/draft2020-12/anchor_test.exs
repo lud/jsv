@@ -12,9 +12,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AnchorTest do
   describe "Location-independent identifier" do
     setup do
       json_schema = %JSV.Schema{
-        "$defs": %{A: %JSV.Schema{type: "integer", "$anchor": "foo"}},
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$ref": "#foo",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$defs": %{A: %JSV.Schema{"$anchor": "foo", type: "integer"}}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -37,15 +37,15 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AnchorTest do
   describe "Location-independent identifier with absolute URI" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "http://localhost:1234/draft2020-12/bar#foo",
         "$defs": %{
           A: %JSV.Schema{
-            type: "integer",
+            "$id": "http://localhost:1234/draft2020-12/bar",
             "$anchor": "foo",
-            "$id": "http://localhost:1234/draft2020-12/bar"
+            type: "integer"
           }
-        },
-        "$ref": "http://localhost:1234/draft2020-12/bar#foo",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -68,15 +68,15 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AnchorTest do
   describe "Location-independent identifier with base URI change in subschema" do
     setup do
       json_schema = %JSV.Schema{
-        "$defs": %{
-          A: %JSV.Schema{
-            "$defs": %{B: %JSV.Schema{type: "integer", "$anchor": "foo"}},
-            "$id": "nested.json"
-          }
-        },
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "http://localhost:1234/draft2020-12/root",
         "$ref": "http://localhost:1234/draft2020-12/nested.json#foo",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$defs": %{
+          A: %JSV.Schema{
+            "$id": "nested.json",
+            "$defs": %{B: %JSV.Schema{"$anchor": "foo", type: "integer"}}
+          }
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -99,18 +99,18 @@ defmodule JSV.Generated.Draft202012.AtomKeys.AnchorTest do
   describe "same $anchor with different base uri" do
     setup do
       json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "http://localhost:1234/draft2020-12/foobar",
+        "$ref": "child1#my_anchor",
         "$defs": %{
           A: %JSV.Schema{
             "$id": "child1",
             allOf: [
-              %JSV.Schema{type: "number", "$anchor": "my_anchor", "$id": "child2"},
-              %JSV.Schema{type: "string", "$anchor": "my_anchor"}
+              %JSV.Schema{"$id": "child2", "$anchor": "my_anchor", type: "number"},
+              %JSV.Schema{"$anchor": "my_anchor", type: "string"}
             ]
           }
-        },
-        "$id": "http://localhost:1234/draft2020-12/foobar",
-        "$ref": "child1#my_anchor",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        }
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

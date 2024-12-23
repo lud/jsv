@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Ipv6Test do
   describe "validation of IPv6 addresses" do
     setup do
       json_schema = %JSV.Schema{
-        format: "ipv6",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        format: "ipv6"
       }
 
       schema =

@@ -114,8 +114,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ContentTest do
         contentMediaType: "application/json",
         contentSchema: %JSV.Schema{
           type: "object",
-          required: ["foo"],
-          properties: %{foo: %JSV.Schema{type: "string"}}
+          properties: %{foo: %JSV.Schema{type: "string"}},
+          required: ["foo"]
         }
       }
 

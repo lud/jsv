@@ -11,7 +11,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const validation" do
     setup do
-      json_schema = %{const: 2, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: 2}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -38,8 +38,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
   describe "const with object" do
     setup do
       json_schema = %{
-        const: %{foo: "bar", baz: "bax"},
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        const: %{baz: "bax", foo: "bar"}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -74,8 +74,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
   describe "const with array" do
     setup do
       json_schema = %{
-        const: [%{foo: "bar"}],
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        const: [%{foo: "bar"}]
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -103,7 +103,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with null" do
     setup do
-      json_schema = %{const: nil, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: nil}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -123,7 +123,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with false does not match 0" do
     setup do
-      json_schema = %{const: false, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: false}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -149,7 +149,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with true does not match 1" do
     setup do
-      json_schema = %{const: true, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: true}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -175,7 +175,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with [false] does not match [0]" do
     setup do
-      json_schema = %{const: [false], "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: [false]}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -201,7 +201,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with [true] does not match [1]" do
     setup do
-      json_schema = %{const: [true], "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: [true]}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -227,7 +227,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with {\"a\": false} does not match {\"a\": 0}" do
     setup do
-      json_schema = %{const: %{a: false}, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: %{a: false}}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -253,7 +253,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with {\"a\": true} does not match {\"a\": 1}" do
     setup do
-      json_schema = %{const: %{a: true}, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: %{a: true}}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -279,7 +279,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with 0 does not match other zero-like types" do
     setup do
-      json_schema = %{const: 0, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: 0}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -323,7 +323,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with 1 does not match true" do
     setup do
-      json_schema = %{const: 1, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: 1}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -349,7 +349,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
 
   describe "const with -2.0 matches integer and float types" do
     setup do
-      json_schema = %{const: -2.0, "$schema": "https://json-schema.org/draft/2020-12/schema"}
+      json_schema = %{"$schema": "https://json-schema.org/draft/2020-12/schema", const: -2.0}
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -388,8 +388,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
   describe "float and integers are equal up to 64-bit representation limits" do
     setup do
       json_schema = %{
-        const: 9_007_199_254_740_992,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        const: 9_007_199_254_740_992
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -424,8 +424,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.ConstTest do
   describe "nul characters in strings" do
     setup do
       json_schema = %{
-        const: <<104, 101, 108, 108, 111, 0, 116, 104, 101, 114, 101>>,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        const: <<104, 101, 108, 108, 111, 0, 116, 104, 101, 114, 101>>
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

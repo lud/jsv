@@ -13,7 +13,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DefaultTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        properties: %{foo: %JSV.Schema{default: [], type: "integer"}}
+        properties: %{foo: %JSV.Schema{type: "integer", default: []}}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -37,7 +37,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DefaultTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        properties: %{bar: %JSV.Schema{default: "bad", type: "string", minLength: 4}}
+        properties: %{bar: %JSV.Schema{type: "string", default: "bad", minLength: 4}}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -60,9 +60,9 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DefaultTest do
   describe "the default keyword does not do anything if the property is missing" do
     setup do
       json_schema = %JSV.Schema{
-        type: "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        properties: %{alpha: %JSV.Schema{default: 5, maximum: 3, type: "number"}}
+        type: "object",
+        properties: %{alpha: %JSV.Schema{type: "number", default: 5, maximum: 3}}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

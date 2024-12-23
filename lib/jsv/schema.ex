@@ -64,7 +64,3 @@ defmodule JSV.Schema do
     :writeOnly
   ]
 end
-
-IO.warn("TODO add the struct in atom tests")
-IO.warn("TODO test types as booleans")
-IO.warn("TODO test required properties as atoms")

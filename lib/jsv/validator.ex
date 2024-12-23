@@ -23,26 +23,25 @@ defmodule JSV.Validator do
     }
   end
 
-  IO.warn("TODO remove matches to %__MODULE__{} everywhere")
   # The validator struct is the 3rd argument to mimic the callback on the
   # vocabulary modules where builder and validators are passed as a context as
   # last argument.
   def validate(data, subschema, vctx)
 
-  def validate(data, %BooleanSchema{} = bs, %__MODULE__{} = vctx) do
+  def validate(data, %BooleanSchema{} = bs, vctx) do
     case BooleanSchema.valid?(bs) do
       true -> return(data, vctx)
       false -> {:error, add_error(vctx, boolean_schema_error(vctx, bs, data))}
     end
   end
 
-  def validate(data, {:alias_of, key}, %__MODULE__{} = vctx) do
+  def validate(data, {:alias_of, key}, vctx) do
     with_scope(vctx, key, _eval_path = {:alias_of, key}, fn vctx ->
       validate(data, Map.fetch!(vctx.validators, key), vctx)
     end)
   end
 
-  def validate(data, sub_schema, %__MODULE__{} = vctx) do
+  def validate(data, sub_schema, vctx) do
     do_validate(data, sub_schema, vctx)
   end
 
@@ -121,7 +120,7 @@ defmodule JSV.Validator do
         case res do
           # When returning :ok, the errors may be empty or not, depending on
           # previous iterations.
-          {:ok, new_acc, %__MODULE__{} = new_vctx} ->
+          {:ok, new_acc, new_vctx} ->
             {new_acc, new_vctx}
 
           # When returning :error, an error MUST be set
@@ -161,7 +160,7 @@ defmodule JSV.Validator do
     }
 
     case validate(data, subvalidators, sub_vctx) do
-      {:ok, data, %__MODULE__{} = sub_vctx} ->
+      {:ok, data, sub_vctx} ->
         # There should not be errors in sub at this point ?
         new_vctx = vctx |> add_evaluated(key) |> merge_errors(sub_vctx)
         {:ok, data, new_vctx}
@@ -201,7 +200,7 @@ defmodule JSV.Validator do
     }
 
     case validate(data, subvalidators, separate_vctx) do
-      {:ok, data, %__MODULE__{} = separate_vctx} ->
+      {:ok, data, separate_vctx} ->
         # There should not be errors in sub at this point ?
         new_vctx = vctx |> merge_evaluated(separate_vctx) |> merge_errors(separate_vctx)
         {:ok, data, new_vctx}
@@ -286,7 +285,7 @@ defmodule JSV.Validator do
   end
 
   @doc false
-  def __with_error__(module, %__MODULE__{} = vctx, kind, data, args) do
+  def __with_error__(module, vctx, kind, data, args) do
     error = %Error{
       kind: kind,
       data: data,

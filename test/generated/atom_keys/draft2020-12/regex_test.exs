@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.RegexTest do
   describe "validation of regular expressions" do
     setup do
       json_schema = %JSV.Schema{
-        format: "regex",
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        format: "regex"
       }
 
       schema =

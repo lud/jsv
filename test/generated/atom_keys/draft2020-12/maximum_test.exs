@@ -12,8 +12,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.MaximumTest do
   describe "maximum validation" do
     setup do
       json_schema = %JSV.Schema{
-        maximum: 3.0,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        maximum: 3.0
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -48,8 +48,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.MaximumTest do
   describe "maximum validation with unsigned integer" do
     setup do
       json_schema = %JSV.Schema{
-        maximum: 300,
-        "$schema": "https://json-schema.org/draft/2020-12/schema"
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        maximum: 300
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
