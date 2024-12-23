@@ -20,22 +20,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ContentTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a valid JSON document", c do
+    test "a valid JSON document", x do
       data = "{\"foo\": \"bar\"}"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an invalid JSON document; validates true", c do
+    test "an invalid JSON document; validates true", x do
       data = "{:}"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-strings", c do
+    test "ignores non-strings", x do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -50,22 +50,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ContentTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a valid base64 string", c do
+    test "a valid base64 string", x do
       data = "eyJmb28iOiAiYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an invalid base64 string (% is not a valid character); validates true", c do
+    test "an invalid base64 string (% is not a valid character); validates true", x do
       data = "eyJmb28iOi%iYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-strings", c do
+    test "ignores non-strings", x do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -81,28 +81,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ContentTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a valid base64-encoded JSON document", c do
+    test "a valid base64-encoded JSON document", x do
       data = "eyJmb28iOiAiYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a validly-encoded invalid JSON document; validates true", c do
+    test "a validly-encoded invalid JSON document; validates true", x do
       data = "ezp9Cg=="
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an invalid base64 string that is valid JSON; validates true", c do
+    test "an invalid base64 string that is valid JSON; validates true", x do
       data = "{}"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-strings", c do
+    test "ignores non-strings", x do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -123,52 +123,52 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ContentTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a valid base64-encoded JSON document", c do
+    test "a valid base64-encoded JSON document", x do
       data = "eyJmb28iOiAiYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "another valid base64-encoded JSON document", c do
+    test "another valid base64-encoded JSON document", x do
       data = "eyJib28iOiAyMCwgImZvbyI6ICJiYXoifQ=="
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an invalid base64-encoded JSON document; validates true", c do
+    test "an invalid base64-encoded JSON document; validates true", x do
       data = "eyJib28iOiAyMH0="
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an empty object as a base64-encoded JSON document; validates true", c do
+    test "an empty object as a base64-encoded JSON document; validates true", x do
       data = "e30="
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an empty array as a base64-encoded JSON document", c do
+    test "an empty array as a base64-encoded JSON document", x do
       data = "W10="
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a validly-encoded invalid JSON document; validates true", c do
+    test "a validly-encoded invalid JSON document; validates true", x do
       data = "ezp9Cg=="
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an invalid base64 string that is valid JSON; validates true", c do
+    test "an invalid base64 string that is valid JSON; validates true", x do
       data = "{}"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-strings", c do
+    test "ignores non-strings", x do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

@@ -4,8 +4,6 @@ defmodule JSV.BuilderTest do
   alias JSV.Test.TestResolver
   use ExUnit.Case, async: true
 
-  IO.warn("TODO build atom schema tests")
-
   test "building with a schema struct" do
     raw_schema = %{"properties" => %{"name" => %{"type" => "string"}}}
     struct_schema = %Schema{properties: %{name: %Schema{type: :string}}}

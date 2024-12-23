@@ -16,28 +16,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "longer is valid", c do
+    test "longer is valid", x do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "exact length is valid", c do
+    test "exact length is valid", x do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "too short is invalid", c do
+    test "too short is invalid", x do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-arrays", c do
+    test "ignores non-arrays", x do
       data = ""
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -52,16 +52,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "longer is valid", c do
+    test "longer is valid", x do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "too short is invalid", c do
+    test "too short is invalid", x do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

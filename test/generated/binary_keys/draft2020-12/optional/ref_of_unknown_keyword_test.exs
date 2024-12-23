@@ -21,16 +21,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.RefOfUnknownKeywordTest 
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", c do
+    test "match", x do
       data = %{"bar" => 3}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mismatch", c do
+    test "mismatch", x do
       data = %{"bar" => true}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -48,16 +48,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.RefOfUnknownKeywordTest 
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", c do
+    test "match", x do
       data = %{"bar" => 3}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mismatch", c do
+    test "mismatch", x do
       data = %{"bar" => true}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -74,16 +74,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.RefOfUnknownKeywordTest 
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", c do
+    test "match", x do
       data = "a string"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mismatch", c do
+    test "mismatch", x do
       data = 42
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

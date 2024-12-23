@@ -16,22 +16,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.NoSchemaTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a 3-character string is valid", c do
+    test "a 3-character string is valid", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a 1-character string is not valid", c do
+    test "a 1-character string is not valid", x do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a non-string is valid", c do
+    test "a non-string is valid", x do
       data = 5
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

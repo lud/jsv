@@ -13,6 +13,14 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   take_keyword :properties, properties, acc, builder, _ do
     properties
     |> Helpers.reduce_ok({%{}, builder}, fn {k, pschema}, {acc, builder} ->
+      # Support properties as atoms for atom schemas
+      k =
+        if is_atom(k) do
+          Atom.to_string(k)
+        else
+          k
+        end
+
       case Builder.build_sub(pschema, builder) do
         {:ok, subvalidators, builder} -> {:ok, {Map.put(acc, k, subvalidators), builder}}
         {:error, _} = err -> err

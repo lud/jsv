@@ -20,16 +20,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DefsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid definition schema", c do
+    test "valid definition schema", x do
       data = %{"$defs" => %{"foo" => %{"type" => "integer"}}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid definition schema", c do
+    test "invalid definition schema", x do
       data = %{"$defs" => %{"foo" => %{"type" => 1}}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

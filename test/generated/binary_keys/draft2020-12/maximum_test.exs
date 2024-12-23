@@ -16,28 +16,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MaximumTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "below the maximum is valid", c do
+    test "below the maximum is valid", x do
       data = 2.6
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boundary point is valid", c do
+    test "boundary point is valid", x do
       data = 3.0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "above the maximum is invalid", c do
+    test "above the maximum is invalid", x do
       data = 3.5
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-numbers", c do
+    test "ignores non-numbers", x do
       data = "x"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -48,28 +48,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MaximumTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "below the maximum is invalid", c do
+    test "below the maximum is invalid", x do
       data = 299.97
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boundary point integer is valid", c do
+    test "boundary point integer is valid", x do
       data = 300
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boundary point float is valid", c do
+    test "boundary point float is valid", x do
       data = 300.0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "above the maximum is invalid", c do
+    test "above the maximum is invalid", x do
       data = 300.5
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

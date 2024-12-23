@@ -1,4 +1,5 @@
 defmodule JSV do
+  alias JSV.AtomTools
   alias JSV.BooleanSchema
   alias JSV.Builder
   alias JSV.Root
@@ -40,6 +41,8 @@ defmodule JSV do
   #{NimbleOptions.docs(@build_opts_schema)}
   """
   def build(raw_schema, opts) when is_map(raw_schema) do
+    raw_schema = AtomTools.fmap_atom_to_binary(raw_schema)
+
     case NimbleOptions.validate(opts, @build_opts_nimble) do
       {:ok, opts} ->
         builder = Builder.new(opts)

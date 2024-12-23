@@ -24,16 +24,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.InfiniteLoopDetectionTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "passing case", c do
+    test "passing case", x do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "failing case", c do
+    test "failing case", x do
       data = %{"foo" => "a string"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

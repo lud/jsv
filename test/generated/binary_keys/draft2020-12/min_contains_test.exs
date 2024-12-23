@@ -20,16 +20,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "one item valid against lone minContains", c do
+    test "one item valid against lone minContains", x do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "zero items still valid against lone minContains", c do
+    test "zero items still valid against lone minContains", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -45,34 +45,34 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty data", c do
+    test "empty data", x do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "no elements match", c do
+    test "no elements match", x do
       data = [2]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "single element matches, valid minContains", c do
+    test "single element matches, valid minContains", x do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "some elements match, valid minContains", c do
+    test "some elements match, valid minContains", x do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all elements match, valid minContains", c do
+    test "all elements match, valid minContains", x do
       data = [1, 1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -88,40 +88,40 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty data", c do
+    test "empty data", x do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all elements match, invalid minContains", c do
+    test "all elements match, invalid minContains", x do
       data = [1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "some elements match, invalid minContains", c do
+    test "some elements match, invalid minContains", x do
       data = [1, 2]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all elements match, valid minContains (exactly as needed)", c do
+    test "all elements match, valid minContains (exactly as needed)", x do
       data = [1, 1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all elements match, valid minContains (more than needed)", c do
+    test "all elements match, valid minContains (more than needed)", x do
       data = [1, 1, 1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "some elements match, valid minContains", c do
+    test "some elements match, valid minContains", x do
       data = [1, 2, 1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -137,16 +137,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "one element matches, invalid minContains", c do
+    test "one element matches, invalid minContains", x do
       data = [1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "both elements match, valid minContains", c do
+    test "both elements match, valid minContains", x do
       data = [1, 1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -163,28 +163,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty data", c do
+    test "empty data", x do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all elements match, invalid minContains", c do
+    test "all elements match, invalid minContains", x do
       data = [1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all elements match, invalid maxContains", c do
+    test "all elements match, invalid maxContains", x do
       data = [1, 1, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all elements match, valid maxContains and minContains", c do
+    test "all elements match, valid maxContains and minContains", x do
       data = [1, 1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -201,28 +201,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty data", c do
+    test "empty data", x do
       data = []
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid minContains", c do
+    test "invalid minContains", x do
       data = [1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid maxContains", c do
+    test "invalid maxContains", x do
       data = [1, 1, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid maxContains and minContains", c do
+    test "invalid maxContains and minContains", x do
       data = [1, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -238,16 +238,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty data", c do
+    test "empty data", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "minContains = 0 makes contains always pass", c do
+    test "minContains = 0 makes contains always pass", x do
       data = [2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -264,22 +264,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinContainsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty data", c do
+    test "empty data", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "not more than maxContains", c do
+    test "not more than maxContains", x do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "too many", c do
+    test "too many", x do
       data = [1, 1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

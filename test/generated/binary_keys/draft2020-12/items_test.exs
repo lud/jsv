@@ -20,28 +20,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid items", c do
+    test "valid items", x do
       data = [1, 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "wrong type of items", c do
+    test "wrong type of items", x do
       data = [1, "x"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-arrays", c do
+    test "ignores non-arrays", x do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "JavaScript pseudo-array is valid", c do
+    test "JavaScript pseudo-array is valid", x do
       data = %{"0" => "invalid", "length" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -52,16 +52,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any array is valid", c do
+    test "any array is valid", x do
       data = [1, "foo", true]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "empty array is valid", c do
+    test "empty array is valid", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -72,16 +72,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any non-empty array is invalid", c do
+    test "any non-empty array is invalid", x do
       data = [1, "foo", true]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "empty array is valid", c do
+    test "empty array is valid", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -113,7 +113,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid items", c do
+    test "valid items", x do
       data = [
         [%{"foo" => nil}, %{"foo" => nil}],
         [%{"foo" => nil}, %{"foo" => nil}],
@@ -121,10 +121,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       ]
 
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "too many items", c do
+    test "too many items", x do
       data = [
         [%{"foo" => nil}, %{"foo" => nil}],
         [%{"foo" => nil}, %{"foo" => nil}],
@@ -133,10 +133,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       ]
 
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "too many sub-items", c do
+    test "too many sub-items", x do
       data = [
         [%{"foo" => nil}, %{"foo" => nil}, %{"foo" => nil}],
         [%{"foo" => nil}, %{"foo" => nil}],
@@ -144,10 +144,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       ]
 
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "wrong item", c do
+    test "wrong item", x do
       data = [
         %{"foo" => nil},
         [%{"foo" => nil}, %{"foo" => nil}],
@@ -155,10 +155,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       ]
 
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "wrong sub-item", c do
+    test "wrong sub-item", x do
       data = [
         [%{}, %{"foo" => nil}],
         [%{"foo" => nil}, %{"foo" => nil}],
@@ -166,13 +166,13 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       ]
 
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "fewer items is valid", c do
+    test "fewer items is valid", x do
       data = [[%{"foo" => nil}], [%{"foo" => nil}]]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -194,22 +194,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid nested array", c do
+    test "valid nested array", x do
       data = [[[[1]], [[2], [3]]], [[[4], [5], [6]]]]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "nested array with invalid type", c do
+    test "nested array with invalid type", x do
       data = [[[["1"]], [[2], [3]]], [[[4], [5], [6]]]]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "not deep enough", c do
+    test "not deep enough", x do
       data = [[[1], [2], [3]], [[4], [5], [6]]]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -225,34 +225,34 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty array", c do
+    test "empty array", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "fewer number of items present (1)", c do
+    test "fewer number of items present (1)", x do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "fewer number of items present (2)", c do
+    test "fewer number of items present (2)", x do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "equal number of items present", c do
+    test "equal number of items present", x do
       data = [1, 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "additional items are not permitted", c do
+    test "additional items are not permitted", x do
       data = [1, 2, 3, 4]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -268,16 +268,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "prefixItems in allOf does not constrain items, invalid case", c do
+    test "prefixItems in allOf does not constrain items, invalid case", x do
       data = [3, 5]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "prefixItems in allOf does not constrain items, valid case", c do
+    test "prefixItems in allOf does not constrain items, valid case", x do
       data = [5, 5]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -293,16 +293,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid items", c do
+    test "valid items", x do
       data = ["x", 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "wrong type of second item", c do
+    test "wrong type of second item", x do
       data = ["x", "y"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -318,16 +318,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "heterogeneous invalid instance", c do
+    test "heterogeneous invalid instance", x do
       data = ["foo", "bar", 37]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid instance", c do
+    test "valid instance", x do
       data = [nil]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -342,10 +342,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "allows null elements", c do
+    test "allows null elements", x do
       data = [nil]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

@@ -16,34 +16,34 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MaxLengthTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "shorter is valid", c do
+    test "shorter is valid", x do
       data = "f"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "exact length is valid", c do
+    test "exact length is valid", x do
       data = "fo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "too long is invalid", c do
+    test "too long is invalid", x do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-strings", c do
+    test "ignores non-strings", x do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "two graphemes is long enough", c do
+    test "two graphemes is long enough", x do
       data = "💩💩"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -58,16 +58,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MaxLengthTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "shorter is valid", c do
+    test "shorter is valid", x do
       data = "f"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "too long is invalid", c do
+    test "too long is invalid", x do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

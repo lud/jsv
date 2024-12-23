@@ -21,16 +21,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.FormatAssertionTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "format-assertion: false: valid string", c do
+    test "format-assertion: false: valid string", x do
       data = "127.0.0.1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "format-assertion: false: invalid string", c do
+    test "format-assertion: false: invalid string", x do
       data = "not-an-ipv4"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -46,16 +46,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.FormatAssertionTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "format-assertion: true: valid string", c do
+    test "format-assertion: true: valid string", x do
       data = "127.0.0.1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "format-assertion: true: invalid string", c do
+    test "format-assertion: true: invalid string", x do
       data = "not-an-ipv4"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

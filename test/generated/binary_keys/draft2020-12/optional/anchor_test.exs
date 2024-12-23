@@ -32,28 +32,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.AnchorTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "exact match to enum, and type matches", c do
+    test "exact match to enum, and type matches", x do
       data = %{"$anchor" => "my_anchor", "type" => "null"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "in implementations that strip $anchor, this may match either $def", c do
+    test "in implementations that strip $anchor, this may match either $def", x do
       data = %{"type" => "null"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "match $ref to $anchor", c do
+    test "match $ref to $anchor", x do
       data = "a string to match #/$defs/anchor_in_enum"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "no match on enum or $ref to $anchor", c do
+    test "no match on enum or $ref to $anchor", x do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

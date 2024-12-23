@@ -20,28 +20,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "first anyOf valid", c do
+    test "first anyOf valid", x do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "second anyOf valid", c do
+    test "second anyOf valid", x do
       data = 2.5
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "both anyOf valid", c do
+    test "both anyOf valid", x do
       data = 3
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "neither anyOf valid", c do
+    test "neither anyOf valid", x do
       data = 1.5
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -57,22 +57,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "mismatch base schema", c do
+    test "mismatch base schema", x do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "one anyOf valid", c do
+    test "one anyOf valid", x do
       data = "foobar"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "both anyOf invalid", c do
+    test "both anyOf invalid", x do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -87,10 +87,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is valid", c do
+    test "any value is valid", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -105,10 +105,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is valid", c do
+    test "any value is valid", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -123,10 +123,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is invalid", c do
+    test "any value is invalid", x do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -144,28 +144,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "first anyOf valid (complex)", c do
+    test "first anyOf valid (complex)", x do
       data = %{"bar" => 2}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "second anyOf valid (complex)", c do
+    test "second anyOf valid (complex)", x do
       data = %{"foo" => "baz"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "both anyOf valid (complex)", c do
+    test "both anyOf valid (complex)", x do
       data = %{"bar" => 2, "foo" => "baz"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "neither anyOf valid (complex)", c do
+    test "neither anyOf valid (complex)", x do
       data = %{"bar" => "quux", "foo" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -180,16 +180,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "string is valid", c do
+    test "string is valid", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "number is valid", c do
+    test "number is valid", x do
       data = 123
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -204,16 +204,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AnyOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "null is valid", c do
+    test "null is valid", x do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "anything non-null is invalid", c do
+    test "anything non-null is invalid", x do
       data = 123
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

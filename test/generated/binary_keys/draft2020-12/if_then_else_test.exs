@@ -20,16 +20,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid when valid against lone if", c do
+    test "valid when valid against lone if", x do
       data = 0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid when invalid against lone if", c do
+    test "valid when invalid against lone if", x do
       data = "hello"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -44,16 +44,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid when valid against lone then", c do
+    test "valid when valid against lone then", x do
       data = 0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid when invalid against lone then", c do
+    test "valid when invalid against lone then", x do
       data = "hello"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -68,16 +68,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid when valid against lone else", c do
+    test "valid when valid against lone else", x do
       data = 0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid when invalid against lone else", c do
+    test "valid when invalid against lone else", x do
       data = "hello"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -93,22 +93,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid through then", c do
+    test "valid through then", x do
       data = -1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid through then", c do
+    test "invalid through then", x do
       data = -100
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid when if test fails", c do
+    test "valid when if test fails", x do
       data = 3
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -124,22 +124,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid when if test passes", c do
+    test "valid when if test passes", x do
       data = -1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid through else", c do
+    test "valid through else", x do
       data = 4
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid through else", c do
+    test "invalid through else", x do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -156,28 +156,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid through then", c do
+    test "valid through then", x do
       data = -1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid through then", c do
+    test "invalid through then", x do
       data = -100
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid through else", c do
+    test "valid through else", x do
       data = 4
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid through else", c do
+    test "invalid through else", x do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -196,16 +196,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid, but would have been invalid through then", c do
+    test "valid, but would have been invalid through then", x do
       data = -100
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid, but would have been invalid through else", c do
+    test "valid, but would have been invalid through else", x do
       data = 3
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -222,16 +222,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "boolean schema true in if always chooses the then path (valid)", c do
+    test "boolean schema true in if always chooses the then path (valid)", x do
       data = "then"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boolean schema true in if always chooses the then path (invalid)", c do
+    test "boolean schema true in if always chooses the then path (invalid)", x do
       data = "else"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -248,16 +248,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "boolean schema false in if always chooses the else path (invalid)", c do
+    test "boolean schema false in if always chooses the else path (invalid)", x do
       data = "then"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boolean schema false in if always chooses the else path (valid)", c do
+    test "boolean schema false in if always chooses the else path (valid)", x do
       data = "else"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -274,28 +274,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "yes redirects to then and passes", c do
+    test "yes redirects to then and passes", x do
       data = "yes"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "other redirects to else and passes", c do
+    test "other redirects to else and passes", x do
       data = "other"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "no redirects to then and fails", c do
+    test "no redirects to then and fails", x do
       data = "no"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid redirects to else and fails", c do
+    test "invalid redirects to else and fails", x do
       data = "invalid"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

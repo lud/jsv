@@ -16,28 +16,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinimumTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "above the minimum is valid", c do
+    test "above the minimum is valid", x do
       data = 2.6
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boundary point is valid", c do
+    test "boundary point is valid", x do
       data = 1.1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "below the minimum is invalid", c do
+    test "below the minimum is invalid", x do
       data = 0.6
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-numbers", c do
+    test "ignores non-numbers", x do
       data = "x"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -48,46 +48,46 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MinimumTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "negative above the minimum is valid", c do
+    test "negative above the minimum is valid", x do
       data = -1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "positive above the minimum is valid", c do
+    test "positive above the minimum is valid", x do
       data = 0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boundary point is valid", c do
+    test "boundary point is valid", x do
       data = -2
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boundary point with float is valid", c do
+    test "boundary point with float is valid", x do
       data = -2.0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "float below the minimum is invalid", c do
+    test "float below the minimum is invalid", x do
       data = -2.0001
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "int below the minimum is invalid", c do
+    test "int below the minimum is invalid", x do
       data = -3
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-numbers", c do
+    test "ignores non-numbers", x do
       data = "x"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

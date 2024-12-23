@@ -22,40 +22,40 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "no additional properties is valid", c do
+    test "no additional properties is valid", x do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an additional property is invalid", c do
+    test "an additional property is invalid", x do
       data = %{"bar" => 2, "foo" => 1, "quux" => "boom"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores arrays", c do
+    test "ignores arrays", x do
       data = [1, 2, 3]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores strings", c do
+    test "ignores strings", x do
       data = "foobarbaz"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores other non-objects", c do
+    test "ignores other non-objects", x do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "patternProperties are not additional properties", c do
+    test "patternProperties are not additional properties", x do
       data = %{"foo" => 1, "vroom" => 2}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -71,16 +71,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "matching the pattern is valid", c do
+    test "matching the pattern is valid", x do
       data = %{"ármányos" => 2}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "not matching the pattern is invalid", c do
+    test "not matching the pattern is invalid", x do
       data = %{"élmény" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -96,22 +96,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "no additional properties is valid", c do
+    test "no additional properties is valid", x do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an additional valid property is valid", c do
+    test "an additional valid property is valid", x do
       data = %{"bar" => 2, "foo" => 1, "quux" => true}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an additional invalid property is invalid", c do
+    test "an additional invalid property is invalid", x do
       data = %{"bar" => 2, "foo" => 1, "quux" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -126,16 +126,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "an additional valid property is valid", c do
+    test "an additional valid property is valid", x do
       data = %{"foo" => true}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an additional invalid property is invalid", c do
+    test "an additional invalid property is invalid", x do
       data = %{"foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -150,10 +150,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "additional properties are allowed", c do
+    test "additional properties are allowed", x do
       data = %{"bar" => 2, "foo" => 1, "quux" => true}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -169,10 +169,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "properties defined in allOf are not examined", c do
+    test "properties defined in allOf are not examined", x do
       data = %{"bar" => true, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -187,10 +187,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "allows null values", c do
+    test "allows null values", x do
       data = %{"foo" => nil}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -206,16 +206,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "Valid against both keywords", c do
+    test "Valid against both keywords", x do
       data = %{"apple" => 4}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "Valid against propertyNames, but not additionalProperties", c do
+    test "Valid against propertyNames, but not additionalProperties", x do
       data = %{"fig" => 2, "pear" => "available"}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -235,22 +235,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.AdditionalPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "additionalProperties doesn't consider dependentSchemas", c do
+    test "additionalProperties doesn't consider dependentSchemas", x do
       data = %{"foo" => ""}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "additionalProperties can't see bar", c do
+    test "additionalProperties can't see bar", x do
       data = %{"bar" => ""}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "additionalProperties can't see bar even when foo2 is present", c do
+    test "additionalProperties can't see bar even when foo2 is present", x do
       data = %{"bar" => "", "foo2" => ""}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

@@ -20,16 +20,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -44,16 +44,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -68,22 +68,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with valid unevaluated items", c do
+    test "with valid unevaluated items", x do
       data = ["foo"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with invalid unevaluated items", c do
+    test "with invalid unevaluated items", x do
       data = ~c"*"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -99,10 +99,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "unevaluatedItems doesn't apply", c do
+    test "unevaluatedItems doesn't apply", x do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -118,16 +118,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = ["foo"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo", "bar"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -144,10 +144,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "unevaluatedItems doesn't apply", c do
+    test "unevaluatedItems doesn't apply", x do
       data = ["foo", 42]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -163,16 +163,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid under items", c do
+    test "valid under items", x do
       data = [5, 6, 7, 8]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid under items", c do
+    test "invalid under items", x do
       data = ["foo", "bar", "baz"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -189,16 +189,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = ["foo", 42]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo", 42, true]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -214,22 +214,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with only (valid) additional items", c do
+    test "with only (valid) additional items", x do
       data = [true, false]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with no additional items", c do
+    test "with no additional items", x do
       data = ["yes", "no"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with invalid additional item", c do
+    test "with invalid additional item", x do
       data = ["yes", false]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -245,16 +245,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no additional items", c do
+    test "with no additional items", x do
       data = ["foo"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with additional items", c do
+    test "with additional items", x do
       data = ["foo", 42, true]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -273,16 +273,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no additional items", c do
+    test "with no additional items", x do
       data = ["foo"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with additional items", c do
+    test "with additional items", x do
       data = ["foo", 42, true]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -302,28 +302,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "when one schema matches and has no unevaluated items", c do
+    test "when one schema matches and has no unevaluated items", x do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "when one schema matches and has unevaluated items", c do
+    test "when one schema matches and has unevaluated items", x do
       data = ["foo", "bar", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "when two schemas match and has no unevaluated items", c do
+    test "when two schemas match and has no unevaluated items", x do
       data = ["foo", "bar", "baz"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "when two schemas match and has unevaluated items", c do
+    test "when two schemas match and has unevaluated items", x do
       data = ["foo", "bar", "baz", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -343,16 +343,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo", "bar", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -369,10 +369,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo", "bar"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -391,28 +391,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "when if matches and it has no unevaluated items", c do
+    test "when if matches and it has no unevaluated items", x do
       data = ["foo", "bar", "then"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "when if matches and it has unevaluated items", c do
+    test "when if matches and it has unevaluated items", x do
       data = ["foo", "bar", "then", "else"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "when if doesn't match and it has no unevaluated items", c do
+    test "when if doesn't match and it has no unevaluated items", x do
       data = ["foo", 42, 42, "else"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "when if doesn't match and it has unevaluated items", c do
+    test "when if doesn't match and it has unevaluated items", x do
       data = ["foo", 42, 42, "else", 42]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -428,16 +428,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -455,16 +455,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo", "bar", "baz"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -482,16 +482,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo", "bar", "baz"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -528,16 +528,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with no unevaluated items", c do
+    test "with no unevaluated items", x do
       data = ["foo", "bar"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with unevaluated items", c do
+    test "with unevaluated items", x do
       data = ["foo", "bar", "baz"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -552,10 +552,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "always fails", c do
+    test "always fails", x do
       data = [1]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -582,16 +582,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "no extra items", c do
+    test "no extra items", x do
       data = %{"foo" => ["test"]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "uncle keyword evaluation is not significant", c do
+    test "uncle keyword evaluation is not significant", x do
       data = %{"foo" => ["test", "test"]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -608,22 +608,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "second item is evaluated by contains", c do
+    test "second item is evaluated by contains", x do
       data = [1, "foo"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "contains fails, second item is not evaluated", c do
+    test "contains fails, second item is not evaluated", x do
       data = [1, 2]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "contains passes, second item is not evaluated", c do
+    test "contains passes, second item is not evaluated", x do
       data = [1, 2, "foo"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -642,16 +642,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "5 not evaluated, passes unevaluatedItems", c do
+    test "5 not evaluated, passes unevaluatedItems", x do
       data = [2, 3, 4, 5, 6]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "7 not evaluated, fails unevaluatedItems", c do
+    test "7 not evaluated, fails unevaluatedItems", x do
       data = [2, 3, 4, 7, 8]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -671,52 +671,52 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "empty array is valid", c do
+    test "empty array is valid", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "only a's are valid", c do
+    test "only a's are valid", x do
       data = ["a", "a"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a's and b's are valid", c do
+    test "a's and b's are valid", x do
       data = ["a", "b", "a", "b", "a"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a's, b's and c's are valid", c do
+    test "a's, b's and c's are valid", x do
       data = ["c", "a", "c", "c", "b", "a"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "only b's are invalid", c do
+    test "only b's are invalid", x do
       data = ["b", "b"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "only c's are invalid", c do
+    test "only c's are invalid", x do
       data = ["c", "c"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "only b's and c's are invalid", c do
+    test "only b's and c's are invalid", x do
       data = ["c", "b", "c", "b", "c"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "only a's and c's are invalid", c do
+    test "only a's and c's are invalid", x do
       data = ["c", "a", "c", "a", "c"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -731,40 +731,40 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "ignores booleans", c do
+    test "ignores booleans", x do
       data = true
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores integers", c do
+    test "ignores integers", x do
       data = 123
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores floats", c do
+    test "ignores floats", x do
       data = 1.0
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores objects", c do
+    test "ignores objects", x do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores strings", c do
+    test "ignores strings", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores null", c do
+    test "ignores null", x do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -779,10 +779,10 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "allows null elements", c do
+    test "allows null elements", x do
       data = [nil]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -798,16 +798,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid in case if is evaluated", c do
+    test "valid in case if is evaluated", x do
       data = ["a"]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid in case if is evaluated", c do
+    test "invalid in case if is evaluated", x do
       data = ["b"]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

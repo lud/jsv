@@ -25,244 +25,244 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Ipv6Test do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "all string formats ignore integers", c do
+    test "all string formats ignore integers", x do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all string formats ignore floats", c do
+    test "all string formats ignore floats", x do
       data = 13.7
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all string formats ignore objects", c do
+    test "all string formats ignore objects", x do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all string formats ignore arrays", c do
+    test "all string formats ignore arrays", x do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all string formats ignore booleans", c do
+    test "all string formats ignore booleans", x do
       data = false
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "all string formats ignore nulls", c do
+    test "all string formats ignore nulls", x do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a valid IPv6 address", c do
+    test "a valid IPv6 address", x do
       data = "::1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an IPv6 address with out-of-range values", c do
+    test "an IPv6 address with out-of-range values", x do
       data = "12345::"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "trailing 4 hex symbols is valid", c do
+    test "trailing 4 hex symbols is valid", x do
       data = "::abef"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "trailing 5 hex symbols is invalid", c do
+    test "trailing 5 hex symbols is invalid", x do
       data = "::abcef"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an IPv6 address with too many components", c do
+    test "an IPv6 address with too many components", x do
       data = "1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an IPv6 address containing illegal characters", c do
+    test "an IPv6 address containing illegal characters", x do
       data = "::laptop"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "no digits is valid", c do
+    test "no digits is valid", x do
       data = "::"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "leading colons is valid", c do
+    test "leading colons is valid", x do
       data = "::42:ff:1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "trailing colons is valid", c do
+    test "trailing colons is valid", x do
       data = "d6::"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "missing leading octet is invalid", c do
+    test "missing leading octet is invalid", x do
       data = ":2:3:4:5:6:7:8"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "missing trailing octet is invalid", c do
+    test "missing trailing octet is invalid", x do
       data = "1:2:3:4:5:6:7:"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "missing leading octet with omitted octets later", c do
+    test "missing leading octet with omitted octets later", x do
       data = ":2:3:4::8"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "single set of double colons in the middle is valid", c do
+    test "single set of double colons in the middle is valid", x do
       data = "1:d6::42"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "two sets of double colons is invalid", c do
+    test "two sets of double colons is invalid", x do
       data = "1::d6::42"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mixed format with the ipv4 section as decimal octets", c do
+    test "mixed format with the ipv4 section as decimal octets", x do
       data = "1::d6:192.168.0.1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mixed format with double colons between the sections", c do
+    test "mixed format with double colons between the sections", x do
       data = "1:2::192.168.0.1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mixed format with ipv4 section with octet out of range", c do
+    test "mixed format with ipv4 section with octet out of range", x do
       data = "1::2:192.168.256.1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mixed format with ipv4 section with a hex octet", c do
+    test "mixed format with ipv4 section with a hex octet", x do
       data = "1::2:192.168.ff.1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "mixed format with leading double colons (ipv4-mapped ipv6 address)", c do
+    test "mixed format with leading double colons (ipv4-mapped ipv6 address)", x do
       data = "::ffff:192.168.0.1"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "triple colons is invalid", c do
+    test "triple colons is invalid", x do
       data = "1:2:3:4:5:::8"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "8 octets", c do
+    test "8 octets", x do
       data = "1:2:3:4:5:6:7:8"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "insufficient octets without double colons", c do
+    test "insufficient octets without double colons", x do
       data = "1:2:3:4:5:6:7"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "no colons is invalid", c do
+    test "no colons is invalid", x do
       data = "1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ipv4 is not ipv6", c do
+    test "ipv4 is not ipv6", x do
       data = "127.0.0.1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ipv4 segment must have 4 octets", c do
+    test "ipv4 segment must have 4 octets", x do
       data = "1:2:3:4:1.2.3"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "leading whitespace is invalid", c do
+    test "leading whitespace is invalid", x do
       data = "  ::1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "trailing whitespace is invalid", c do
+    test "trailing whitespace is invalid", x do
       data = "::1  "
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "netmask is not a part of ipv6 address", c do
+    test "netmask is not a part of ipv6 address", x do
       data = "fe80::/64"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "zone id is not a part of ipv6 address", c do
+    test "zone id is not a part of ipv6 address", x do
       data = "fe80::a%eth1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a long valid ipv6", c do
+    test "a long valid ipv6", x do
       data = "1000:1000:1000:1000:1000:1000:255.255.255.255"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a long invalid ipv6, below length limit, first", c do
+    test "a long invalid ipv6, below length limit, first", x do
       data = "100:100:100:100:100:100:255.255.255.255.255"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a long invalid ipv6, below length limit, second", c do
+    test "a long invalid ipv6, below length limit, second", x do
       data = "100:100:100:100:100:100:100:255.255.255.255"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid non-ASCII '৪' (a Bengali 4)", c do
+    test "invalid non-ASCII '৪' (a Bengali 4)", x do
       data = "1:2:3:4:5:6:7:৪"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid non-ASCII '৪' (a Bengali 4) in the IPv4 portion", c do
+    test "invalid non-ASCII '৪' (a Bengali 4) in the IPv4 portion", x do
       data = "1:2::192.16৪.0.1"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

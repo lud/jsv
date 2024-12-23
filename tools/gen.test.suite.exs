@@ -1,6 +1,5 @@
 defmodule JSV.GenTestSuite do
   alias CliMate.CLI
-  alias JSV.JsonTools
   alias JSV.Test.JsonSchemaSuite
   require EEx
 
@@ -227,10 +226,10 @@ defmodule JSV.GenTestSuite do
           <%= for ttest <- tcase.tests do %>
 
             <%= if not ttest.skip? do %>
-            test <%= inspect(ttest.description) %>, c do
+            test <%= inspect(ttest.description) %>, x do
               data = <%= inspect(ttest.data, limit: :infinity, pretty: true) %>
               expected_valid = <%= inspect(ttest.valid?) %>
-              JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+              JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
             end
             <% end %>
 
@@ -254,7 +253,7 @@ defmodule JSV.GenTestSuite do
     %{options: _options, arguments: %{suite: suite}} = CLI.parse_or_halt!(argv, @command)
 
     do_run(suite, :binary)
-    do_run(suite, :atom, 1)
+    do_run(suite, :atom)
     Mix.Task.run("format")
   end
 
@@ -505,17 +504,6 @@ defmodule JSV.GenTestSuite do
     end
   end
 
-  @key_order ~w(
-    $schema
-    $id
-    comment
-    $defs
-    definitions
-    type
-    properties
-    required
-  ) |> Enum.with_index() |> Map.new()
-
   defp render_ordered_schema(schema, key_format) when is_map(schema) do
     schema =
       case key_format do
@@ -523,7 +511,7 @@ defmodule JSV.GenTestSuite do
         :atom -> schema |> Jason.encode!() |> Jason.decode!(keys: :atoms)
       end
 
-    ordered_map = JSV.OrderedMap.from_map(schema)
+    ordered_map = JSV.SchemaDumpWrapper.from_map(schema, key_format)
     inspect(ordered_map, pretty: true)
   end
 
@@ -532,36 +520,37 @@ defmodule JSV.GenTestSuite do
   end
 end
 
-defmodule JSV.OrderedMap do
+defmodule JSV.SchemaDumpWrapper do
   @key_order ["$schema", "$id", "comment", "$defs", "definitions", "type", "properties", "required"]
              |> Enum.with_index()
              |> Map.new()
 
-  defstruct ordlist: []
+  defstruct wrapped_map: [], key_format: nil
 
-  def from_map(map) do
-    ordlist =
-      map
-      |> Map.to_list()
-      |> Enum.sort_by(fn {k, _} -> order_of(k) end)
-      |> Enum.map(fn {k, v} -> {k, cast_sub(v)} end)
-
-    %__MODULE__{ordlist: ordlist}
+  def from_map(map, key_format) do
+    %__MODULE__{wrapped_map: map, key_format: key_format}
   end
 
-  defp cast_sub(map) when is_map(map) do
-    from_map(map)
+  def to_ordlist(ordmap) do
+    ordmap.wrapped_map
+    |> Map.to_list()
+    |> Enum.sort_by(fn {k, _} -> order_of(k) end)
+    |> Enum.map(fn {k, v} -> {k, cast_sub(v, ordmap.key_format)} end)
   end
 
-  defp cast_sub(list) when is_list(list) do
-    Enum.map(list, &cast_sub(&1))
+  defp cast_sub(map, key_format) when is_map(map) do
+    from_map(map, key_format)
   end
 
-  defp cast_sub(tuple) when is_tuple(tuple) do
+  defp cast_sub(list, key_format) when is_list(list) do
+    Enum.map(list, &cast_sub(&1, key_format))
+  end
+
+  defp cast_sub(tuple, _) when is_tuple(tuple) do
     raise "we should not have tuples in JSON data"
   end
 
-  defp cast_sub(sub) do
+  defp cast_sub(sub, _) do
     sub
   end
 
@@ -570,11 +559,11 @@ defmodule JSV.OrderedMap do
   end
 end
 
-defimpl Inspect, for: JSV.OrderedMap do
+defimpl Inspect, for: JSV.SchemaDumpWrapper do
   import Inspect.Algebra
 
   def inspect(omap, opts) do
-    list = omap.ordlist
+    list = JSV.SchemaDumpWrapper.to_ordlist(omap)
 
     fun =
       if Inspect.List.keyword?(list) do
@@ -584,7 +573,18 @@ defimpl Inspect, for: JSV.OrderedMap do
         &to_assoc(&1, &2, sep)
       end
 
-    map_container_doc(omap.ordlist, "", opts, fun)
+    known_keys = Map.keys(Map.from_struct(JSV.Schema.__struct__()))
+
+    struct_name =
+      with :atom <- omap.key_format,
+           false <- list |> Enum.map(&elem(&1, 0)) |> Enum.any?(&(&1 not in known_keys)) do
+        "JSV.Schema"
+      else
+        _ ->
+          ""
+      end
+
+    map_container_doc(list, struct_name, opts, fun)
   end
 
   defp to_assoc({key, value}, opts, sep) do

@@ -20,16 +20,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "remote ref valid", c do
+    test "remote ref valid", x do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "remote ref invalid", c do
+    test "remote ref invalid", x do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -44,16 +44,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "remote fragment valid", c do
+    test "remote fragment valid", x do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "remote fragment invalid", c do
+    test "remote fragment invalid", x do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -68,16 +68,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "remote anchor valid", c do
+    test "remote anchor valid", x do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "remote anchor invalid", c do
+    test "remote anchor invalid", x do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -92,16 +92,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "ref within ref valid", c do
+    test "ref within ref valid", x do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ref within ref invalid", c do
+    test "ref within ref invalid", x do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -120,16 +120,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "base URI change ref valid", c do
+    test "base URI change ref valid", x do
       data = [[1]]
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "base URI change ref invalid", c do
+    test "base URI change ref invalid", x do
       data = [["a"]]
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -153,16 +153,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is valid", c do
+    test "number is valid", x do
       data = %{"list" => [1]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "string is invalid", c do
+    test "string is invalid", x do
       data = %{"list" => ["a"]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -192,16 +192,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is valid", c do
+    test "number is valid", x do
       data = %{"list" => [1]}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "string is invalid", c do
+    test "string is invalid", x do
       data = %{"list" => ["a"]}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -218,22 +218,22 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "string is valid", c do
+    test "string is valid", x do
       data = %{"name" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "null is valid", c do
+    test "null is valid", x do
       data = %{"name" => nil}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "object is invalid", c do
+    test "object is invalid", x do
       data = %{"name" => %{"name" => nil}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -249,16 +249,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "invalid", c do
+    test "invalid", x do
       data = %{"bar" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "valid", c do
+    test "valid", x do
       data = %{"bar" => "a"}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -273,16 +273,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "integer is valid", c do
+    test "integer is valid", x do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "string is invalid", c do
+    test "string is invalid", x do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -298,16 +298,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is invalid", c do
+    test "number is invalid", x do
       data = %{"name" => %{"foo" => 1}}
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "string is valid", c do
+    test "string is valid", x do
       data = %{"name" => %{"foo" => "a"}}
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -322,16 +322,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is invalid", c do
+    test "number is invalid", x do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "string is valid", c do
+    test "string is valid", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -346,16 +346,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is invalid", c do
+    test "number is invalid", x do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "string is valid", c do
+    test "string is valid", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -370,16 +370,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is invalid", c do
+    test "number is invalid", x do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "string is valid", c do
+    test "string is valid", x do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 
@@ -394,16 +394,16 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is valid", c do
+    test "number is valid", x do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "non-number is invalid", c do
+    test "non-number is invalid", x do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end

@@ -1,5 +1,10 @@
 defmodule JSV.Schema do
   defstruct [
+    # TODO document const not supported because it can legally contain null and
+    # would be removed when reducing the schema to binary form.
+    #
+    # :const,
+
     :"$anchor",
     :"$comment",
     :"$defs",
@@ -12,7 +17,6 @@ defmodule JSV.Schema do
     :additionalProperties,
     :allOf,
     :anyOf,
-    :const,
     :contains,
     :contentEncoding,
     :contentMediaType,
@@ -61,4 +65,6 @@ defmodule JSV.Schema do
   ]
 end
 
-IO.warn("try by adding the struct in atom tests")
+IO.warn("TODO add the struct in atom tests")
+IO.warn("TODO test types as booleans")
+IO.warn("TODO test required properties as atoms")

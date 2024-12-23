@@ -20,28 +20,28 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.ExclusiveMinimumTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "above the exclusiveMinimum is valid", c do
+    test "above the exclusiveMinimum is valid", x do
       data = 1.2
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "boundary point is invalid", c do
+    test "boundary point is invalid", x do
       data = 1.1
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "below the exclusiveMinimum is invalid", c do
+    test "below the exclusiveMinimum is invalid", x do
       data = 0.6
       expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "ignores non-numbers", c do
+    test "ignores non-numbers", x do
       data = "x"
       expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid, print_errors: false)
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
 end
