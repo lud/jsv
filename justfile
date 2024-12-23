@@ -5,6 +5,7 @@ gen-test-suite:
   # mix format --check-formatted
   # git status --porcelain | rg "test/generated" --count && mix test || true
 
+#
 
 test:
   mix test
@@ -16,7 +17,7 @@ lint:
 _mix_format:
   mix format
 
-_git_status:
+_git_status
   git status
 
 check: _mix_format test lint _git_status
