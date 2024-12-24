@@ -1,4 +1,5 @@
 defmodule JSV.FormatValidationTest do
+  alias JSV.ValidationError
   alias JSV
   use ExUnit.Case, async: true
 
@@ -42,7 +43,7 @@ defmodule JSV.FormatValidationTest do
       # Note that passing `true` is the same as passing a list with a single
       # item, the default formats module
       assert {:ok, schema} = build_schema(ctx.json_schema, formats: true)
-      assert {:error, {:schema_validation, [_]}} = JSV.validate(@bad_ipv4, schema)
+      assert {:error, %ValidationError{errors: [_]}} = JSV.validate(@bad_ipv4, schema)
     end
   end
 
@@ -60,7 +61,7 @@ defmodule JSV.FormatValidationTest do
 
     test "default validation", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema)
-      assert {:error, {:schema_validation, [_]}} = JSV.validate(@bad_ipv4, schema)
+      assert {:error, %ValidationError{errors: [_]}} = JSV.validate(@bad_ipv4, schema)
     end
 
     test "validation can be disabled in build", ctx do
@@ -143,7 +144,7 @@ defmodule JSV.FormatValidationTest do
             Expected value #{inspect(value)} to not be valid against format #{inspect(format)}.
             """)
 
-          {:error, {:schema_validation, _}} ->
+          {:error, %ValidationError{}} ->
             :ok
         end
       end)

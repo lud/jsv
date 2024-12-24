@@ -1,4 +1,5 @@
 defmodule JSV.Validator do
+  alias JSV.ValidationError
   alias JSV
   alias JSV.BooleanSchema
   alias JSV.Key
@@ -314,7 +315,11 @@ defmodule JSV.Validator do
     Map.keys(current)
   end
 
-  def flat_errors(%__MODULE__{errors: errors}) do
-    :lists.flatten(errors)
+  def flat_errors(vctx) do
+    :lists.flatten(vctx.errors)
+  end
+
+  def to_error(vctx) do
+    ValidationError.of(flat_errors(vctx))
   end
 end

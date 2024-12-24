@@ -10,7 +10,6 @@ defmodule JSV.ErrorFormatter do
   Errors are grouped by similar instance location (the bit of data that was
   invalidated) and schema location (the part of the schema that invalidated it).
   """
-
   def format_errors(errors) do
     errors
     |> Enum.group_by(fn %Error{data_path: dp, eval_path: ep} -> {dp, ep} end)

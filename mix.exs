@@ -26,12 +26,12 @@ defmodule JSV.MixProject do
     ]
   end
 
-  defp elixirc_paths(:prod) do
-    ["lib"]
+  defp elixirc_paths(:test) do
+    ["lib", "test/support"]
   end
 
   defp elixirc_paths(_) do
-    ["lib", "test/support"]
+    ["lib"]
   end
 
   defp json_schema_test_suite do

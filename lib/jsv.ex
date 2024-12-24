@@ -1,4 +1,5 @@
 defmodule JSV do
+  alias JSV.ValidationError
   alias JSV.AtomTools
   alias JSV.BooleanSchema
   alias JSV.Builder
@@ -71,22 +72,23 @@ defmodule JSV do
 
   def validate(data, %JSV.Root{} = schema) do
     case validation_entrypoint(schema, data) do
-      {:ok, casted_data, _} ->
-        {:ok, casted_data}
-
-      {:error, %Validator{} = validator} ->
-        {:error, {:schema_validation, Validator.flat_errors(validator)}}
+      {:ok, casted_data, _} -> {:ok, casted_data}
+      {:error, %Validator{} = validator} -> {:error, Validator.to_error(validator)}
     end
   end
 
-  def format_errors(errors) when is_list(errors) do
-    JSV.ErrorFormatter.format_errors(errors)
+  def format_error(%ValidationError{} = error) do
+    ValidationError.format(error)
+  end
+
+  def format_error(errors) when is_list(errors) do
+    ValidationError.format(ValidationError.of(errors))
   end
 
   # TODO provide a way to return ordered json for errors, or just provide a
   # preprocess function.
-  def format_errors(%Validator{} = validator) do
-    format_errors(Validator.flat_errors(validator))
+  def format_error(%Validator{} = validator) do
+    format_error(Validator.to_error(validator))
   end
 
   @doc false

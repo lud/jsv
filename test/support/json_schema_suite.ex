@@ -1,4 +1,5 @@
 defmodule JSV.Test.JsonSchemaSuite do
+  alias JSV.ValidationError
   alias JSV.Validator
   import ExUnit.Assertions
   require Logger
@@ -50,10 +51,14 @@ defmodule JSV.Test.JsonSchemaSuite do
   end
 
   defp test_error_format(validator, opts) do
-    formatted = JSV.format_errors(validator)
-    assert is_list(formatted)
+    error = Validator.to_error(validator)
+    assert %ValidationError{} = error
+    formatted = JSV.format_error(error)
+    assert ValidationError.message(error) =~ "json schema"
+    IO.puts(ValidationError.message(error))
+    assert is_list(formatted.errors)
 
-    Enum.each(formatted, fn err ->
+    Enum.each(formatted.errors, fn err ->
       _ = assert false == err.valid
       _ = assert is_list(err.errors)
       _ = assert is_binary(err.evaluationPath)
