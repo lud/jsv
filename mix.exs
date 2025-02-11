@@ -57,6 +57,7 @@ defmodule JSV.MixProject do
 
       # Test
       {:excoveralls, "~> 0.18", only: :test},
+      {:briefly, "~> 0.5.1", only: :test},
       json_schema_test_suite()
     ]
   end
