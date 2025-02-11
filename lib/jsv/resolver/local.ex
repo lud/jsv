@@ -6,8 +6,15 @@ defmodule JSV.Resolver.Local do
         :error -> raise ArgumentError, "the :source option is required when using #{inspect(__MODULE__)}"
       end
 
+    warn? =
+      case Keyword.fetch(opts, :warn) do
+        {:ok, q} -> !!q
+        :error -> true
+      end
+
     quote bind_quoted: binding() do
-      sources = JSV.Resolver.Local.resolve_sources(source_opt)
+      {:current_stacktrace, [_ | warn_stack]} = Process.info(self(), :current_stacktrace)
+      sources = JSV.Resolver.Local.resolve_sources(source_opt, %{stacktrace: warn_stack, warn?: warn?})
 
       @behaviour JSV.Resolver
 
@@ -26,13 +33,13 @@ defmodule JSV.Resolver.Local do
     end
   end
 
-  def resolve_sources(sources) do
+  def resolve_sources(sources, cfg) do
     sources
     |> List.wrap()
     |> Stream.map(&validate_source/1)
-    |> Stream.flat_map(&expand_source/1)
-    |> Stream.flat_map(&read_source/1)
-    |> Stream.flat_map(&decode_source/1)
+    |> Stream.flat_map(&expand_source(&1, cfg))
+    |> Stream.flat_map(&read_source(&1, cfg))
+    |> Stream.flat_map(&decode_source(&1, cfg))
   end
 
   defp validate_source(dir_or_file) when is_binary(dir_or_file) do
@@ -43,7 +50,7 @@ defmodule JSV.Resolver.Local do
     end
   end
 
-  defp expand_source(dir_or_file) do
+  defp expand_source(dir_or_file, _) do
     cond do
       File.regular?(dir_or_file) ->
         case Path.extname(dir_or_file) |> dbg() do
@@ -56,32 +63,32 @@ defmodule JSV.Resolver.Local do
     end
   end
 
-  defp read_source(path) do
+  defp read_source(path, cfg) do
     case File.read(path) do
       {:ok, contents} ->
-        [contents]
+        [{path, contents}]
 
       {:error, reason} ->
-        IO.warn("could not read file: #{path} got: #{inspect(reason)}")
+        cfg.warn? && IO.warn("could not read file: #{path} got: #{inspect(reason)}", cfg.stacktrace)
         []
     end
   end
 
-  defp decode_source(json) do
+  defp decode_source({path, json}, cfg) do
     case JSV.Codec.decode(json) do
       {:ok, %{"$id" => id} = decoded} ->
         [{id, decoded}]
 
       {:ok, decoded} when is_map(decoded) ->
-        IO.warn("json schema does not have an $id property: #{inspect(json)}")
+        cfg.warn? && IO.warn("json schema at #{path} does not have $id", cfg.stacktrace)
         []
 
       {:ok, _} ->
-        IO.warn("json schema is not an object: #{inspect(json)}")
+        cfg.warn? && IO.warn("json schema at #{path} is not an object", cfg.stacktrace)
         []
 
       {:error, reason} ->
-        IO.warn("could not decode json: #{inspect(json)} got: #{inspect(reason)}")
+        cfg.warn? && IO.warn("could not decode json schema at path #{path}, got: #{inspect(reason)}", cfg.stacktrace)
         []
     end
   end

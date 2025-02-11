@@ -1,6 +1,5 @@
 defmodule JSV.Resolver.LocalTest do
   alias JSV.Codec
-  alias JSV.Resolver.Local
   use ExUnit.Case, async: true
 
   defp generate_dir(filemap) do
@@ -86,11 +85,32 @@ defmodule JSV.Resolver.LocalTest do
     end
   end
 
+  describe "error handling" do
+    test "various error cases" do
+      valid_schema = %{"$id" => "test://valid-schema/", "type" => "object"}
+
+      filemap = %{
+        "valid.json" => Codec.format!(valid_schema),
+        "invalid.json" => "invalid json content",
+        "array.json" => Codec.format!(["array", "of", "strings"]),
+        "boolean.json" => Codec.format!(true),
+        "no_id.json" => Codec.format!(%{"type" => "object"})
+      }
+
+      dir = generate_dir(filemap)
+
+      defmodule WithWarnings do
+        use JSV.Resolver.Local, source: dir, warn: false
+      end
+
+      assert {:ok, valid_schema} == WithWarnings.resolve("test://valid-schema/", [])
+    end
+  end
+
   IO.warn("todo test unexisting sources")
   IO.warn("todo test source as list of json files")
   IO.warn("todo test source as single json file")
   IO.warn("todo test source as mixed files and dirs")
-  IO.warn("todo test source with invalid JSON")
-  IO.warn("todo test source with missing $id")
   IO.warn("todo test recompilation")
+  IO.warn("todo test resolves using internal")
 end
