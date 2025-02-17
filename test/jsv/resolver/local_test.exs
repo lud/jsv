@@ -1,5 +1,6 @@
 defmodule JSV.Resolver.LocalTest do
   alias JSV.Codec
+  import ExUnit.CaptureIO
   use ExUnit.Case, async: true
 
   defp generate_dir(filemap) do
@@ -16,6 +17,13 @@ defmodule JSV.Resolver.LocalTest do
     end)
 
     dir
+  end
+
+  defp generate_file(content) do
+    # path = Briefly.create!(extname: ".json")
+    path = "/tmp/some-file.json"
+    File.write!(path, content)
+    path
   end
 
   defp flatten_filemap(filemap, dir, acc) when is_map(filemap) do
@@ -94,23 +102,96 @@ defmodule JSV.Resolver.LocalTest do
         "invalid.json" => "invalid json content",
         "array.json" => Codec.format!(["array", "of", "strings"]),
         "boolean.json" => Codec.format!(true),
-        "no_id.json" => Codec.format!(%{"type" => "object"})
+        "no_id.json" => Codec.format!(%{"type" => "object"}),
+        "empty.json" => ""
       }
 
       dir = generate_dir(filemap)
 
-      defmodule WithWarnings do
-        use JSV.Resolver.Local, source: dir, warn: false
-      end
+      out =
+        capture_io(:stderr, fn ->
+          defmodule WithWarnings do
+            use JSV.Resolver.Local, source: [dir, "/tmp/some/non/existing"], warn: true
+          end
+        end)
+
+      out = strip_ansi(out)
+
+      assert out =~ "source not found: /tmp/some/non/existing"
+      assert out =~ "array.json is not an object"
+      assert out =~ "boolean.json is not an object"
+      assert out =~ "no_id.json does not have $id"
+      assert out =~ ~r/could not decode json schema.*invalid\.json/
+      assert out =~ ~r/could not decode json schema.*empty\.json/
+
+      alias __MODULE__.WithWarnings
 
       assert {:ok, valid_schema} == WithWarnings.resolve("test://valid-schema/", [])
     end
   end
 
-  IO.warn("todo test unexisting sources")
-  IO.warn("todo test source as list of json files")
-  IO.warn("todo test source as single json file")
-  IO.warn("todo test source as mixed files and dirs")
-  IO.warn("todo test recompilation")
+  @ansi_regex ~r/(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]/
+
+  defp strip_ansi(ansi_string) when is_binary(ansi_string) do
+    Regex.replace(@ansi_regex, ansi_string, "")
+  end
+
+  describe "recompilation" do
+    test "recompiles on file change" do
+      file = generate_file(Codec.format!(%{"$id" => "test://schema-1/", "type" => "object"}))
+
+      defmodule FileChanged do
+        use JSV.Resolver.Local, source: file
+      end
+
+      assert {:ok, _} = FileChanged.resolve("test://schema-1/", [])
+
+      # When the file has not changed, no recompilation should happen
+      refute FileChanged.__mix_recompile__?()
+
+      # If the source file changes, recompilation should happen
+      #
+      # Change check is based on date and size. Test is executed instantly so we will make the size vary
+      File.write!(file, Codec.format!(%{"$id" => "test://schema-1/", "type" => "string", "enum" => ["stuff"]}))
+      assert FileChanged.__mix_recompile__?()
+    end
+
+    test "recompiles on file deletion" do
+      file = generate_file(Codec.format!(%{"$id" => "test://schema-1/", "type" => "object"}))
+
+      defmodule FileDeleted do
+        use JSV.Resolver.Local, source: file
+      end
+
+      assert {:ok, _} = FileDeleted.resolve("test://schema-1/", [])
+
+      # When the file has not changed, no recompilation should happen
+      refute FileDeleted.__mix_recompile__?()
+
+      # If the source file is deleted, recompilation should happen
+      File.rm!(file)
+      assert FileDeleted.__mix_recompile__?()
+    end
+
+    test "recompiles on file addition" do
+      schema_1 = %{"$id" => "test://schema-1/", "type" => "object"}
+      dir = generate_dir(%{"schema-1.json" => Codec.format!(schema_1)})
+
+      defmodule FileAdded do
+        use JSV.Resolver.Local, source: dir
+      end
+
+      assert {:ok, schema_1} == FileAdded.resolve("test://schema-1/", [])
+      refute FileAdded.__mix_recompile__?()
+
+      # Add a new schema file to the directory
+      schema_2 = %{"$id" => "test://schema-2/", "type" => "string"}
+      File.write!(Path.join(dir, "schema-2.json"), Codec.format!(schema_2))
+
+      assert FileAdded.__mix_recompile__?()
+    end
+  end
+
   IO.warn("todo test resolves using internal")
+  IO.warn("todo duplicate ids")
 end

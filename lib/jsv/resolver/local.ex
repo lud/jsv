@@ -12,16 +12,22 @@ defmodule JSV.Resolver.Local do
         :error -> true
       end
 
-    quote bind_quoted: binding() do
+    quote bind_quoted: binding(), location: :keep do
       {:current_stacktrace, [_ | warn_stack]} = Process.info(self(), :current_stacktrace)
-      sources = JSV.Resolver.Local.resolve_sources(source_opt, %{stacktrace: warn_stack, warn?: warn?})
+
+      cfg = %{stacktrace: warn_stack, warn?: warn?}
+      expanded_sources = JSV.Resolver.Local.expand_sources(source_opt, cfg)
+      schemas_sources = JSV.Resolver.Local.read_sources(expanded_sources, cfg)
+
+      @__jsv_resolverinitial_source_opt source_opt
+      @__jsv_resolver_mtime_index JSV.Resolver.Local.sources_hashes(expanded_sources)
 
       @behaviour JSV.Resolver
 
       @impl true
       def resolve(id, opts)
 
-      Enum.each(sources, fn {id, raw_schema} ->
+      Enum.each(schemas_sources, fn {id, raw_schema} ->
         def resolve(unquote(id), _opts) do
           {:ok, unquote(Macro.escape(raw_schema))}
         end
@@ -30,30 +36,66 @@ defmodule JSV.Resolver.Local do
       def resolve(id, _opts) do
         {:error, {:unknown_id, id}}
       end
+
+      ids_list = Enum.map(schemas_sources, fn {id, _} -> id end)
+
+      def resolvable_ids do
+        unquote(ids_list)
+      end
+
+      def __mix_recompile__? do
+        cfg = %{stacktrace: [], warn?: false}
+
+        current_index =
+          @__jsv_resolverinitial_source_opt
+          |> JSV.Resolver.Local.expand_sources(cfg)
+          |> JSV.Resolver.Local.sources_hashes()
+
+        current_index != @__jsv_resolver_mtime_index
+      end
     end
   end
 
-  def resolve_sources(sources, cfg) do
+  @doc false
+  @spec expand_sources(binary | [binary], map) :: [binary]
+  def expand_sources(sources, cfg) do
     sources
     |> List.wrap()
-    |> Stream.map(&validate_source/1)
-    |> Stream.flat_map(&expand_source(&1, cfg))
-    |> Stream.flat_map(&read_source(&1, cfg))
-    |> Stream.flat_map(&decode_source(&1, cfg))
+    |> Enum.filter(&valid_source?(&1, cfg))
+    |> Enum.flat_map(&expand_source(&1, cfg))
   end
 
-  defp validate_source(dir_or_file) when is_binary(dir_or_file) do
+  @doc false
+  @spec read_sources([binary], map) :: %{binary() => binary()}
+  def read_sources(expanded_sources, cfg) do
+    expanded_sources
+    |> Enum.flat_map(&read_source(&1, cfg))
+    |> Enum.flat_map(&decode_source(&1, cfg))
+  end
+
+  @doc false
+  @spec sources_hashes([binary]) :: %{binary() => {integer(), integer()}}
+  def sources_hashes(expanded_sources) do
+    Map.new(expanded_sources, fn path ->
+      stat = File.stat!(path, time: :posix)
+      time = max(stat.mtime, stat.ctime)
+      {path, {time, stat.size}}
+    end)
+  end
+
+  defp valid_source?(dir_or_file, cfg) when is_binary(dir_or_file) do
     if File.exists?(dir_or_file) do
-      dir_or_file
+      true
     else
-      raise ArgumentError, "source does not exist: #{dir_or_file}"
+      cfg.warn? && IO.warn("source not found: #{dir_or_file}", cfg.stacktrace)
+      false
     end
   end
 
   defp expand_source(dir_or_file, _) do
     cond do
       File.regular?(dir_or_file) ->
-        case Path.extname(dir_or_file) |> dbg() do
+        case Path.extname(dir_or_file) do
           ".json" -> [dir_or_file]
           _ -> []
         end
