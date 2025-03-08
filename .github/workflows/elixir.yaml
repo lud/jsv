@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         elixir: ["1.18.3","1.17.3"]
-        otp: ["27.1.2","26.2.5.5"]
+        otp: ["27.3","26.2.5.9"]
         exclude: []
 
 
@@ -40,7 +40,6 @@ jobs:
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
-
 
       - name: Dependencies build cache
         uses: actions/cache@v4
