@@ -62,8 +62,10 @@ defmodule JSV.CodecTest do
     end
 
     test "with Native" do
-      assert_raise RuntimeError, "ordered JSON encoding requires Jason", fn ->
-        call_sort_encoder(JSV.Codec.NativeCodec)
+      if Code.ensure_loaded?(JSON) do
+        assert_raise RuntimeError, "ordered JSON encoding requires Jason", fn ->
+          call_sort_encoder(JSV.Codec.NativeCodec)
+        end
       end
     end
   end
