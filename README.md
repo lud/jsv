@@ -456,18 +456,13 @@ JSV supports all keywords of the 2020-12 specification except:
   largely based on JavaScript primitives). For most use cases, the differences
   are negligible.
 * The `"integer"` type will transform floats into integer when the fractional
-  part is zero (such as `123.0`). Support for floating-point numbers with large
-  integer parts is using native Elixir semantics and may return incorrect
-  results:
+  part is zero (such as `123.0`). Elixir implementation for floating-point
+  numbers with large integer parts may return incorrect results. Example:
 
       > trunc(123456789123456789123456789.0)
-      # returns:    123456789123456791337762816
-      #                             |
-      #                             | Difference starts here
-
-  This is because `123456789123456789123456789.0` is decoded as
-  `1.2345678912345679e26` from the shell as well as by the `JSON` module. This
-  value should have `25` zeroes when truncated but that will not be the case.
+      # ==>   123456789123456791337762816
+      #                       |
+      #                       | Difference starts here
 
   When dealing with such data it may be better to discard the casted data, or to
   work with strings instead of floats.
