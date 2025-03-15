@@ -500,4 +500,59 @@ defmodule JSV.StructSchemaTest do
                root.validators["jsv:module:#{Atom.to_string(RecursiveSelfWithCustomId)}"]
     end
   end
+
+  describe "optional schemas" do
+    test "schema can be given in oneOf" do
+      schema = %{oneOf: [%{type: :null}, BasicDefine]}
+      root = JSV.build!(schema)
+      assert {:ok, nil} == JSV.validate(nil, root)
+
+      assert {:ok, %BasicDefine{name: "Alice", age: 456}} ==
+               JSV.validate(%{"name" => "Alice", "age" => 456}, root)
+    end
+  end
+
+  describe "deserializing into another module" do
+    defmodule OriginalStruct do
+      defstruct some_integer: 100, some_bool: true, some_string: "hello"
+    end
+
+    defmodule DenormToStruct do
+      JSV.defschema_for(OriginalStruct, %{
+        type: :object,
+        properties: %{
+          # Orginal default is 100, but we override it
+          some_integer: %{type: :integer, default: 1},
+          # Default is :true
+          some_bool: %{type: :boolean}
+          # we do not declare :some_string
+        }
+      })
+    end
+
+    test "can deserialize to an existing struct" do
+      assert {:ok, root} = JSV.build(DenormToStruct)
+
+      # When deserializing, the declared default apply. So we will have
+      # some_integer:1 by default.
+      #
+      # :some_bool does not declare a default, so it should use the default from
+      # the original struct and not `nil`.
+      #
+      # Fields not declared like :some_string should have their original defaults
+      # too.
+
+      assert {:ok, %OriginalStruct{some_integer: 1, some_bool: true, some_string: "hello"}} =
+               JSV.validate(%{}, root)
+
+      # We can define the values
+
+      assert {:ok, %OriginalStruct{some_integer: 1234, some_bool: false, some_string: "hello"}} =
+               JSV.validate(%{"some_integer" => 1234, "some_bool" => false}, root)
+
+      # We cannot pass extra keys that are defined in the struct but not in the schema
+      assert {:ok, %OriginalStruct{some_string: "hello"}} =
+               JSV.validate(%{"some_string" => "ignored"}, root)
+    end
+  end
 end

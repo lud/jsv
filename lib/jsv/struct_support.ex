@@ -30,15 +30,15 @@ defmodule JSV.StructSupport do
     t =
       case schema do
         %{"type" => t} -> t
-        %Schema{type: nil} -> raise ArgumentError, errmsg("must define type")
+        %Schema{type: nil} -> raise ArgumentError, errmsg("must define the :object type")
         %{type: t} -> t
-        _ -> raise ArgumentError, errmsg("must define type")
+        _ -> raise ArgumentError, errmsg("must define the :object type")
       end
 
     case t do
       :object -> :ok
       "object" -> :ok
-      _ -> raise ArgumentError, errmsg("type must be object")
+      other -> raise ArgumentError, errmsg("must define the :object type, got: #{inspect(other)}")
     end
   end
 
@@ -97,27 +97,78 @@ defmodule JSV.StructSupport do
   list is sorted by keys.
 
   The schema must be valid against `validate!1/`.
+
+  This function accepts a second argument, which must be a module that
+  implements a struct (with `defstruct/1`). When given, the function will
+  validate that all schema keys exist in the given struct.
   """
-  @spec keycast_pairs(JSV.raw_schema()) :: [{binary, atom}]
-  def keycast_pairs(schema) do
+  @spec keycast_pairs(JSV.raw_schema(), target :: nil | module) :: [{binary, atom}]
+
+  def keycast_pairs(schema, target \\ nil)
+
+  def keycast_pairs(schema, nil) do
     schema
     |> props!()
     |> Enum.map(fn {k, _} when is_atom(k) -> {Atom.to_string(k), k} end)
-    |> Enum.sort_by(fn {k, _} -> k end)
+    |> Enum.sort()
+  end
+
+  def keycast_pairs(schema, target) do
+    pairs = keycast_pairs(schema, nil)
+
+    struct_keys = struct_keys(target)
+
+    extra_keys =
+      Enum.flat_map(pairs, fn {_, k} ->
+        case k in struct_keys do
+          true -> []
+          false -> [k]
+        end
+      end)
+
+    case extra_keys do
+      [] ->
+        pairs
+
+      _ ->
+        raise ArgumentError,
+              "struct #{inspect(target)} does not define keys given in defschema_for/1 properties: #{inspect(extra_keys)}"
+    end
+  end
+
+  defp struct_keys(module) do
+    fields =
+      try do
+        module.__info__(:struct)
+      rescue
+        _ -> reraise ArgumentError, "module #{inspect(module)} does not define a struct", __STACKTRACE__
+      end
+
+    Enum.map(fields, & &1.field)
   end
 
   @doc """
-  Returns a keyword list of default values for the given schema. The list is
-  sorted by keys.
+  Returns a tuple where the first element is a list of schema `:properties` keys
+  that do not have a `:default` value, and the second element is a list of
+  `{key, default_value}` tuples. sorted by keys.
+
+  Both lists are sorted by key.
 
   The schema must be valid against `validate!1/`.
   """
-  @spec data_pairs(JSV.raw_schema()) :: keyword()
-  def data_pairs(schema) do
-    schema
-    |> props!()
-    |> Enum.map(fn {k, subschema} when is_atom(k) -> {k, default_or_nil(subschema)} end)
-    |> Enum.sort_by(fn {k, _} -> k end)
+  @spec data_pairs_partition(JSV.raw_schema()) :: {[atom], keyword()}
+  def data_pairs_partition(schema) do
+    {no_defaults, with_defaults} =
+      schema
+      |> props!()
+      |> Enum.reduce({[], []}, fn {k, subschema}, {no_defaults, with_defaults} when is_atom(k) ->
+        case fetch_default(subschema) do
+          {:ok, default} -> {no_defaults, [{k, default} | with_defaults]}
+          :error -> {[k | no_defaults], with_defaults}
+        end
+      end)
+
+    {Enum.sort(no_defaults), Enum.sort(with_defaults)}
   end
 
   @doc """
@@ -139,14 +190,6 @@ defmodule JSV.StructSupport do
     list
   end
 
-  defp default_or_nil(schema) do
-    case schema do
-      %{default: default} -> default
-      %{"default" => default} -> default
-      _ -> nil
-    end
-  end
-
   defp props!(schema) do
     case schema do
       %{properties: properties} -> properties
@@ -154,7 +197,15 @@ defmodule JSV.StructSupport do
     end
   end
 
+  defp fetch_default(schema) do
+    case schema do
+      %{default: default} -> {:ok, default}
+      %{"default" => default} -> {:ok, default}
+      _ -> :error
+    end
+  end
+
   defp errmsg(msg) do
-    "defschema schema " <> msg
+    "schema given to defschema/1 or defschema_for/2 " <> msg
   end
 end

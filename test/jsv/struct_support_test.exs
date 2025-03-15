@@ -83,7 +83,7 @@ defmodule JSV.StructSupportTest do
       # Special case. Here we want the error to be "must define type" and not that
       # the type must be "object". With a struct, the type is nil.
 
-      assert_raise ArgumentError, ~r/must define type/, fn ->
+      assert_raise ArgumentError, ~r/must define the :object type/, fn ->
         StructSupport.validate!(%Schema{properties: %{}})
       end
     end
@@ -120,7 +120,12 @@ defmodule JSV.StructSupportTest do
     end
   end
 
-  describe "keywmaps" do
+  describe "key pairs" do
+    defmodule TargetStruct do
+      @enforce_keys [:a]
+      defstruct [:b, :a]
+    end
+
     test "empty properties" do
       assert [] == StructSupport.keycast_pairs(%{"properties" => %{}})
       assert [] == StructSupport.keycast_pairs(%{:properties => %{}})
@@ -133,39 +138,56 @@ defmodule JSV.StructSupportTest do
       schema = %{"properties" => %{a: %{type: :string}, b: %{type: :string}}}
       assert [{"a", :a}, {"b", :b}] == StructSupport.keycast_pairs(schema)
     end
+
+    test "from a struct" do
+      assert [{"a", :a}, {"b", :b}] ==
+               StructSupport.keycast_pairs(%{properties: %{a: %{type: :string}, b: %{type: :string}}}, TargetStruct)
+
+      assert [{"a", :a}] ==
+               StructSupport.keycast_pairs(%{properties: %{a: %{type: :string}}}, TargetStruct)
+
+      assert [{"b", :b}] ==
+               StructSupport.keycast_pairs(%{properties: %{b: %{type: :string}}}, TargetStruct)
+
+      # When giving a struct all the defined keys must be defined in the struct
+      # TargetStruct requires :a, we are only giving :b
+      assert_raise ArgumentError, ~r/does not define.*:BAD_KEY, :UNKNOWN_KEY/, fn ->
+        StructSupport.keycast_pairs(%{properties: %{UNKNOWN_KEY: %{}, BAD_KEY: %{}}}, TargetStruct)
+      end
+    end
   end
 
-  describe "struct pairs" do
+  describe "struct values pairs with default" do
     test "empty properties" do
-      assert [] == StructSupport.data_pairs(%{"properties" => %{}})
-      assert [] == StructSupport.data_pairs(%{:properties => %{}})
+      assert {[], []} == StructSupport.data_pairs_partition(%{"properties" => %{}})
+      assert {[], []} == StructSupport.data_pairs_partition(%{:properties => %{}})
     end
 
     test "with multiple keys" do
-      assert [a: nil, b: nil] == StructSupport.data_pairs(%{:properties => %{a: true, b: true}})
+      assert {[:a, :b], []} == StructSupport.data_pairs_partition(%{:properties => %{a: true, b: true}})
     end
 
     test "with boolean schema" do
-      assert [some_key: nil] == StructSupport.data_pairs(%{:properties => %{some_key: true}})
-      assert [some_key: nil] == StructSupport.data_pairs(%{:properties => %{some_key: false}})
+      assert {[:some_key], []} == StructSupport.data_pairs_partition(%{:properties => %{some_key: true}})
+      assert {[:some_key], []} == StructSupport.data_pairs_partition(%{:properties => %{some_key: false}})
     end
 
     test "with sub schema" do
-      assert [some_key: nil] == StructSupport.data_pairs(%{:properties => %{some_key: %{type: :string}}})
+      assert {[:some_key], []} == StructSupport.data_pairs_partition(%{:properties => %{some_key: %{type: :string}}})
     end
 
     test "with sub schema with default" do
       # the default is not validated
 
       schema = %{:properties => %{some_key: %{type: :integer, default: "not an integer"}}}
-      assert [some_key: "not an integer"] == StructSupport.data_pairs(schema)
+      assert {[], [some_key: "not an integer"]} == StructSupport.data_pairs_partition(schema)
 
       schema = %{:properties => %{some_key: %{"type" => :integer, "default" => "not an integer"}}}
-      assert [some_key: "not an integer"] == StructSupport.data_pairs(schema)
+      assert {[], [some_key: "not an integer"]} == StructSupport.data_pairs_partition(schema)
 
       # Actually the tool does not even validate the type of the given default
       schema = %{:properties => %{some_key: %{"type" => :integer, "default" => & &1}}}
-      assert [some_key: f] = StructSupport.data_pairs(schema)
+      assert {[], [some_key: f]} = StructSupport.data_pairs_partition(schema)
       assert is_function(f, 1)
     end
   end
