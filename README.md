@@ -731,8 +731,6 @@ The module can also be used in other schemas:
 }
 ```
 
-Currently only schemas with atom keys at the top level are supported.
-
 ## Resolvers
 
 The `JSV.build/2` and `JSV.build!/2` function accept a `:resolver` option that
