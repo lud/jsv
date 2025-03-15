@@ -320,7 +320,7 @@ defmodule JSV do
     quote bind_quoted: binding() do
       :ok = JSV.StructSupport.validate!(schema)
       keycast_pairs = JSV.StructSupport.keycast_pairs(schema)
-      data_pairs = JSV.StructSupport.data_pairs(schema)
+      {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
       required = JSV.StructSupport.list_required(schema)
 
       # It is important to set the jsv-struct as a binary, otherwise it would be
@@ -328,15 +328,15 @@ defmodule JSV do
       #
       # Also we set those keys as atoms because the rest of the schema has to be
       # defined with atoms and we do not want to mix key types at this point.
-      @jsv_raw_schema schema
-                      |> Map.put(:"jsv-struct", Atom.to_string(__MODULE__))
-                      |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
+      @jsv_schema schema
+                  |> Map.put(:"jsv-struct", Atom.to_string(__MODULE__))
+                  |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
 
       @enforce_keys required
-      defstruct data_pairs
+      defstruct keys_no_defaults ++ default_pairs
 
       def schema do
-        @jsv_raw_schema
+        @jsv_schema
       end
 
       @doc false
@@ -344,6 +344,43 @@ defmodule JSV do
 
       def __jsv__(:keycast) do
         unquote(keycast_pairs)
+      end
+
+      def __jsv__(:defaults_override) do
+        # No need to return defaults as defaults values are handled by the
+        # __struct__ functions. So we can return an empty list of pairs.
+        []
+      end
+    end
+  end
+
+  defmacro defschema_for(target, schema) do
+    quote bind_quoted: binding() do
+      :ok = JSV.StructSupport.validate!(schema)
+      keycast_pairs = JSV.StructSupport.keycast_pairs(schema, target)
+      {_keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
+
+      # When defining a schema for another struct we will add two internal
+      # keywords. The $id is still derived from the schema module as we may want
+      # to define multiple schemas targetting a common struct.
+      @jsv_schema schema
+                  |> Map.put(:"jsv-schema", Atom.to_string(__MODULE__))
+                  |> Map.put(:"jsv-struct", Atom.to_string(target))
+                  |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
+
+      def schema do
+        @jsv_schema
+      end
+
+      @doc false
+      def __jsv__(arg)
+
+      def __jsv__(:keycast) do
+        unquote(keycast_pairs)
+      end
+
+      def __jsv__(:defaults_override) do
+        unquote(default_pairs)
       end
     end
   end

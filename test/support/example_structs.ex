@@ -30,3 +30,22 @@ defmodule MyApp.LocalResolver do
 
   @moduledoc false
 end
+
+defmodule MyApp.Organization do
+  @moduledoc false
+  defstruct [:name, :id]
+end
+
+defmodule MyApp.OrganizationSchema do
+  require JSV
+
+  @moduledoc false
+
+  JSV.defschema_for(MyApp.Organization, %{
+    type: :object,
+    properties: %{
+      id: %{type: :string, format: :uuid},
+      name: %{type: :string}
+    }
+  })
+end
