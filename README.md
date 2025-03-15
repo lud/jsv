@@ -488,8 +488,8 @@ passing the `cast_formats: true` option to `JSV.validate/3`.
 The listing below describe values returned with that option enabled.
 
 **Important**: Some formats require the `abnf_parsec` library to be available.
-But we have numerous problems with this library, yielding false negatives with
-many inputs. An alternative solution will be implemented in future versions.
+You may add it as a dependency in your application and it will be used
+automatically.
 
 <!-- block:formats-table -->
 #### date
