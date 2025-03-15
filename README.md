@@ -699,9 +699,6 @@ defmodule MyApp.UserSchema do
 end
 ```
 
-Currently only schemas with atom keys at the top level are supported.
-
-
 A struct will be defined with the appropriate default values:
 
 ```elixir
@@ -733,6 +730,8 @@ The module can also be used in other schemas:
   }
 }
 ```
+
+Currently only schemas with atom keys at the top level are supported.
 
 ## Resolvers
 
