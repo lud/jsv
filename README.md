@@ -120,21 +120,20 @@ formats for a schema:
 1. **A boolean**. Booleans are valid schemas that accept anything (`true`) or
    reject everything (`false`).
 2. **A map with binary keys and values** such as `%{"type" => "integer"}`.
-3. **A map with atom keys and/or values** such as `%{type :integer}`. The
-   `:__struct__` property of structs is safely ignored.
+3. **A map with atom keys and/or values** such as `%{type :integer}`.
 
    The `JSV.Schema` struct can be used for autocompletion and provides a special
-   behaviour over a raw map with atoms: any `nil` value found in the that will
+   behaviour over a raw map with atoms: any `nil` value found in the struct will
    be ignored.
 
    Raw maps and other structs have their `nil` values kept and treated as-is
-   (it's generally invalid).
+   (it's generally invalid in a JSON schema).
 
    The `:__struct__` property of other structs is safely ignored.
 
 Atoms are converted to binaries internally so it is technically possible to mix
-atom with binaries in map keys or values but the behaviour for duplicate keys is
-not defined: `%{"type" => "string", :type => "integer"}`.
+atom with binaries as map keys or values but the behaviour for duplicate keys is
+not defined by the library. Example: `%{"type" => "string", :type => "integer"}`.
 
 
 
