@@ -11,8 +11,8 @@ JSON Schema specification.
   - [Basic usage](#basic-usage)
 - [Core concepts](#core-concepts)
   - [Input schema format](#input-schema-format)
-  - [Meta-schemas: Introduction to vocabularies](#meta-schemas-introduction-to-vocabularies)
   - [Resolvers overview](#resolvers-overview)
+  - [Meta-schemas: Introduction to vocabularies](#meta-schemas-introduction-to-vocabularies)
 - [Building schemas](#building-schemas)
   - [Enable or disable format validation](#enable-or-disable-format-validation)
   - [Custom build modules](#custom-build-modules)
@@ -136,13 +136,39 @@ atom with binaries as map keys or values but the behaviour for duplicate keys is
 not defined by the library. Example: `%{"type" => "string", :type => "integer"}`.
 
 
+### Resolvers overview
+
+In order to build schemas properly, JSV needs to _resolve_ the schema as a first
+step.
+
+Resolving means fetching any remote resource whose data is needed and not
+available ; basically `$schema`, `$ref` or `$dynamicRef` properties pointing to
+an absolute [URI](https://fr.wikipedia.org/wiki/Uniform_Resource_Identifier).
+
+Those URIs are generally URLs with the `http://` or `https://` scheme, but other
+custom schemes can be used, and there are many ways to fetch HTTP resources in
+Elixir.
+
+For security reasons, the default resolver, `JSV.Resolver.Embedded`, ships
+official meta-schemas as part of the source code and can only resolve those
+schemas.
+
+For convenience reasons, a resolver that can fetch from the web is provided
+(`JSV.Resolver.Httpc`) but it needs to be manually declared by users of the JSV
+library. Refer to the documentation of this module for more information.
+
+Custom resolvers can be defined for more advanced use cases.
+
 
 ### Meta-schemas: Introduction to vocabularies
+
+You can safely skip this section if you are not interested in the inner
+workings of the modern JSON schema specification.
 
 JSV was built in compliance with the vocabulary mechanism of JSON schema, to
 support custom and optional keywords in the schemas.
 
-It may be more clear with an example:
+Here is what happens when validating with the latest specification:
 
 1. The well-known and official schema
    `https://json-schema.org/draft/2020-12/schema` defines the following
@@ -172,10 +198,12 @@ It may be more clear with an example:
    the `type` keyword is implemented with the
    `JSV.Vocabulary.V202012.Validation` Elixir module.
 
-3. Finally, we can declare a schema that would like to use the `type` keyword.
+3. We can declare a schema that would like to use the `type` keyword.
    To let the library know what implementation to use for that keyword, the
    schema declares the `https://json-schema.org/draft/2020-12/schema` as its
-   meta-schema (using the `$schema` keyword).
+   meta-schema using the `$schema` keyword.
+
+   JSV will use that exact value if the `$schema` keyword is not specified.
 
    ```json
    {
@@ -187,40 +215,15 @@ It may be more clear with an example:
    This tells the library to pull the vocabulary from the meta-schema and apply
    it to the schema.
 
-4. As JSV is compliant, it will use its implementation of
-   `https://json-schema.org/draft/2020-12/vocab/validation` to validate
-   types.
+5. As JSV is compliant, it will use its implementation of
+   `https://json-schema.org/draft/2020-12/vocab/validation` to handle the `type`
+   keyword and validate data types.
 
    This also means that you can use a custom meta schema to skip some parts of
    the vocabulary, or add your own.
 
 
-### Resolvers overview
-
-In order to build schemas properly, JSV needs to _resolve_ the schema as a first
-step.
-
-Resolving means fetching any remote resource whose data is needed and not
-available ; basically `$schema`, `$ref` or `$dynamicRef` properties pointing to
-an absolute [URIs](https://fr.wikipedia.org/wiki/Uniform_Resource_Identifier).
-
-Those URIs are generally URLs with the `http://` or `https://` scheme, but other
-custom schemes can be used, and there are many ways to fetch HTTP resources in
-Elixir.
-
-For security reasons, the default resolver, `JSV.Resolver.Embedded`, ships
-official meta-schemas as part of the source code and can only resolve those
-schemas.
-
-For convenience reasons, a resolver that can fetch from the web is provided
-(`JSV.Resolver.Httpc`) but it needs to be manually declared by users of the JSV
-library. Refer to the documentation of this module for more information.
-
-Custom resolvers can be defined for more advanced use cases.
-
-
 ## Building schemas
-
 
 In this chapter we will see how to build schemas from raw resources. The
 examples will mention the `JSV.build/2` or `JSV.build!/2` functions
