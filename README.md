@@ -733,7 +733,7 @@ The module can also be used in other schemas:
 
 ## Resolvers
 
-The `JSV.build/2` and `JSV.build!/2` function accept a `:resolver` option that
+The `JSV.build/2` and `JSV.build!/2` functions accept a `:resolver` option that
 takes one one multiple `JSV.Resolver` implementations.
 
 JSV will try each one in order to resolve a schema by it's URI.
