@@ -59,7 +59,7 @@ jobs:
         run: |
           mix local.rebar --force
           mix local.hex --force
-          mix deps.get
+          mix deps.get --check-locked
 
       # Use force as we use a template config so we do not want to ignore a
       # specific directory from the cache. So we always want to compile all the
