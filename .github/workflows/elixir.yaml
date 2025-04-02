@@ -84,16 +84,8 @@ jobs:
           # No restore keys. Since we skip checking the PLT we need the right one.
           key: dialyzer-plts-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
 
-      # The PLT will be included in the deps-build cache infortunately. We could
-      # have a dedicated directory for it but it's simpler to use _build.
-      - name: Create Dialyzer PLTs
-        if: steps.dialyzer-plts.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p priv/plts
-          mix dialyzer --plt
-
       - name: Run dialyzer
-        run: mix dialyzer --no-check --halt-exit-status
+        run: mix dialyzer --halt-exit-status
 
         # Remove generated application beam files to prevent caching them. We
         # also use `mix compile --force` to always check that the code compiles.
