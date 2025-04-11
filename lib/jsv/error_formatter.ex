@@ -84,10 +84,13 @@ defmodule JSV.ErrorFormatter do
       message when is_binary(message) ->
         %{message: message, kind: kind}
 
-      {message, sub_errors} when is_binary(message) ->
+      {new_kind, message} when is_atom(new_kind) and is_binary(message) ->
+        %{message: message, kind: new_kind}
+
+      {message, sub_errors} when is_binary(message) and is_list(sub_errors) ->
         %{message: message, kind: kind, details: normalize_errors(sub_errors, opts)}
 
-      {new_kind, message, sub_errors} when is_binary(message) ->
+      {new_kind, message, sub_errors} when is_atom(new_kind) and is_binary(message) and is_list(sub_errors) ->
         %{message: message, kind: new_kind, details: normalize_errors(sub_errors, opts)}
     end
   end

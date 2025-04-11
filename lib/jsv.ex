@@ -390,7 +390,7 @@ defmodule JSV do
       {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
       required = JSV.StructSupport.list_required(schema)
 
-      @jsv_tag 1
+      @jsv_tag -1
 
       @jsv_schema schema
                   |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
@@ -421,7 +421,7 @@ defmodule JSV do
       {_keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
       @default_pairs default_pairs
 
-      @jsv_tag 2
+      @jsv_tag -2
 
       @jsv_schema schema
                   |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
@@ -439,6 +439,32 @@ defmodule JSV do
         {:ok, struct!(@target, pairs)}
       end
     end
+  end
+
+  @doc false
+  defmacro defschemacast(call, [{:do, _} | _] = blocks) do
+    {fun, arg} =
+      case Macro.decompose_call(call) do
+        {fun, [arg]} -> {fun, arg}
+        _ -> raise "invalid function call given to defschemacast"
+      end
+
+    tag = Atom.to_string(fun)
+    mod_str = Atom.to_string(__CALLER__.module)
+
+    quote do
+      @doc false
+      def __jsv__(unquote(tag), xdata) do
+        unquote(fun)(xdata)
+      end
+
+      def(unquote(fun)(unquote(arg)), unquote(blocks))
+
+      def unquote(fun)() do
+        [unquote(mod_str), unquote(tag)]
+      end
+    end
+    |> tap(&IO.puts(Macro.to_string(&1)))
   end
 
   # From https://github.com/fishcakez/dialyze/blob/6698ae582c77940ee10b4babe4adeff22f1b7779/lib/mix/tasks/dialyze.ex#L168

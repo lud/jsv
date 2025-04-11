@@ -41,6 +41,7 @@ defmodule JSV.Vocabulary do
   @callback validate(data, collection, vctx :: Validator.context()) :: Validator.result()
   @callback format_error(atom, %{optional(atom) => term}, data) ::
               String.t()
+              | {atom, String.t()}
               | {String.t(), [Validator.Error.t() | ErrorFormatter.annotation()]}
               | {atom, String.t(), [Validator.Error.t() | ErrorFormatter.annotation()]}
 

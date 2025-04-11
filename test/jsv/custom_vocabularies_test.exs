@@ -35,10 +35,6 @@ defmodule JSV.CustomVocabulariesTest do
         end)
         |> expect(:finalize_validators, fn :some_new_state -> :some_final_state end)
 
-      # |> expect(:coucou, fn ->
-      #   :ok
-      # end)
-
       # We should be able to build
 
       assert {:ok, root} =

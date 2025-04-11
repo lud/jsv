@@ -40,13 +40,21 @@ defmodule JSV.Vocabulary.Cast do
             {:ok, new_data, vctx}
 
           {:error, reason} ->
-            raise "Cast error"
+            {:error,
+             JSV.Validator.__with_error__(__MODULE__, vctx, :"jsv-cast", data, module: module, reason: reason, arg: arg)}
         end
 
       :other ->
         {:ok, data, vctx}
     end
   end
-end
 
-IO.warn("todo handle cast error")
+  @impl true
+  def format_error(:"jsv-cast", args, data) do
+    if function_exported?(args.module, :format_error, 3) do
+      args.module.format_error(args.arg, args.reason, data)
+    else
+      {_normal_kind = :cast, "cast failed"}
+    end
+  end
+end
