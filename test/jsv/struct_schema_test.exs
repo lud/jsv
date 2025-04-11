@@ -217,7 +217,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast: false)
     end
 
     test "with basic as sub schema" do
@@ -242,7 +242,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast: false)
     end
 
     test "with required data" do
@@ -269,7 +269,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast: false)
     end
 
     test "with required data as sub schema" do
@@ -294,7 +294,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast: false)
     end
 
     test "with another module reference" do
@@ -319,7 +319,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast: false)
     end
 
     test "two recursive schemas" do
@@ -429,7 +429,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast: false)
     end
 
     test "with recursive self as sub" do
@@ -489,7 +489,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast: false)
     end
 
     test "additional properties" do
@@ -509,7 +509,7 @@ defmodule JSV.StructSchemaTest do
       assert {:error, _} = JSV.validate(valid_data, root_noadd)
 
       # When casting is disabled, additional properties are present
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root_basic, cast_custom: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root_basic, cast: false)
     end
   end
 

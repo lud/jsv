@@ -34,7 +34,7 @@ defmodule JSV.Vocabulary.Cast do
       Validator.error?(vctx) ->
         {:ok, data, vctx}
 
-      vctx.opts[:cast_custom] ->
+      vctx.opts[:cast] ->
         case module.__jsv__(arg, data) do
           {:ok, new_data} ->
             {:ok, new_data, vctx}
@@ -49,5 +49,4 @@ defmodule JSV.Vocabulary.Cast do
   end
 end
 
-IO.warn("todo document removal of cast_structs and introduction of")
 IO.warn("todo handle cast error")

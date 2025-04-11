@@ -76,7 +76,6 @@ defmodule JSV.Vocabulary.V202012.Format do
   @impl true
   def validate(data, [format: {module, format}], vctx) when is_binary(data) do
     cast_formats? = vctx.opts[:cast_formats]
-    # TODO option to return casted value + TODO add low module priority
 
     case module.validate_cast(format, data) do
       {:ok, casted} when cast_formats? ->

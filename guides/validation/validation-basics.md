@@ -8,8 +8,8 @@ To validate a term, call the `JSV.validate/3` function like so:
 JSV.validate(data, root_schema, opts)
 ```
 
-The return value of `JSV.validate/3` returns casted data. See the documentation
-of that function for more information.
+The return value of `JSV.validate/3` returns cast data. See the documentation of
+that function for more information.
 
 
 ## General considerations
@@ -29,7 +29,7 @@ of that function for more information.
       > trunc(1000000000000000000000000.0)
       # ==>    999999999999999983222784
 
-  When dealing with such data it may be better to discard the casted data, or to
+  When dealing with such data it may be better to discard the cast data, or to
   work with strings instead of floats.
 
 
@@ -47,8 +47,8 @@ later in this document.
 Also, note that by default, JSV format validation will return the original
 value, that is, the string form of the data. Some format validators can also
 cast the string to a more interesting data structure, for instance converting a
-date string to a `Date` struct. You can enable returning casted values by
-passing the `cast_formats: true` option to `JSV.validate/3`.
+date string to a `Date` struct. You can enable returning specific format cast
+values by passing the `cast_formats: true` option to `JSV.validate/3`.
 
 The listing below describe values returned when that option is enabled.
 

@@ -39,7 +39,7 @@ defmodule JSV do
     {:ok, data} ->
       {:ok, data}
 
-    # Errors can be casted as JSON compatible data structure to send them as an
+    # Errors can be turned into JSON compatible data structure to send them as an
     # API response or for logging purposes.
     {:error, validation_error} ->
       {:error, JSON.encode!(JSV.normalize_error(validation_error))}
@@ -202,20 +202,28 @@ defmodule JSV do
   end
 
   @validate_opts_schema NimbleOptions.new!(
+                          cast: [
+                            type: :boolean,
+                            default: true,
+                            doc: """
+                            Enables calling generic cast functions on validation.
+
+                            This is based on the `jsv-cast` JSON Schema custom keyword
+                            and is typically used by `defschema/1`.
+
+                            While it is on by default, some specific casting features are enabled
+                            separately, see option `:cast_formats`.
+                            """
+                          ],
                           cast_formats: [
                             type: :boolean,
                             default: false,
-                            doc:
-                              "When enabled, format validators will return casted values, " <>
-                                "for instance a `Date` struct instead of the date as string. " <>
-                                "It has no effect when the schema was not built with formats enabled."
-                          ],
-                          cast_custom: [
-                            type: :boolean,
-                            default: true,
-                            doc:
-                              "Enables calling custom cast functions on validation. " <>
-                                "This is typically used by `defschema/1`. "
+                            doc: """
+                            When enabled, format validators will return casted values,
+                            for instance a `Date` struct instead of the date as string.
+
+                            It has no effect when the schema was not built with formats enabled.
+                            """
                           ]
                         )
 
@@ -223,15 +231,16 @@ defmodule JSV do
   Validates and casts the data with the given schema. The schema must be a
   `JSV.Root` struct generated with `build/2`.
 
-  **Important**: this function returns casted data:
-
-  * If the `:cast_formats` option is enabled, string values may be transformed
-    in other data structures. Refer to the "Formats" section of the `JSV`
-    documentation for more information.
-  * The JSON Schema specification states that `123.0` is a valid integer. This
-    function will return `123` instead. This may return invalid data for floats
-    with very large integer parts. As always when dealing with JSON and big
-    decimal or extremely precise numbers, use strings.
+  > #### This function returns cast data {: .info}
+  >
+  >
+  > * If the `:cast_formats` option is enabled, string values may be transformed
+  >   in other data structures. Refer to the "Formats" section of the
+  >   [Validation guide](validation-basics.html#formats) for more information.
+  > * The JSON Schema specification states that `123.0` is a valid integer. This
+  >   function will return `123` instead. This may return invalid data for
+  >   floats with very large integer parts. As always when dealing with JSON and
+  >   big decimal or extremely precise numbers, use strings.
 
   ### Options
 
@@ -310,8 +319,8 @@ defmodule JSV do
   will accept a map with additional properties, but the keys will not be added
   to the resulting struct as it would be invalid.
 
-  If the `cast_custom: false` option is given to `JSV.validate/3`, the
-  additional properties will be kept.
+  If the `cast: false` option is given to `JSV.validate/3`, the additional
+  properties will be kept.
 
   ### Example
 
@@ -352,7 +361,7 @@ defmodule JSV do
 
       iex> {:ok, root} = JSV.build(MyApp.UserSchema)
       iex> data = %{"name" => "Alice", "extra" => "hello!"}
-      iex> JSV.validate(data, root, cast_custom: false)
+      iex> JSV.validate(data, root, cast: false)
       {:ok, %{"name" => "Alice", "extra" => "hello!"}}
 
   A module can reference another module:
@@ -410,9 +419,6 @@ defmodule JSV do
       {_keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
       @default_pairs default_pairs
 
-      # When defining a schema for another struct we will add two internal
-      # keywords. The $id is still derived from the schema module as we may want
-      # to define multiple schemas targetting a common struct.
       @jsv_schema schema
                   |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), 0])
                   |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
@@ -439,8 +445,9 @@ defmodule JSV do
     vsn_file = Path.join([:code.root_dir(), "releases", major, "OTP_VERSION"])
 
     try do
-      {:ok, contents} = File.read(vsn_file)
-      String.split(contents, "\n", trim: true)
+      vsn_file
+      |> File.read!()
+      |> String.split("\n", trim: true)
     else
       [full] -> full
       _ -> major
