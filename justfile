@@ -14,6 +14,7 @@ update-test-suite: deps
   popd
   mix deps.get
   just gen-test-suite
+  just _git_status
 
 deps:
   mix deps.get
