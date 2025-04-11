@@ -121,14 +121,20 @@ defmodule JSV.StructSchemaTest do
   end
 
   describe "generating modules from schemas" do
+    defp call_mod(mod, data) do
+      JSV.validate(data, JSV.build!(mod))
+    end
+
     test "can define a struct with a schema" do
       assert %BasicDefine{name: nil, age: 123} == BasicDefine.__struct__()
-      assert [{"age", :age}, {"name", :name}] == BasicDefine.__jsv__(:keycast)
+      assert {:ok, %BasicDefine{name: "defined", age: -1}} == call_mod(BasicDefine, %{"name" => "defined", "age" => -1})
     end
 
     test "can define a struct with a raw atom schema" do
       assert %BasicDefineRawMap{name: nil, age: 123} == BasicDefineRawMap.__struct__()
-      assert [{"age", :age}, {"name", :name}] == BasicDefineRawMap.__jsv__(:keycast)
+
+      assert {:ok, %BasicDefineRawMap{name: "defined", age: -1}} ==
+               call_mod(BasicDefineRawMap, %{"name" => "defined", "age" => -1})
     end
 
     test "binary keys are invalid" do
@@ -176,7 +182,9 @@ defmodule JSV.StructSchemaTest do
 
     test "can define a struct with a schema from a quoted function call" do
       assert %FromGenericData{name: nil, age: 123} == FromGenericData.__struct__()
-      assert [{"age", :age}, {"name", :name}] == FromGenericData.__jsv__(:keycast)
+
+      assert {:ok, %FromGenericData{name: "defined", age: -1}} ==
+               call_mod(FromGenericData, %{"name" => "defined", "age" => -1})
     end
   end
 
@@ -209,7 +217,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
     end
 
     test "with basic as sub schema" do
@@ -234,7 +242,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
     end
 
     test "with required data" do
@@ -261,7 +269,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
     end
 
     test "with required data as sub schema" do
@@ -286,7 +294,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
     end
 
     test "with another module reference" do
@@ -311,7 +319,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
     end
 
     test "two recursive schemas" do
@@ -421,7 +429,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
     end
 
     test "with recursive self as sub" do
@@ -481,7 +489,7 @@ defmodule JSV.StructSchemaTest do
 
       # Disabled struct casting
 
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root, cast_custom: false)
     end
 
     test "additional properties" do
@@ -501,7 +509,7 @@ defmodule JSV.StructSchemaTest do
       assert {:error, _} = JSV.validate(valid_data, root_noadd)
 
       # When casting is disabled, additional properties are present
-      assert {:ok, ^valid_data} = JSV.validate(valid_data, root_basic, cast_structs: false)
+      assert {:ok, ^valid_data} = JSV.validate(valid_data, root_basic, cast_custom: false)
     end
   end
 
@@ -534,7 +542,7 @@ defmodule JSV.StructSchemaTest do
     end
   end
 
-  describe "deserializing into another module" do
+  describe "deserializing into another module with defschema_for" do
     defmodule OriginalStruct do
       @enforce_keys [:some_integer]
       defstruct some_integer: 100, some_bool: true, some_string: "hello"

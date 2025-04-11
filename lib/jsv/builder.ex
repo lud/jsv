@@ -410,7 +410,7 @@ defmodule JSV.Builder do
 
   defp load_vocabularies(builder, map) do
     with {:ok, vocabs} <- do_load_vocabularies(builder, map) do
-      {:ok, sort_vocabularies([Vocabulary.Internal | vocabs])}
+      {:ok, sort_vocabularies([Vocabulary.Cast | vocabs])}
     end
   end
 

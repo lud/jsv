@@ -203,6 +203,16 @@ defmodule JSV.StructSupport do
     end
   end
 
+  @spec take_keycast(map, [{binary, atom}]) :: [{atom, term}]
+  def take_keycast(data, keycast) when is_map(data) do
+    Enum.reduce(keycast, [], fn {str_key, atom_key}, acc ->
+      case data do
+        %{^str_key => v} -> [{atom_key, v} | acc]
+        _ -> acc
+      end
+    end)
+  end
+
   defp errmsg(msg) do
     "schema given to defschema/1 or defschema_for/2 " <> msg
   end

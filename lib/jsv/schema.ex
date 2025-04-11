@@ -255,8 +255,7 @@ defmodule JSV.Schema do
     :writeOnly,
 
     # Internal keys
-    :"jsv-struct",
-    :"jsv-source"
+    :"jsv-cast"
   ]
 
   @derive {Inspect, optional: @all_keys}
