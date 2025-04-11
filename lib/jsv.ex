@@ -449,24 +449,36 @@ defmodule JSV do
     defcast_local(__CALLER__, Atom.to_string(local_fun), local_fun)
   end
 
+  defmacro defcast(_) do
+    bad_cast()
+  end
+
   defmacro defcast(tag, local_fun) when is_atom(local_fun) and is_valid_tag(tag) do
     defcast_local(__CALLER__, tag, local_fun)
   end
 
-  defmacro defcast(call, [{:do, _} | _] = blocks) do
+  defmacro defcast({_, _, _} = call, [{:do, _} | _] = blocks) do
     {fun, _} = Macro.decompose_call(call)
     tag = Atom.to_string(fun)
     defcast_block(__CALLER__, tag, call, blocks)
   end
 
+  defmacro defcast(_, _) do
+    bad_cast()
+  end
+
   @doc false
-  defmacro defcast(tag, call, [{:do, _} | _] = blocks) when is_valid_tag(tag) do
+  defmacro defcast(tag, {_, _, _} = call, blocks) when is_valid_tag(tag) do
     defcast_block(__CALLER__, tag, call, blocks)
+  end
+
+  defmacro defcast(_, _, _) do
+    bad_cast()
   end
 
   defp defcast_block(env, tag, call, [{:do, _} | _] = blocks) do
     {fun, arg} =
-      case Macro.decompose_call(call) |> dbg(limit: :infinity) do
+      case Macro.decompose_call(call) do
         {:when, [{err_tag, _, _} | _]} ->
           raise ArgumentError, """
           defcast does not support guards
@@ -484,7 +496,7 @@ defmodule JSV do
           {fun, arg}
 
         _ ->
-          raise "invalid function call given to defcast"
+          raise ArgumentError, "invalid defcast signature: #{Macro.to_string(call)}"
       end
 
     mod_str = Atom.to_string(env.module)
@@ -502,7 +514,6 @@ defmodule JSV do
       @doc false
       def(unquote(fun)(unquote(arg)), unquote(blocks))
     end
-    |> tap(&IO.puts(Macro.to_string(&1)))
   end
 
   defp defcast_local(_env, tag, local_fun) do
@@ -512,7 +523,11 @@ defmodule JSV do
         unquote(local_fun)(xdata)
       end
     end
-    |> tap(&IO.puts(Macro.to_string(&1)))
+  end
+
+  @spec bad_cast :: no_return()
+  defp bad_cast do
+    raise ArgumentError, "invalid defcast arguments"
   end
 
   # From https://github.com/fishcakez/dialyze/blob/6698ae582c77940ee10b4babe4adeff22f1b7779/lib/mix/tasks/dialyze.ex#L168

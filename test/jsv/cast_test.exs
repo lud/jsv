@@ -1,5 +1,5 @@
+# credo:disable-for-this-file Credo.Check.Readability.Specs
 defmodule JSV.CastTest do
-  alias JSV.Schema
   require JSV
   use ExUnit.Case, async: true
 
@@ -62,8 +62,6 @@ defmodule JSV.CastTest do
       assert {:error, validation_error} = JSV.validate("hello", root)
 
       # The error is normalizable
-      validation_error |> dbg(limit: :infinity)
-
       assert %{
                valid: false,
                details: [
@@ -72,7 +70,7 @@ defmodule JSV.CastTest do
                    valid: false
                  }
                ]
-             } = JSV.normalize_error(validation_error) |> dbg(limit: :infinity)
+             } = JSV.normalize_error(validation_error)
     end
   end
 
@@ -118,7 +116,7 @@ defmodule JSV.CastTest do
       to_upper_if_string(data)
     end
 
-    def some_local_fun() do
+    def some_local_fun do
       [to_string(__MODULE__), "some_local_fun"]
     end
 
@@ -131,7 +129,6 @@ defmodule JSV.CastTest do
     #
     # The wrapping schema does not validate anything.
     defp call_with(caster, data) when is_binary(caster) when is_integer(caster) do
-      data |> dbg(limit: :infinity)
       schema = %{"jsv-cast": [to_string(CastExample), caster]}
       root = JSV.build!(schema)
       JSV.validate(data, root)
@@ -214,12 +211,40 @@ defmodule JSV.CastTest do
       end
     end
 
-    test "missing do block" do
-      assert_raise ArgumentError, ~r/defcast does not support guards/, fn ->
+    test "bad calls" do
+      assert_raise ArgumentError, ~r/invalid defcast/, fn ->
         defmodule UsesHeadFun do
           import JSV
 
           defcast with_head_fun(data)
+        end
+      end
+
+      assert_raise ArgumentError, ~r/invalid defcast signature/, fn ->
+        defmodule UsesHeadFun do
+          import JSV
+
+          defcast with_args(too, much, args) do
+            {:ok, too}
+          end
+        end
+      end
+
+      assert_raise ArgumentError, ~r/invalid defcast/, fn ->
+        defmodule UsesHeadFun do
+          import JSV
+
+          defcast :aaa, 1234
+        end
+      end
+
+      assert_raise ArgumentError, ~r/invalid defcast/, fn ->
+        defmodule UsesHeadFun do
+          import JSV
+
+          defcast :tag, hello(data) do
+            {:ok, data}
+          end
         end
       end
     end
