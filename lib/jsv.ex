@@ -390,8 +390,10 @@ defmodule JSV do
       {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
       required = JSV.StructSupport.list_required(schema)
 
+      @jsv_tag 1
+
       @jsv_schema schema
-                  |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), 0])
+                  |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
                   |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
 
       @enforce_keys required
@@ -402,7 +404,7 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__(0, data) do
+      def __jsv__(@jsv_tag, data) do
         pairs = JSV.StructSupport.take_keycast(data, @keycast)
         {:ok, struct!(__MODULE__, pairs)}
       end
@@ -419,8 +421,10 @@ defmodule JSV do
       {_keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
       @default_pairs default_pairs
 
+      @jsv_tag 2
+
       @jsv_schema schema
-                  |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), 0])
+                  |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
                   |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
 
       def schema do
@@ -428,7 +432,7 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__(0, data) do
+      def __jsv__(@jsv_tag, data) do
         pairs = JSV.StructSupport.take_keycast(data, @keycast)
         pairs = Keyword.merge(@default_pairs, pairs)
 
