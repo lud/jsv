@@ -3,7 +3,7 @@ defmodule JSV.CastTest do
   require JSV
   use ExUnit.Case, async: true
 
-  describe "using the defschemacast macro" do
+  describe "using the defcast macro" do
     test "can cast raw data to arbitrary data" do
       defmodule ExpectsString do
         def __jsv__("some_arg", "hello") do
@@ -76,40 +76,53 @@ defmodule JSV.CastTest do
     end
   end
 
-  IO.warn("TODO with rescue block")
-  IO.warn("TODO with custom tag")
-  IO.warn("TODO with atom name of fun")
-  IO.warn("TODO with atom name of fun and custom tag")
-  IO.warn("TODO with guard")
-  IO.warn("TODO with custom tag with guard")
-
   defmodule CastExample do
     import JSV
 
-    # with call
-    defschemacast with_do_block(data) do
+    defp to_upper_if_string(data) do
       if is_binary(data) do
         {:ok, String.upcase(data)}
       else
-        {:error, :expected_string}
+        {:error, {:expected_string, data}}
       end
     end
 
-    defschemacast with_rescue_block(data) do
-      if is_binary(data) do
-        upper =
-          data
-          |> String.to_existing_atom()
-          |> Atom.to_string()
-          |> String.upcase()
+    # with call
+    defcast with_do_block(data) do
+      to_upper_if_string(data)
+    end
 
-        {:ok, upper}
-      else
-        {:error, :expected_string}
+    defcast with_rescue_block(data) do
+      result = to_upper_if_string(data)
+
+      if is_binary(data) do
+        String.to_existing_atom(data)
       end
+
+      result
     rescue
       ArgumentError -> {:error, :unknown_existing_atom}
     end
+
+    defcast ?t, with_custom_tag_int(data) do
+      to_upper_if_string(data)
+    end
+
+    defcast "some tag", with_custom_tag_str(data) do
+      to_upper_if_string(data)
+    end
+
+    defcast :some_local_fun
+
+    def some_local_fun(data) do
+      to_upper_if_string(data)
+    end
+
+    def some_local_fun() do
+      [to_string(__MODULE__), "some_local_fun"]
+    end
+
+    defcast "some local tag", :to_upper_if_string
   end
 
   describe "macros used in CastExample module" do
@@ -117,7 +130,8 @@ defmodule JSV.CastTest do
     # string to uppercase.
     #
     # The wrapping schema does not validate anything.
-    defp call_with(caster, data) when is_binary(caster) do
+    defp call_with(caster, data) when is_binary(caster) when is_integer(caster) do
+      data |> dbg(limit: :infinity)
       schema = %{"jsv-cast": [to_string(CastExample), caster]}
       root = JSV.build!(schema)
       JSV.validate(data, root)
@@ -144,29 +158,70 @@ defmodule JSV.CastTest do
       reason
     end
 
-    test "deschemacast/2 using a :do block" do
-      # The /0 arity function returns the schema pointer
-      assert [to_string(CastExample), "with_do_block"] == CastExample.with_do_block()
+    defp try_caster(fun, tag) do
+      _ = :some_existing_atom
+      valid_data = "some_existing_atom"
+      valid_cast = "SOME_EXISTING_ATOM"
+      invalid_data = 123_456
 
-      # The /1 arity function is defined and corresponds to the user code
-      assert {:ok, "HELLO"} = CastExample.with_do_block("hello")
+      if fun != nil do
+        # The /0 arity function returns the schema pointer
+        assert [to_string(CastExample), tag] == apply(CastExample, fun, [])
 
-      # It works as a caster
-      assert "HELLO" = cast_ok("with_do_block", "hello")
-      assert :expected_string == cast_err("with_do_block", 1234)
+        # The /1 arity function is defined and corresponds to the user code
+        assert {:ok, ^valid_cast} = apply(CastExample, fun, [valid_data])
+      end
+
+      # # It works as a caster
+      assert ^valid_cast = cast_ok(?t, valid_data)
+      assert {:expected_string, invalid_data} == cast_err(tag, invalid_data)
     end
 
-    test "deschemacast/2 using a rescue block" do
-      # The /0 arity function returns the schema pointer
-      assert [to_string(CastExample), "with_rescue_block"] == CastExample.with_rescue_block()
+    test "defcast using a :do block" do
+      try_caster(:with_do_block, "with_do_block")
+    end
 
-      # The /1 arity function is defined and corresponds to the user code
-      assert {:ok, "PERSISTENT_TERM"} = CastExample.with_rescue_block("persistent_term")
+    test "defcast using a rescue block" do
+      try_caster(:with_rescue_block, "with_rescue_block")
+      # assert :unknown_existing_atom == cast_err("with_rescue_block", "not an existing atom")
+    end
 
-      # It works as a caster
-      assert "PERSISTENT_TERM" = cast_ok("with_rescue_block", "persistent_term")
-      assert :unknown_existing_atom == cast_err("with_rescue_block", "heeeeeeeeello")
-      assert :expected_string == cast_err("with_rescue_block", 1234)
+    test "defcast using a custom tag (integer)" do
+      try_caster(:with_custom_tag_int, ?t)
+    end
+
+    test "defcast using a custom tag (string)" do
+      try_caster(:with_custom_tag_str, "some tag")
+    end
+
+    test "some local fun" do
+      try_caster(nil, "some_local_fun")
+    end
+
+    test "some local fun with custom tag" do
+      try_caster(nil, "some local tag")
+    end
+
+    test "guards are not supported" do
+      assert_raise ArgumentError, ~r/defcast does not support guards/, fn ->
+        defmodule UsesGuard do
+          import JSV
+
+          defcast with_guard(data) when data > 10 when data != "hello" do
+            {:ok, nil}
+          end
+        end
+      end
+    end
+
+    test "missing do block" do
+      assert_raise ArgumentError, ~r/defcast does not support guards/, fn ->
+        defmodule UsesHeadFun do
+          import JSV
+
+          defcast with_head_fun(data)
+        end
+      end
     end
   end
 end

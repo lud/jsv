@@ -442,26 +442,74 @@ defmodule JSV do
   end
 
   @doc false
-  defmacro defschemacast(call, [{:do, _} | _] = blocks) do
+  defguard is_valid_tag(tag) when (is_integer(tag) and tag >= 0) or is_binary(tag)
+
+  @doc false
+  defmacro defcast(local_fun) when is_atom(local_fun) do
+    defcast_local(__CALLER__, Atom.to_string(local_fun), local_fun)
+  end
+
+  defmacro defcast(tag, local_fun) when is_atom(local_fun) and is_valid_tag(tag) do
+    defcast_local(__CALLER__, tag, local_fun)
+  end
+
+  defmacro defcast(call, [{:do, _} | _] = blocks) do
+    {fun, _} = Macro.decompose_call(call)
+    tag = Atom.to_string(fun)
+    defcast_block(__CALLER__, tag, call, blocks)
+  end
+
+  @doc false
+  defmacro defcast(tag, call, [{:do, _} | _] = blocks) when is_valid_tag(tag) do
+    defcast_block(__CALLER__, tag, call, blocks)
+  end
+
+  defp defcast_block(env, tag, call, [{:do, _} | _] = blocks) do
     {fun, arg} =
-      case Macro.decompose_call(call) do
-        {fun, [arg]} -> {fun, arg}
-        _ -> raise "invalid function call given to defschemacast"
+      case Macro.decompose_call(call) |> dbg(limit: :infinity) do
+        {:when, [{err_tag, _, _} | _]} ->
+          raise ArgumentError, """
+          defcast does not support guards
+
+          You may delegate to a local function like so:
+
+            defcast #{inspect(Atom.to_string(err_tag))} :my_custom_cast_fun
+
+            defp #{Macro.to_string(call)} do
+              # ...
+            end
+          """
+
+        {fun, [arg]} ->
+          {fun, arg}
+
+        _ ->
+          raise "invalid function call given to defcast"
       end
 
-    tag = Atom.to_string(fun)
-    mod_str = Atom.to_string(__CALLER__.module)
+    mod_str = Atom.to_string(env.module)
 
     quote do
+      def unquote(fun)() do
+        [unquote(mod_str), unquote(tag)]
+      end
+
       @doc false
       def __jsv__(unquote(tag), xdata) do
         unquote(fun)(xdata)
       end
 
+      @doc false
       def(unquote(fun)(unquote(arg)), unquote(blocks))
+    end
+    |> tap(&IO.puts(Macro.to_string(&1)))
+  end
 
-      def unquote(fun)() do
-        [unquote(mod_str), unquote(tag)]
+  defp defcast_local(_env, tag, local_fun) do
+    quote do
+      @doc false
+      def __jsv__(unquote(tag), xdata) do
+        unquote(local_fun)(xdata)
       end
     end
     |> tap(&IO.puts(Macro.to_string(&1)))

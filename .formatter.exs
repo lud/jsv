@@ -11,6 +11,9 @@
     take_keyword: 5,
     take_keyword: 6,
     consume_keyword: 1,
-    defcompose: 2
+    defcompose: 2,
+    defcast: 1,
+    defcast: 2,
+    defcast: 3
   ]
 ]
