@@ -12,6 +12,7 @@ concurrency:
 
 env:
   MIX_ENV: test
+  cache_vsn: "v1"
 
 permissions:
   contents: read
@@ -49,11 +50,11 @@ jobs:
             deps
             _build
             !_build/plts
-          key: deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+          key: ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
           # For the build we want them compiled on the same versions.
           restore-keys: |
-            deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
-            deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--
+            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--
 
       - name: Install Dependencies
         run: |
@@ -81,8 +82,7 @@ jobs:
         id: dialyzer-plts
         with:
           path: _build/plts
-          # No restore keys. Since we skip checking the PLT we need the right one.
-          key: dialyzer-plts-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+          key: ${{ env.cache_vsn }}-dialyzer-plts-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.exs', 'mix.lock') }}
 
       - name: Run dialyzer
         run: mix dialyzer --halt-exit-status
