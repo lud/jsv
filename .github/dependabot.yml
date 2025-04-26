@@ -1,7 +1,7 @@
 version: 2
 
 updates:
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: mix
     directory: /
     schedule:
       interval: daily
@@ -15,3 +15,18 @@ updates:
         dependency-type: production
       dev:
         dependency-type: development
+
+  - package-ecosystem: "github-actions"
+    directory: /
+    schedule:
+      interval: daily
+      timezone: Europe/Paris
+      time: "06:00"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 1
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
