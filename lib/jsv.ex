@@ -54,6 +54,8 @@ defmodule JSV do
 
   @default_default_meta "https://json-schema.org/draft/2020-12/schema"
 
+  IO.warn("@todo document :entrypoints option")
+
   @build_opts_schema NimbleOptions.new!(
                        resolver: [
                          type: {:or, [:atom, :mod_arg, {:list, {:or, [:atom, :mod_arg]}}]},
@@ -133,7 +135,8 @@ defmodule JSV do
                              }
                          """,
                          default: %{}
-                       ]
+                       ],
+                       entrypoints: []
                      )
 
   @doc """

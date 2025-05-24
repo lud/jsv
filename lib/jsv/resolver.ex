@@ -81,7 +81,6 @@ defmodule JSV.Resolver do
 
     root_ns = Map.get(raw_schema, "$id", :root)
 
-    # rsv = %__MODULE__{rsv | root: root_ns}
     ^root_ns = Key.of(root_ns)
 
     with {:ok, rsv} <- resolve(rsv, {:prefetched, root_ns, raw_schema}) do

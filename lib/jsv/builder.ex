@@ -169,8 +169,8 @@ defmodule JSV.Builder do
           {:error, _} = err -> err
         end
 
-      {%Ref{dynamic?: true}, builder} ->
-        builder = stage_all_dynamic(builder)
+      {%Ref{kind: :anchor, dynamic?: true, arg: anchor}, builder} ->
+        builder = stage_dynamic_anchors(builder, anchor)
         build_all(builder, all_validators)
 
       {resolvable, builder} when is_binary(resolvable) when is_struct(resolvable, Ref) when :root == resolvable ->
@@ -201,10 +201,7 @@ defmodule JSV.Builder do
     end
   end
 
-  # TODO we should only stage for build the dynamic anchors that have the same
-  # anchor name as the ref. Not a big deal since we will not waste time to
-  # rebuild what is arealdy built thanks to check_not_built/2 -> :already_built.
-  defp stage_all_dynamic(builder) do
+  defp stage_dynamic_anchors(builder, anchor) do
     # To build all dynamic references we tap into the resolver. The resolver
     # also conveniently allows to fetch by its own keys ({:dynamic_anchor, _,
     # _}) instead of passing the original ref.
@@ -224,7 +221,7 @@ defmodule JSV.Builder do
     # But to keep it clean we scan the whole list every time.
     dynamic_buildables =
       Enum.flat_map(builder.resolver.resolved, fn
-        {{:dynamic_anchor, _, _} = vkey, _resolved} -> [{:resolved, vkey}]
+        {{:dynamic_anchor, _, ^anchor} = vkey, _resolved} -> [{:resolved, vkey}]
         _ -> []
       end)
 
