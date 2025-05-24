@@ -69,16 +69,17 @@ defmodule JSV.Resolver do
     %__MODULE__{chain: resolvers, default_meta: default_meta}
   end
 
+  IO.warn("it should be the builder that defines the initial id, the resolver should not care")
+
   @doc """
   Adds the given raw schema as a pre-fetched schema, using the `:root`
   namespace if the schema does not contain a `$id` property.
+
+  This function returns `{:ok, root_namespace, resolver}` on success.
   """
   @spec set_root(t, JSV.raw_schema()) :: {:ok, :root | binary, t} | {:error, term}
-  def set_root(rsv, raw_schema) when is_map(raw_schema) do
-    # Bootstrap of the recursive resolving of schemas, metaschemas and
-    # anchors/$ids. We just need to set the :root value in the context as the
-    # $id (or `:root` atom if not set) of the top schema.
 
+  def set_root(rsv, raw_schema) when is_map(raw_schema) do
     case Map.get(raw_schema, "$id", :root) do
       root_ns when is_binary(root_ns) or :root == root_ns ->
         ^root_ns = Key.of(root_ns)
