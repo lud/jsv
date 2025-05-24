@@ -81,7 +81,7 @@ defmodule JSV.Builder do
 
     with {:ok, root_key, resolver} <- Resolver.set_root(builder.resolver, raw_schema),
          builder = stage_build(%__MODULE__{builder | resolver: resolver}, root_key),
-         {:ok, validators} <- build_all(builder) do
+         {:ok, validators} <- build_all_staged(builder) do
       {:ok, %Root{raw: raw_schema, validators: validators, root_key: root_key}}
     else
       {:error, _} = err -> err
@@ -144,13 +144,13 @@ defmodule JSV.Builder do
   # * mod_validators are the created validators from part of a schema
   #   keywords+values and a vocabulary module
 
-  defp build_all(builder) do
-    build_all(builder, %{})
+  defp build_all_staged(builder) do
+    build_all_staged(builder, %{})
   catch
     {:thrown_build_error, reason} -> {:error, reason}
   end
 
-  defp build_all(builder, all_validators) do
+  defp build_all_staged(builder, all_validators) do
     # We split the buildables in three cases:
     # - One dynamic refs will lead to build all existing dynamic refs not
     #   already built.
@@ -168,22 +168,22 @@ defmodule JSV.Builder do
         with :buildable <- check_not_built(all_validators, vkey),
              {:ok, resolved} <- Resolver.fetch_resolved(builder.resolver, vkey),
              {:ok, schema_validators, builder} <- build_resolved(builder, resolved) do
-          build_all(builder, register_validator(all_validators, vkey, schema_validators))
+          build_all_staged(builder, register_validator(all_validators, vkey, schema_validators))
         else
-          {:already_built, _} -> build_all(builder, all_validators)
+          {:already_built, _} -> build_all_staged(builder, all_validators)
           {:error, _} = err -> err
         end
 
       {%Ref{kind: :anchor, dynamic?: true, arg: anchor}, builder} ->
         builder = stage_dynamic_anchors(builder, anchor)
-        build_all(builder, all_validators)
+        build_all_staged(builder, all_validators)
 
       {resolvable, builder} when is_binary(resolvable) when is_struct(resolvable, Ref) when :root == resolvable ->
         with :buildable <- check_not_built(all_validators, Key.of(resolvable)),
              {:ok, builder} <- resolve_and_stage(builder, resolvable) do
-          build_all(builder, all_validators)
+          build_all_staged(builder, all_validators)
         else
-          {:already_built, _} -> build_all(builder, all_validators)
+          {:already_built, _} -> build_all_staged(builder, all_validators)
           {:error, _} = err -> err
         end
 
@@ -208,13 +208,14 @@ defmodule JSV.Builder do
 
   defp stage_dynamic_anchors(builder, anchor) do
     # To build all dynamic references we tap into the resolver. The resolver
-    # also conveniently allows to fetch by its own keys ({:dynamic_anchor, _,
-    # _}) instead of passing the original ref.
+    # also conveniently allows to fetch by its own keys ({:dynamic_anchor,_,_})
+    # instead of passing the original ref.
     #
-    # Everytime we encounter a dynamic ref in build_all/2 we insert all dynamic
-    # references into the staged list. But if we insert the ref itself it will
-    # lead to an infinite loop, since we do that when we find a ref in this
-    # loop.
+    # Everytime we encounter a dynamic ref in build_all_staged/2 we need to
+    # stage the build of all dynamic references with the given anchor.
+    #
+    # But if we insert the ref itself it will lead to an infinite loop, since we
+    # do that when we find a ref in this loop.
     #
     # So instead of inserting the ref we insert the Key, and the Key module and
     # Resolver accept to work with that kind of schema identifier (that is,
