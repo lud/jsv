@@ -62,9 +62,13 @@ defmodule JSV.Builder do
   end
 
   def build(builder, module) when is_atom(module) do
-    build_root(builder, module.schema())
-  rescue
-    e in UndefinedFunctionError -> {:error, e}
+    try do
+      module.schema()
+    rescue
+      e in UndefinedFunctionError -> {:error, e}
+    else
+      raw_schema -> build(builder, raw_schema)
+    end
   end
 
   def build(builder, raw_schema) when is_map(raw_schema) do
@@ -357,7 +361,7 @@ defmodule JSV.Builder do
   defp build_mod_validators(raw_pairs, module, init_opts, builder, raw_schema) when is_map(raw_schema) do
     {leftovers, mod_acc, builder} =
       Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), builder}, fn pair, {leftovers, mod_acc, builder} ->
-        # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
+        # "keyword" refers to the schema keyword, e.g. "type", "properties", etc,
         # supported by a vocabulary.
 
         case module.handle_keyword(pair, mod_acc, builder, raw_schema) do

@@ -29,17 +29,6 @@ defmodule JSV.BuilderTest do
         nested: %{map: %{with: %{schema: %{type: "integer"}}}}
       }
 
-      # Deux solutions possibles:
-      #
-      # * On intègre le builder, il retourne les validateurs built so-far et le
-      #   builder, pour pouvoir continuer à en build d'autres.
-      # * On doit passer la liste de tous les entrypoints que l'on veut build et
-      #   le builder les build tous.
-      #
-      # Le truc c'est qu'il faudrait pouvoir récupérer la Key correspondant à ce
-      # qu'on veut builder aussi. Par exemple elle pourrait être retournée
-      # depuis une fonction build_nested(builder,all_validators,"#/some/stuff")
-
       IO.warn("TODO")
 
       # assert {:ok, root} =
