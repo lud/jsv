@@ -79,7 +79,7 @@ defmodule JSV.Builder do
   defp build_root(builder, raw_schema) do
     raw_schema = Schema.normalize(raw_schema)
 
-    with {:ok, root_key, resolver} <- Resolver.resolve_root(builder.resolver, raw_schema),
+    with {:ok, root_key, resolver} <- Resolver.set_root(builder.resolver, raw_schema),
          builder = stage_build(%__MODULE__{builder | resolver: resolver}, root_key),
          {:ok, validators} <- build_all(builder) do
       {:ok, %Root{raw: raw_schema, validators: validators, root_key: root_key}}

@@ -70,21 +70,22 @@ defmodule JSV.Resolver do
   end
 
   @doc """
-  Adds the given raw schema as a pre-resolved schema, using the `:root`
+  Adds the given raw schema as a pre-fetched schema, using the `:root`
   namespace if the schema does not contain a `$id` property.
   """
-  @spec resolve_root(t, JSV.raw_schema()) :: {:ok, :root | binary, t} | {:error, term}
-  def resolve_root(rsv, raw_schema) when is_map(raw_schema) do
+  @spec set_root(t, JSV.raw_schema()) :: {:ok, :root | binary, t} | {:error, term}
+  def set_root(rsv, raw_schema) when is_map(raw_schema) do
     # Bootstrap of the recursive resolving of schemas, metaschemas and
     # anchors/$ids. We just need to set the :root value in the context as the
     # $id (or `:root` atom if not set) of the top schema.
 
-    root_ns = Map.get(raw_schema, "$id", :root)
+    case Map.get(raw_schema, "$id", :root) do
+      root_ns when is_binary(root_ns) or :root == root_ns ->
+        ^root_ns = Key.of(root_ns)
+        {:ok, root_ns, %__MODULE__{rsv | fetch_cache: put_cache(rsv.fetch_cache, root_ns, raw_schema)}}
 
-    ^root_ns = Key.of(root_ns)
-
-    with {:ok, rsv} <- resolve(rsv, {:prefetched, root_ns, raw_schema}) do
-      {:ok, root_ns, rsv}
+      other ->
+        {:error, {:invalid_root_id, other}}
     end
   end
 
@@ -92,7 +93,7 @@ defmodule JSV.Resolver do
   Fetches the remote resource into the internal resolver cache and returns a new
   resolver with that updated cache.
   """
-  @spec resolve(t, resolvable | {:prefetched, term, term}) :: {:ok, t} | {:error, term}
+  @spec resolve(t, resolvable) :: {:ok, t} | {:error, term}
   def resolve(rsv, resolvable) do
     case check_resolved(rsv, resolvable) do
       :unresolved -> do_resolve(rsv, resolvable)
@@ -111,8 +112,12 @@ defmodule JSV.Resolver do
     end
   end
 
-  defp external_id({:prefetched, ext_id, _}) do
-    ext_id
+  defp external_id(:root) do
+    :root
+  end
+
+  defp external_id(ns) when is_binary(ns) do
+    ns
   end
 
   defp external_id(%Ref{ns: ns}) do
@@ -146,10 +151,6 @@ defmodule JSV.Resolver do
       :already_resolved -> resolve_meta_loop(rsv, tail)
       {:error, _} = err -> err
     end
-  end
-
-  defp check_resolved(rsv, {:prefetched, id, _}) do
-    check_resolved(rsv, id)
   end
 
   defp check_resolved(rsv, id) when is_binary(id) or :root == id do
@@ -429,10 +430,6 @@ defmodule JSV.Resolver do
     :error
   end
 
-  defp ensure_fetched(rsv, {:prefetched, _, raw_schema}) do
-    {:ok, raw_schema, rsv}
-  end
-
   defp ensure_fetched(rsv, fetchable) do
     with :unfetched <- check_fetched(rsv, fetchable),
          {:ok, ext_id, raw_schema} <- fetch_raw_schema(rsv, fetchable) do
@@ -452,7 +449,7 @@ defmodule JSV.Resolver do
     check_fetched(rsv, ns)
   end
 
-  defp check_fetched(rsv, id) when is_binary(id) do
+  defp check_fetched(rsv, id) when is_binary(id) when :root == id do
     case rsv do
       %{fetch_cache: %{^id => fetched}} -> {:already_fetched, fetched}
       _ -> :unfetched
