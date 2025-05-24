@@ -1,5 +1,4 @@
 defmodule JSV.BuilderTest do
-  alias JSV.Key
   use ExUnit.Case, async: true
 
   describe "resolving base meta schemas" do
@@ -22,14 +21,14 @@ defmodule JSV.BuilderTest do
     end
   end
 
+  IO.warn("TODO")
+
   describe "building multi-entrypoint schemas" do
     test "can build a schema with an deep entrypoint" do
-      document = %{
+      _document = %{
         some: "stuff",
         nested: %{map: %{with: %{schema: %{type: "integer"}}}}
       }
-
-      IO.warn("TODO")
 
       # assert {:ok, root} =
       #          JSV.build(document,

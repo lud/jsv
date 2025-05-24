@@ -152,10 +152,7 @@ defmodule JSV do
   def build(raw_schema, opts) when is_map(raw_schema) when is_atom(raw_schema) do
     case NimbleOptions.validate(opts, @build_opts_schema) do
       {:ok, opts} ->
-        builder =
-          opts
-          |> build_resolvers()
-          |> Builder.new()
+        builder = new_builder(opts)
 
         case Builder.build(builder, raw_schema) do
           {:ok, root} -> {:ok, root}
@@ -167,10 +164,10 @@ defmodule JSV do
     end
   end
 
-  defp build_resolvers(opts) do
+  defp new_builder(opts) do
     {resolvers, opts} = Keyword.pop!(opts, :resolver)
-
-    Keyword.put(opts, :resolvers, resolver_chain(resolvers))
+    opts = Keyword.put(opts, :resolvers, resolver_chain(resolvers))
+    Builder.new(opts)
   end
 
   @doc """
