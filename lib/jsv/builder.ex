@@ -155,7 +155,8 @@ defmodule JSV.Builder do
     # - One dynamic refs will lead to build all existing dynamic refs not
     #   already built.
     # - Resolvables such as ID and Ref will be resolved and turned into
-    #   :resolved tuples.
+    #   :resolved tuples. We do not build them right away to avoid building them
+    #   multiple times.
     # - :resolved tuples assume to be already resolved and will be built into
     #   validators.
     #
