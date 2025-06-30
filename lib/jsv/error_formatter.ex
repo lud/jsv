@@ -1,6 +1,8 @@
 defmodule JSV.ErrorFormatter do
+  alias JSV.Normalizer
   alias JSV.Key
   alias JSV.Ref
+  alias JSV.Schema
   alias JSV.ValidationError
   alias JSV.Validator
   alias JSV.Validator.Error
@@ -32,6 +34,25 @@ defmodule JSV.ErrorFormatter do
 
   @type raw_path :: [raw_path] | binary | integer | atom
 
+  @normalize_opts_schema NimbleOptions.new!(
+                           sort: [
+                             type: {:in, [:asc, :desc]},
+                             default: :desc,
+                             doc: """
+                             Controls the sort direction. Errors are sorted by `instanceLocation`.
+                             """
+                           ],
+                           keys: [
+                             type: {:in, [:atom, :string]},
+                             default: :string,
+                             doc: """
+                             Allows to keep atoms as keys for the errors, which makes working with errors easier.
+                             """
+                           ]
+                         )
+
+  @type normalize_opt :: unquote(NimbleOptions.option_typespec(@normalize_opts_schema))
+
   @doc """
   Returns a JSON-able version of the errors contained in the ValidationError.
 
@@ -40,19 +61,20 @@ defmodule JSV.ErrorFormatter do
 
   ### Options
 
-  * `:sort` - Either `:asc` or `:desc`. Defaults to `:desc` so the most deeply
-    nested errors, _i.e_ the root cause of errors, are displayed first. Errors
-    are sorted by `instanceLocation`.
+  #{NimbleOptions.docs(@normalize_opts_schema)}
   """
   @spec normalize_error(ValidationError.t(), keyword) :: map()
   def normalize_error(%ValidationError{} = e, opts \\ []) do
-    opts =
-      Keyword.update(opts, :sort, :desc, fn
-        :asc -> :asc
-        _ -> :desc
-      end)
+    opts = NimbleOptions.validate!(opts, @normalize_opts_schema)
+    top = %{valid: false, details: normalize_errors(e.errors, opts)}
+    normalize_keys(top, opts)
+  end
 
-    %{valid: false, details: normalize_errors(e.errors, opts)}
+  defp normalize_keys(with_atoms, opts) do
+    case opts[:keys] do
+      :atom -> with_atoms
+      :string -> Normalizer.normalize(with_atoms)
+    end
   end
 
   defp normalize_errors(errors, opts) do
@@ -196,5 +218,42 @@ defmodule JSV.ErrorFormatter do
       {_, :"$dynamicRef", _} -> "$dynamicRef"
       other -> raise "invalid eval path segment: #{inspect(other)}"
     end
+  end
+
+  @normal_error_schema Schema.normalize(%Schema{
+                         "$schema": "https://json-schema.org/draft/2020-12/schema",
+                         "$id": "jsv://error-output",
+                         "$defs": %{
+                           output_unit:
+                             Schema.object(
+                               properties: %{
+                                 valid: Schema.boolean(),
+                                 schemaLocation: Schema.string(),
+                                 evaluationPath: Schema.string(),
+                                 instanceLocation: Schema.string(),
+                                 # output units have errors, a list of error annotations
+                                 errors: Schema.items(Schema.ref("#/$defs/error_annot")),
+                                 # output units have other nested units
+                                 details: Schema.items(Schema.ref("#/$defs/output_unit"))
+                               },
+                               required: [:valid]
+                             ),
+                           error_annot:
+                             Schema.object(
+                               properties: %{
+                                 kind: Schema.string(),
+                                 message: Schema.string(),
+                                 # Error have details, i.e. a list of sub output units
+                                 details: Schema.items(Schema.ref("#/$defs/output_unit"))
+                               },
+                               required: [:kind, :message]
+                             )
+                         },
+                         "$ref": "#/$defs/output_unit"
+                       })
+
+  @doc false
+  def normal_error_schema do
+    @normal_error_schema |> dbg()
   end
 end

@@ -917,4 +917,8 @@ defmodule JSV do
       :error, _ -> major
     end
   end
+
+  def normal_error_schema do
+    JSV.ErrorFormatter.normal_error_schema()
+  end
 end

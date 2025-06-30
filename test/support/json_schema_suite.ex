@@ -21,7 +21,7 @@ defmodule JSV.Test.JsonSchemaSuite do
           {true, vctx}
 
         {:error, validator} ->
-          _ = test_error_format(validator, opts)
+          _ = assert_error_format(validator, opts, schema)
           {false, validator}
       end
 
@@ -85,20 +85,46 @@ defmodule JSV.Test.JsonSchemaSuite do
     end
   end
 
-  defp test_error_format(validator, opts) do
+  @error_vroot JSV.build!(JSV.ErrorFormatter.normal_error_schema())
+
+  defp assert_error_format(validator, opts, schema) do
     error = Validator.to_error(validator)
     _ = assert %ValidationError{} = error
     formatted = JSV.normalize_error(error)
-    assert ValidationError.message(error) =~ "json schema"
-    assert is_list(formatted.details)
 
-    Enum.each(formatted.details, fn unit ->
-      assert false == unit.valid
-      assert list_or_undef?(unit, :errors)
-      assert list_or_undef?(unit, :details)
-      assert is_binary(unit.evaluationPath)
-      assert is_binary(unit.schemaLocation)
-      assert is_binary(unit.instanceLocation)
+    case JSV.validate(formatted, @error_vroot) do
+      {:ok, _} ->
+        :ok
+
+      {:error, verr} ->
+        flunk("""
+        Formatted error does not respect the schema
+
+        # FORMATTED ERROR
+
+        #{inspect(formatted, pretty: true)}
+
+        # ERROR VALIDATION ERRORS
+
+        #{Exception.message(verr)}
+
+        # Built SCHEMA
+
+        #{inspect(schema, pretty: true)}
+
+        """)
+    end
+
+    assert ValidationError.message(error) =~ "json schema"
+    assert is_list(formatted["details"])
+
+    Enum.each(formatted["details"], fn unit ->
+      assert false == unit["valid"]
+      assert list_or_undef?(unit, "errors")
+      assert list_or_undef?(unit, "details")
+      assert is_binary(unit["evaluationPath"])
+      assert is_binary(unit["schemaLocation"])
+      assert is_binary(unit["instanceLocation"])
     end)
 
     # Ensure JSON encodable

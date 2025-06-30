@@ -73,7 +73,7 @@ defmodule JSV.CustomVocabulariesTest do
                    valid: false
                  }
                ]
-             } = JSV.normalize_error(err)
+             } = JSV.normalize_error(err, keys: :atom)
     end
   end
 end

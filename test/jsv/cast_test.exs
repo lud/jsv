@@ -70,7 +70,7 @@ defmodule JSV.CastTest do
                    valid: false
                  }
                ]
-             } = JSV.normalize_error(validation_error)
+             } = JSV.normalize_error(validation_error, keys: :atom)
     end
 
     test "does not crash on unexported functions" do
@@ -92,7 +92,7 @@ defmodule JSV.CastTest do
                    valid: false
                  }
                ]
-             } = JSV.normalize_error(validation_error)
+             } = JSV.normalize_error(validation_error, keys: :atom)
     end
 
     test "only handles unexported functions on __jsv__ call" do
@@ -141,7 +141,7 @@ defmodule JSV.CastTest do
                    valid: false
                  }
                ]
-             } = JSV.normalize_error(validation_error)
+             } = JSV.normalize_error(validation_error, keys: :atom)
     end
 
     test "only handles function clause errors on __jsv__ call" do

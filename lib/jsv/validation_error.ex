@@ -21,7 +21,7 @@ defmodule JSV.ValidationError do
 
   @impl true
   def message(e) do
-    %{valid: false, details: units} = ErrorFormatter.normalize_error(e)
+    %{valid: false, details: units} = ErrorFormatter.normalize_error(e, keys: :atom)
     units_fmt = format_units(units, 0)
     top_message = "json schema validation failed"
     message = [top_message, "\n\n" | units_fmt]

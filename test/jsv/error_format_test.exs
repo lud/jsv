@@ -83,37 +83,7 @@ defmodule JSV.ErrorFormatTest do
   #   end
   # end
 
-  @error_output_schema %Schema{
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "jsv://error-output",
-    "$defs": %{
-      output_unit:
-        Schema.object(
-          properties: %{
-            valid: Schema.boolean(),
-            schemaLocation: Schema.string(),
-            evaluationPath: Schema.string(),
-            instanceLocation: Schema.string(),
-            # output units have errors, a list of error annotations
-            errors: Schema.items(Schema.ref("#/$defs/error_annot")),
-            # output units have other nested units
-            details: Schema.items(Schema.ref("#/$defs/output_unit"))
-          },
-          required: [:valid]
-        ),
-      error_annot:
-        Schema.object(
-          properties: %{
-            kind: Schema.string(),
-            message: Schema.string(),
-            # Error have details, i.e. a list of sub output units
-            details: Schema.items(Schema.ref("#/$defs/output_unit"))
-          },
-          required: [:kind, :message]
-        )
-    },
-    "$ref": "#/$defs/output_unit"
-  }
+  @error_output_schema JSV.normal_error_schema()
 
   defp assert_output_schema(formatted_error) do
     {:ok, output_schema} = JSV.build(@error_output_schema, resolver: JSV.Test.TestResolver)
