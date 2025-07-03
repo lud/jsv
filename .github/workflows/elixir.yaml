@@ -53,7 +53,6 @@ jobs:
           key: ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
           # For the build we want them compiled on the same versions.
           restore-keys: |
-            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
             ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--
 
       - name: Install Dependencies
