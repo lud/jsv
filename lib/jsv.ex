@@ -655,6 +655,11 @@ defmodule JSV do
         {:ok, struct!(__MODULE__, pairs)}
       end
 
+      @doc false
+      def __jsv__(:required) do
+        @enforce_keys
+      end
+
       defoverridable schema: 0
     end
   end

@@ -236,6 +236,12 @@ defmodule JSV.StructSchemaTest do
       assert {:ok, %FromGenericData{name: "defined", age: -1}} ==
                call_mod(FromGenericData, %{"name" => "defined", "age" => -1})
     end
+
+    test "required keys are exported" do
+      assert [:with_req] == RefsAnother.__jsv__(:required)
+      assert [:sub_b] == RecursiveA.__jsv__(:required)
+      assert [] == RecursiveB.__jsv__(:required)
+    end
   end
 
   describe "building and validating schemas" do
@@ -1171,7 +1177,7 @@ defmodule JSV.StructSchemaTest do
       assert is_binary(Poison.encode!(data))
     end
 
-    if Code.ensure_compiled?(JSON) do
+    if {:module, JSON} == Code.ensure_compiled(JSON) do
       test "modules created this way automatically derive JSON encoders - native codec" do
         data = %RecursiveSubA{name: "hello", sub_b: %RecursiveSubB{name: "world"}}
 
