@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.1] - 2025-08-11
+
+### 🚀 Features
+
+- Export required keys from generated struct modules
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix JSON tests for elixir 1.17
+
 ## [0.10.0] - 2025-07-10
 
 ### 🚀 Features
