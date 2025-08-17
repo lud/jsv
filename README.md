@@ -13,10 +13,19 @@
 JSV is a JSON Schema Validation library for Elixir with full support for the latest JSON Schema specification.
 
 
+
 ## Documentation
 
 [API documentation is available on hexdocs.pm](https://hexdocs.pm/jsv/).
 
+
+## Supported Dialects
+
+
+JSV's goal is to support 100% of the latest specification, which is currently 2020-12. Additional support for Draft 7 is also included.
+
+* [![Draft 2020-12](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Felixir-jsv%2Fcompliance%2Fdraft2020-12.json)](https://bowtie.report/#/implementations/elixir-jsv)
+* [![Draft 7](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Felixir-jsv%2Fcompliance%2Fdraft7.json)](https://bowtie.report/#/implementations/elixir-jsv)
 
 ## Installation
 
@@ -30,20 +39,20 @@ end
 ```
 <!-- rdmx /:app_dep -->
 
-Additional dependencies can be added to support more features:
+**Optional** dependencies can be added to support more features:
 
 ```elixir
 def deps do
   [
-    # Optional libraries for enhanced format validation like URI, IRI, email
+    # Automatically enables enhanced format validation like URI, IRI, email
     # address, JSON-pointer, etc.
     {:abnf_parsec, "~> 1.0"},
 
     # JSV Supports Decimal and will validate Decimal structs as numbers.
     {:decimal, "~> 2.0"},
 
-    # Optional libraries for decoding schemas resolved via HTTP
-    # (required for Elixir versions prior to 1.18)
+    # Decoding schemas resolved via HTTP requires JSON support for Elixir
+    # versions prior to 1.18
     {:jason, "~> 1.0"},
     # OR
     {:poison, "~> 6.0 or ~> 5.0"},
