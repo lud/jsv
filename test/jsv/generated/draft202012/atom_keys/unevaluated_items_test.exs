@@ -723,6 +723,44 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedItemsTest do
     end
   end
 
+  describe "unevaluatedItems with minContains = 0" do
+    setup do
+      json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        contains: %JSV.Schema{type: "string"},
+        minContains: 0,
+        unevaluatedItems: false
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "empty array is valid", x do
+      data = []
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "no items evaluated by contains", x do
+      data = [0]
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "some but not all items evaluated by contains", x do
+      data = ["foo", 0]
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "all items evaluated by contains", x do
+      data = ["foo", "bar"]
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
+
   describe "non-array instances are valid" do
     setup do
       json_schema = %JSV.Schema{
