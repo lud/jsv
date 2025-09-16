@@ -33,7 +33,7 @@ JSV's goal is to support 100% of the latest specification, which is currently 20
 ```elixir
 def deps do
   [
-    {:jsv, "~> 0.10"},
+    {:jsv, "~> 0.11"},
   ]
 end
 ```

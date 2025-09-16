@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.11.0] - 2025-09-16
+
+### 🚀 Features
+
+- [**breaking**] ABNF parsers are now automatically enabled
 
 ### 🧪 Testing
 
