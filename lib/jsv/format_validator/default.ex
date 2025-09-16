@@ -7,10 +7,6 @@ defmodule JSV.FormatValidator.Default do
   @behaviour JSV.FormatValidator
 
   @supports_duration Code.ensure_loaded?(Duration)
-  @supports_email Code.ensure_loaded?(AbnfParsec)
-  @supports_iri Code.ensure_loaded?(AbnfParsec)
-  @supports_uri_template Code.ensure_loaded?(AbnfParsec)
-  @supports_json_pointer Code.ensure_loaded?(AbnfParsec)
 
   @formats [
              "ipv4",
@@ -24,12 +20,13 @@ defmodule JSV.FormatValidator.Default do
              "uri",
              "uri-reference",
              "uuid",
-             optional_support("duration", @supports_duration),
-             optional_support("email", @supports_email),
-             optional_support("iri", @supports_iri),
-             optional_support("iri-reference", @supports_iri),
-             optional_support("uri-template", @supports_uri_template),
-             optional_support(["json-pointer", "relative-json-pointer"], @supports_json_pointer)
+             "email",
+             "iri",
+             "iri-reference",
+             "uri-template",
+             "json-pointer",
+             "relative-json-pointer",
+             optional_support("duration", @supports_duration)
            ]
            |> :lists.flatten()
            |> Enum.sort()
@@ -109,10 +106,8 @@ defmodule JSV.FormatValidator.Default do
     {:ok, data}
   end
 
-  if @supports_email do
-    def validate_cast("email", data) do
-      Optional.EmailAddress.parse_email_address(data)
-    end
+  def validate_cast("email", data) do
+    Optional.EmailAddress.parse_email_address(data)
   end
 
   def validate_cast("hostname", data) do
@@ -123,14 +118,12 @@ defmodule JSV.FormatValidator.Default do
     end
   end
 
-  if @supports_iri do
-    def validate_cast("iri", data) do
-      Optional.IRI.parse_iri(data)
-    end
+  def validate_cast("iri", data) do
+    Optional.IRI.parse_iri(data)
+  end
 
-    def validate_cast("iri-reference", data) do
-      Optional.IRI.parse_iri_reference(data)
-    end
+  def validate_cast("iri-reference", data) do
+    Optional.IRI.parse_iri_reference(data)
   end
 
   def validate_cast("uri", data) do
@@ -141,19 +134,15 @@ defmodule JSV.FormatValidator.Default do
     Optional.URI.parse_uri_reference(data)
   end
 
-  if @supports_uri_template do
-    def validate_cast("uri-template", data) do
-      Optional.URITemplate.parse_uri_template(data)
-    end
+  def validate_cast("uri-template", data) do
+    Texture.UriTemplate.parse(data)
   end
 
-  if @supports_json_pointer do
-    def validate_cast("json-pointer", data) do
-      Optional.JSONPointer.parse_json_pointer(data)
-    end
+  def validate_cast("json-pointer", data) do
+    Optional.JSONPointer.parse_json_pointer(data)
+  end
 
-    def validate_cast("relative-json-pointer", data) do
-      Optional.JSONPointer.parse_relative_json_pointer(data)
-    end
+  def validate_cast("relative-json-pointer", data) do
+    Optional.JSONPointer.parse_relative_json_pointer(data)
   end
 end

@@ -7,7 +7,8 @@ if Code.ensure_loaded?(Readmix.Generator) do
 
     action :formats, params: []
 
-    abnf_req = {:abnf_parsec, "~> 2.0"}
+    abnf_req = "Depends on `:abnf_parsec` (automatically included)"
+    texture = "Depends on `:texture` (automatically included)"
 
     @formats_specs %{
       "date" => %{
@@ -100,7 +101,7 @@ if Code.ensure_loaded?(Readmix.Generator) do
       "uri" => %{
         input: "http://example.com",
         native: URI,
-        support: "Native, optionally uses `#{inspect(abnf_req)}`.",
+        support: abnf_req,
         notes: [
           "Without the optional dependency, the `URI` module is used and a minimum checks on hostname and scheme presence are made."
         ]
@@ -108,14 +109,15 @@ if Code.ensure_loaded?(Readmix.Generator) do
       "uri-reference" => %{
         input: "/example-path",
         native: URI,
-        support: "Native, optionally uses `#{inspect(abnf_req)}`.",
+        support: abnf_req,
         notes: [
           "Without the optional dependency, the `URI` module will cast most non url-like strings as a `path`."
         ]
       },
       "uri-template" => %{
         input: "http://example.com/search{?query,lang}",
-        support: abnf_req
+        support: texture,
+        custom_output: "%Texture.UriTemplate{}"
       },
       "uuid" => %{
         input: "bf22824c-c8a4-11ef-9642-0fdaf117eeb9",
@@ -143,6 +145,7 @@ if Code.ensure_loaded?(Readmix.Generator) do
       spec = Map.fetch!(formats_specs(), format)
       input = Map.fetch!(spec, :input)
       notes = Map.get(spec, :notes, [])
+      custom_output = Map.get(spec, :custom_output, nil)
 
       {support, notes} =
         case spec do
@@ -165,9 +168,10 @@ if Code.ensure_loaded?(Readmix.Generator) do
         end
 
       output =
-        case casted do
-          ^input -> "Input value."
-          _ -> "`#{inspect(casted)}`"
+        case {casted, custom_output} do
+          {^input, nil} -> "Input value."
+          {_, nil} -> "`#{inspect(casted)}`"
+          {_, custom} -> "`#{custom}`"
         end
 
       _wrapped =

@@ -54,14 +54,14 @@ defmodule JSV.MixProject do
       {:decimal, "~> 2.0", optional: true},
 
       # Optional Formats
-      {:abnf_parsec, "~> 2.0", optional: true},
+      {:abnf_parsec, "~> 2.0"},
+      {:texture, "~> 0.1"},
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:readmix, "~> 0.6", only: [:dev, :test], runtime: false},
-      {:modkit, "~> 0.6", only: [:dev, :test], runtime: false},
 
       # Test
       {:briefly, "~> 0.5.1", only: :test},
@@ -71,7 +71,8 @@ defmodule JSV.MixProject do
       {:mox, "~> 1.2", only: :test},
 
       # JSON Schema Test Suite
-      json_schema_test_suite()
+      json_schema_test_suite(),
+      {:modkit, "~> 0.8.0"}
     ]
   end
 

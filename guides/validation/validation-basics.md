@@ -52,19 +52,6 @@ values by passing the `cast_formats: true` option to `JSV.validate/3`.
 
 The listing below describe values returned when that option is enabled.
 
-**Important**: Many formats require the `abnf_parsec` library to be available.
-
-You may add this dependency in your application and it will be used
-automatically.
-
-```elixir
-def deps do
-  [
-    {:abnf_parsec, "~> 2.0"},
-  ]
-end
-```
-
 <!-- rdmx jsv:formats -->
 ### date
 
@@ -96,7 +83,7 @@ end
 
 ### email
 
-* **support**: Requires `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:abnf_parsec` (automatically included)
 * **input**: `"hello@json-schema.org"`
 * **output**: Input value.
 * Support is limited by the implementation of that library.
@@ -128,19 +115,19 @@ end
 
 ### iri
 
-* **support**: Requires `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:abnf_parsec` (automatically included)
 * **input**: `"https://héhé.com/héhé"`
 * **output**: `%URI{scheme: "https", authority: "héhé.com", userinfo: nil, host: "héhé.com", port: 443, path: "/héhé", query: nil, fragment: nil}`
 
 ### iri-reference
 
-* **support**: Requires `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:abnf_parsec` (automatically included)
 * **input**: `"//héhé"`
 * **output**: `%URI{scheme: nil, authority: "héhé", userinfo: nil, host: "héhé", port: nil, path: nil, query: nil, fragment: nil}`
 
 ### json-pointer
 
-* **support**: Requires `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:abnf_parsec` (automatically included)
 * **input**: `"/foo/bar/baz"`
 * **output**: Input value.
 
@@ -154,7 +141,7 @@ end
 
 ### relative-json-pointer
 
-* **support**: Requires `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:abnf_parsec` (automatically included)
 * **input**: `"0/foo/bar"`
 * **output**: Input value.
 
@@ -176,7 +163,7 @@ end
 
 ### uri
 
-* **support**: Native, optionally uses `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:abnf_parsec` (automatically included)
 * **input**: `"http://example.com"`
 * **output**: `%URI{scheme: "http", authority: "example.com", userinfo: nil, host: "example.com", port: 80, path: nil, query: nil, fragment: nil}`
 * The format is implemented with the native `URI` module.
@@ -184,7 +171,7 @@ end
 
 ### uri-reference
 
-* **support**: Native, optionally uses `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:abnf_parsec` (automatically included)
 * **input**: `"/example-path"`
 * **output**: `%URI{scheme: nil, userinfo: nil, host: nil, port: nil, path: "/example-path", query: nil, fragment: nil}`
 * The format is implemented with the native `URI` module.
@@ -192,9 +179,9 @@ end
 
 ### uri-template
 
-* **support**: Requires `{:abnf_parsec, "~> 2.0"}`.
+* **support**: Depends on `:texture` (automatically included)
 * **input**: `"http://example.com/search{?query,lang}"`
-* **output**: Input value.
+* **output**: `%Texture.UriTemplate{}`
 
 ### uuid
 

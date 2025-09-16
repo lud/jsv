@@ -44,10 +44,6 @@ end
 ```elixir
 def deps do
   [
-    # Automatically enables enhanced format validation like URI, IRI, email
-    # address, JSON-pointer, etc.
-    {:abnf_parsec, "~> 1.0"},
-
     # JSV Supports Decimal and will validate Decimal structs as numbers.
     {:decimal, "~> 2.0"},
 
