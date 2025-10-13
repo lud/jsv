@@ -169,7 +169,7 @@ defmodule JSV.Schema.HelperCompiler do
         end
 
       @doc """
-      Defines or merges onto a JSON Schema with #{doc_schema_props}.#{doc_custom}
+      Returns a JSON Schema with #{doc_schema_props}.#{doc_custom}
       """
       @doc group: "Schema Presets"
       @spec unquote(fun)(unquote_splicing(typespecs), Schema.attributes() | nil) :: Schema.schema()
