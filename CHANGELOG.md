@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.2] - 2025-10-13
+
+### 📚 Documentation
+
+- Fixed doc on schema preset helpers
+
 ## [0.11.0] - 2025-09-16
 
 ### 🚀 Features
