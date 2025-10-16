@@ -436,8 +436,14 @@ defmodule JSV.Schema do
 
   # TODO(schema-fun): Remove check for the schema/0 function
   def schema_module?(module) do
-    Code.ensure_loaded?(module) &&
-      (function_exported?(module, :json_schema, 0) || function_exported?(module, :schema, 0))
+    case Code.ensure_compiled(module) do
+      {:error, :nofile} ->
+        false
+
+      {:module, ^module} ->
+        Code.ensure_loaded!(module)
+        function_exported?(module, :json_schema, 0) || function_exported?(module, :schema, 0)
+    end
   end
 
   # TODO(schema-fun): Remove support for the schema/0 function
