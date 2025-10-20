@@ -27,7 +27,7 @@ jobs:
 
     strategy:
       matrix:
-        elixir: ["1.19.0","1.18.4"]
+        elixir: ["1.19","1.18"]
         otp: ["28","27"]
         
 
