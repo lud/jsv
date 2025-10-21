@@ -37,6 +37,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: setup_beam
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
@@ -49,10 +50,10 @@ jobs:
             deps
             _build
             !_build/plts
-          key: ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+          key: ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ steps.setup_beam.outputs.otp-version }}--${{ steps.setup_beam.outputs.elixir-version }}--${{ hashFiles('mix.lock') }}
           # For the build we want them compiled on the same versions.
           restore-keys: |
-            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--
+            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ steps.setup_beam.outputs.otp-version }}--${{ steps.setup_beam.outputs.elixir-version }}--
 
       - name: Install Dependencies
         run: |
@@ -80,7 +81,7 @@ jobs:
         id: dialyzer-plts
         with:
           path: _build/plts
-          key: ${{ env.cache_vsn }}-dialyzer-plts-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.exs', 'mix.lock') }}
+          key: ${{ env.cache_vsn }}-dialyzer-plts-${{ runner.os }}--${{ steps.setup_beam.outputs.otp-version }}--${{ steps.setup_beam.outputs.elixir-version }}--${{ hashFiles('mix.exs', 'mix.lock') }}
 
       - name: Run dialyzer
         run: mix dialyzer --halt-exit-status
