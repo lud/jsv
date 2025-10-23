@@ -437,7 +437,7 @@ defmodule JSV.Schema do
   # TODO(schema-fun): Remove check for the schema/0 function
   def schema_module?(module) do
     case Code.ensure_compiled(module) do
-      {:error, :nofile} ->
+      {:error, _} ->
         false
 
       {:module, ^module} ->
