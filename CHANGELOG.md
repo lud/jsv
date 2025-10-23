@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.3] - 2025-10-23
+
+### 🐛 Bug Fixes
+
+- Fixed module-based schema loading in Elixir 1.19
+
 ## [0.11.2] - 2025-10-13
 
 ### 📚 Documentation
