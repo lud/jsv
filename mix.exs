@@ -94,7 +94,6 @@ defmodule JSV.MixProject do
       extras: doc_extras(),
       groups_for_extras: groups_for_extras(),
       groups_for_modules: groups_for_modules(),
-      groups_for_docs: groups_for_docs(),
       nest_modules_by_prefix: [JSV.Vocabulary]
     ]
   end
@@ -164,10 +163,6 @@ defmodule JSV.MixProject do
       ],
       Internal: ~r/.*/
     ]
-  end
-
-  defp groups_for_docs do
-    []
   end
 
   defp package do

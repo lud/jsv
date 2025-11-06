@@ -69,6 +69,23 @@ defmodule JSV do
   `JSV.Schema.normalize/1`.
   """
 
+  @moduledoc groups: [
+               [title: "Types"],
+               [
+                 title: "Schema Validation API",
+                 description: "The main API for JSV, used to build validation roots and validate data."
+               ],
+               [
+                 title: "Schema Definition Macros",
+                 description: "Macros to create module-based schemas and custom cast functions."
+               ],
+               [
+                 title: "Custom Build API",
+                 description:
+                   "Low level build API to work with schemas embedded in larger documents such as an OpenAPI specification."
+               ]
+             ]
+
   @default_default_meta "https://json-schema.org/draft/2020-12/schema"
 
   @build_opts_schema NimbleOptions.new!(
@@ -216,6 +233,12 @@ defmodule JSV do
 
   @opaque build_context :: record(:build_ctx, builder: Builder.t(), validators: Validator.validators())
 
+  # ---------------------------------------------------------------------------
+  #                           Schema Validation API
+  # ---------------------------------------------------------------------------
+
+  @doc_group "Schema Validation API"
+
   @doc """
   Builds the schema as a `#{inspect(Root)}` schema for validation.
 
@@ -223,6 +246,7 @@ defmodule JSV do
 
   #{NimbleOptions.docs(@build_opts_schema)}
   """
+  @doc group: @doc_group
   @spec build(native_schema(), [build_opt]) :: {:ok, Root.t()} | {:error, Exception.t()}
   def build(raw_schema, opts \\ []) do
     {:ok, build!(raw_schema, opts)}
@@ -239,6 +263,7 @@ defmodule JSV do
   Same as `build/2` but raises on error. Errors are not normalized into a
   `JSV.BuildError` as `build/2` does.
   """
+  @doc group: @doc_group
   @spec build!(JSV.native_schema(), [build_opt]) :: Root.t()
   def build!(raw_schema, opts \\ [])
 
@@ -255,94 +280,80 @@ defmodule JSV do
   end
 
   @doc """
-  Initializes a build context for controlled builds.
-
-  See `build/2` for options.
+  Returns the list of format validator modules that are used when a schema is
+  built with format validation enabled and the `:formats` option to `build/2` is
+  `true`.
   """
-  @spec build_init!([build_opt]) :: build_context()
-  debang def build_init!(opts \\ [])
-
-  def build_init!(opts) do
-    opts = NimbleOptions.validate!(opts, @build_opts_schema)
-    {resolver, opts} = make_resolver(opts)
-    builder = make_builder(resolver, opts)
-    build_ctx(builder: builder)
-  end
-
-  @doc "Adds a schema to the build context."
-  @spec build_add!(build_context(), native_schema()) :: {Key.t(), normal_schema(), build_context()}
-  debang def build_add!(build_ctx, raw_schema)
-
-  def build_add!(build_ctx(builder: builder) = ctx, raw_schema) do
-    raw_schema = ensure_map_schema(raw_schema)
-    normal_schema = Schema.normalize(raw_schema)
-    key = schema_to_key(normal_schema)
-    builder = Builder.add_schema!(builder, key, normal_schema)
-    {key, normal_schema, build_ctx(ctx, builder: builder)}
+  @doc group: @doc_group
+  @spec default_format_validator_modules :: [module]
+  def default_format_validator_modules do
+    [JSV.FormatValidator.Default]
   end
 
   @doc """
-  Builds the given reference or root schema.
+  Returns the default meta schema used when the `:default_meta` option is not
+  set in `build/2`.
 
-  Returns the build context as well as a key, which is a pointer to the built
-  schema.
+  Currently returns #{inspect(@default_default_meta)}.
   """
-  @spec build_key!(build_context(), Ref.ns() | Ref.t()) :: {Key.t(), build_context()}
-  debang def build_key!(build_ctx, ref_or_ns)
-
-  def build_key!(build_ctx(builder: builder, validators: vds) = ctx, ref_or_ns)
-      when ref_or_ns == :root
-      when is_binary(ref_or_ns)
-      when is_struct(ref_or_ns, Ref) do
-    key = Key.of(ref_or_ns)
-
-    {new_vds, builder} = Builder.build!(builder, ref_or_ns, vds)
-    {key, build_ctx(ctx, builder: builder, validators: new_vds)}
+  @doc group: @doc_group
+  @spec default_meta :: binary
+  def default_meta do
+    @default_default_meta
   end
 
   @doc """
-  Returns a root with all the validators from the build context and the given
-  `root_key`. That key is used as the default entrypoint for validation when no
-  `:key` option is passed to `validate/2`.
+  Returns the schema representing errors returned by `normalize_error/1`.
+
+  Because errors can be nested, the schema is recursive, so this function
+  returns a module based schema (a module name).
   """
-  @spec to_root!(build_context, Key.t()) :: Root.t()
-  debang def to_root!(build_ctx, root_key)
-
-  def to_root!(build_ctx(validators: vds), root_key) do
-    %Root{raw: nil, validators: vds, root_key: root_key}
+  @doc group: @doc_group
+  @spec error_schema :: module
+  def error_schema do
+    JSV.ErrorFormatter.error_schema()
   end
 
-  defp ensure_map_schema(map) when is_map(map) do
-    map
+  @doc """
+  Returns a JSON compatible represenation of a `JSV.ValidationError` struct.
+
+  See `JSV.ErrorFormatter.normalize_error/2` for options.
+
+  When used without the `:atoms` keys option, a normalized error will correspond
+  to the JSON schema returned by `error_schema/0`.
+  """
+  @doc group: @doc_group
+  @spec normalize_error(ValidationError.t() | Validator.context() | [Validator.Error.t()], keyword) :: map()
+  def normalize_error(error, opts \\ [])
+
+  def normalize_error(%ValidationError{} = error, opts) do
+    ErrorFormatter.normalize_error(error, opts)
   end
 
-  defp ensure_map_schema(module) when is_atom(module) do
-    JSV.Schema.from_module(module)
+  def normalize_error(errors, opts) when is_list(errors) do
+    normalize_error(ValidationError.of(errors), opts)
   end
 
-  defp schema_to_key(raw_schema) do
-    case Map.get(raw_schema, "$id", :root) do
-      root_ns when is_binary(root_ns) or :root == root_ns -> ^root_ns = Key.of(root_ns)
-      other -> raise ArgumentError, "invalid root $id: #{inspect(other)}"
+  def normalize_error(%ValidationContext{} = validator, opts) do
+    normalize_error(Validator.to_error(validator), opts)
+  end
+
+  @doc false
+  # direct entrypoint for tests when we want to get the returned context.
+  @spec validation_entrypoint(term, term, term) :: Validator.result()
+  def validation_entrypoint(%JSV.Root{} = schema, data, opts) do
+    %JSV.Root{validators: validators, root_key: root_key} = schema
+
+    {key, opts} = Keyword.pop(opts, :key, root_key)
+
+    case Map.fetch(validators, key) do
+      {:ok, root_schema_validators} ->
+        context = JSV.Validator.context(validators, key, opts)
+        JSV.Validator.validate(data, root_schema_validators, context)
+
+      :error ->
+        raise ArgumentError, "validators are not defined for key #{inspect(key)}"
     end
-  end
-
-  defp make_resolver(opts) do
-    {resolvers, opts} = Keyword.pop!(opts, :resolver)
-    {default_meta, opts} = Keyword.pop!(opts, :default_meta)
-
-    resolver =
-      resolvers
-      |> resolver_chain()
-      |> Resolver.chain_of(default_meta)
-
-    # |> Resolver.put_cached(root_key, raw_schema)
-
-    {resolver, opts}
-  end
-
-  defp make_builder(resolver, opts) do
-    Builder.new([{:resolver, resolver} | opts])
   end
 
   @doc """
@@ -360,6 +371,7 @@ defmodule JSV do
       iex> JSV.resolver_chain([{JSV.Resolver.Embedded, []}, {MyModule, %{foo: :bar}}])
       [{JSV.Resolver.Embedded, []}, {MyModule, %{foo: :bar}}, {JSV.Resolver.Internal, []}]
   """
+  @doc group: @doc_group
   @spec resolver_chain(resolvers :: module | {module, term} | list({module, term})) :: [{module, term}]
   def resolver_chain(resolver) do
     resolvers = List.wrap(resolver)
@@ -398,17 +410,6 @@ defmodule JSV do
   end
 
   @doc """
-  Returns the default meta schema used when the `:default_meta` option is not
-  set in `build/2`.
-
-  Currently returns #{inspect(@default_default_meta)}.
-  """
-  @spec default_meta :: binary
-  def default_meta do
-    @default_default_meta
-  end
-
-  @doc """
   Validates and casts the data with the given schema. The schema must be a
   `JSV.Root` struct generated with `build/2`.
 
@@ -427,6 +428,7 @@ defmodule JSV do
 
   #{NimbleOptions.docs(@validate_opts_schema)}
   """
+  @doc group: @doc_group
   @spec validate(term, JSV.Root.t(), [validate_opt]) :: {:ok, term} | {:error, Exception.t()}
   def validate(data, root, opts \\ [])
 
@@ -443,6 +445,7 @@ defmodule JSV do
     end
   end
 
+  @doc group: @doc_group
   @spec validate!(term, JSV.Root.t(), keyword) :: term
   def validate!(data, root, opts \\ []) do
     case validate(data, root, opts) do
@@ -451,56 +454,30 @@ defmodule JSV do
     end
   end
 
-  @doc """
-  Returns a JSON compatible represenation of a `JSV.ValidationError` struct.
-
-  See `JSV.ErrorFormatter.normalize_error/2` for options.
-
-  When used without the `:atoms` keys option, a normalized error will correspond
-  to the JSON schema returned by `error_schema/0`.
-  """
-  @spec normalize_error(ValidationError.t() | Validator.context() | [Validator.Error.t()], keyword) :: map()
-  def normalize_error(error, opts \\ [])
-
-  def normalize_error(%ValidationError{} = error, opts) do
-    ErrorFormatter.normalize_error(error, opts)
-  end
-
-  def normalize_error(errors, opts) when is_list(errors) do
-    normalize_error(ValidationError.of(errors), opts)
-  end
-
-  def normalize_error(%ValidationContext{} = validator, opts) do
-    normalize_error(Validator.to_error(validator), opts)
-  end
-
+  # From https://github.com/fishcakez/dialyze/blob/6698ae582c77940ee10b4babe4adeff22f1b7779/lib/mix/tasks/dialyze.ex#L168
   @doc false
-  # direct entrypoint for tests when we want to get the returned context.
-  @spec validation_entrypoint(term, term, term) :: Validator.result()
-  def validation_entrypoint(%JSV.Root{} = schema, data, opts) do
-    %JSV.Root{validators: validators, root_key: root_key} = schema
+  @spec otp_version :: String.t()
+  def otp_version do
+    major = :erlang.list_to_binary(:erlang.system_info(:otp_release))
+    vsn_file = Path.join([:code.root_dir(), "releases", major, "OTP_VERSION"])
 
-    {key, opts} = Keyword.pop(opts, :key, root_key)
-
-    case Map.fetch(validators, key) do
-      {:ok, root_schema_validators} ->
-        context = JSV.Validator.context(validators, key, opts)
-        JSV.Validator.validate(data, root_schema_validators, context)
-
-      :error ->
-        raise ArgumentError, "validators are not defined for key #{inspect(key)}"
+    try do
+      vsn_file
+      |> File.read!()
+      |> String.split("\n", trim: true)
+    else
+      [full] -> full
+      _ -> major
+    catch
+      :error, _ -> major
     end
   end
 
-  @doc """
-  Returns the list of format validator modules that are used when a schema is
-  built with format validation enabled and the `:formats` option to `build/2` is
-  `true`.
-  """
-  @spec default_format_validator_modules :: [module]
-  def default_format_validator_modules do
-    [JSV.FormatValidator.Default]
-  end
+  # ---------------------------------------------------------------------------
+  #                          Schema Definition Macros
+  # ---------------------------------------------------------------------------
+
+  @doc_group "Schema Definition Macros"
 
   @doc """
   Defines a struct in the calling module where the struct keys are the
@@ -613,6 +590,7 @@ defmodule JSV do
         }
       }}
   """
+  @doc group: @doc_group
   defmacro defschema(schema_or_properties) do
     quote bind_quoted: [schema_or_properties: schema_or_properties] do
       schema =
@@ -747,6 +725,7 @@ defmodule JSV do
                 name: string(),
                 parent: optional(__MODULE__)
   """
+  @doc group: @doc_group
   defmacro defschema(module, description \\ nil, schema_or_properties) do
     # not giving the caller env so we do not expand the module name to its FQMN
     module_name = inspect(Macro.expand_literals(module, __ENV__))
@@ -863,6 +842,7 @@ defmodule JSV do
 
   See `defcast/3` for more information.
   """
+  @doc group: @doc_group
   defmacro defcast(local_fun) when is_atom(local_fun) do
     defcast_local(__CALLER__, Atom.to_string(local_fun), local_fun)
   end
@@ -902,6 +882,7 @@ defmodule JSV do
 
   See `defcast/3` for more information.
   """
+  @doc group: @doc_group
   defmacro defcast(tag, local_fun) when is_atom(local_fun) and is_valid_tag(tag) do
     defcast_local(__CALLER__, tag, local_fun)
   end
@@ -1013,6 +994,7 @@ defmodule JSV do
 
   Make sure to read the [custom cast functions guide](cast-functions.html)!
   """
+  @doc group: @doc_group
   defmacro defcast(tag, fun, block)
 
   defmacro defcast(tag, {_, _, _} = call, blocks) when is_valid_tag(tag) do
@@ -1077,33 +1059,104 @@ defmodule JSV do
     raise ArgumentError, "invalid defcast arguments"
   end
 
-  # From https://github.com/fishcakez/dialyze/blob/6698ae582c77940ee10b4babe4adeff22f1b7779/lib/mix/tasks/dialyze.ex#L168
-  @doc false
-  @spec otp_version :: String.t()
-  def otp_version do
-    major = :erlang.list_to_binary(:erlang.system_info(:otp_release))
-    vsn_file = Path.join([:code.root_dir(), "releases", major, "OTP_VERSION"])
+  # ---------------------------------------------------------------------------
+  #                              Custom Build API
+  # ---------------------------------------------------------------------------
 
-    try do
-      vsn_file
-      |> File.read!()
-      |> String.split("\n", trim: true)
-    else
-      [full] -> full
-      _ -> major
-    catch
-      :error, _ -> major
-    end
+  @doc_group "Custom Build API"
+
+  @doc """
+  Initializes a build context for controlled builds.
+
+  See `build/2` for options.
+  """
+  @spec build_init!([build_opt]) :: build_context()
+  @doc group: @doc_group
+  debang def build_init!(opts \\ [])
+
+  def build_init!(opts) do
+    opts = NimbleOptions.validate!(opts, @build_opts_schema)
+    {resolver, opts} = make_resolver(opts)
+    builder = make_builder(resolver, opts)
+    build_ctx(builder: builder)
+  end
+
+  @doc "Adds a schema to the build context."
+  @doc group: @doc_group
+  @spec build_add!(build_context(), native_schema()) :: {Key.t(), normal_schema(), build_context()}
+  debang def build_add!(build_ctx, raw_schema)
+
+  def build_add!(build_ctx(builder: builder) = ctx, raw_schema) do
+    raw_schema = ensure_map_schema(raw_schema)
+    normal_schema = Schema.normalize(raw_schema)
+    key = schema_to_key(normal_schema)
+    builder = Builder.add_schema!(builder, key, normal_schema)
+    {key, normal_schema, build_ctx(ctx, builder: builder)}
   end
 
   @doc """
-  Returns the schema representing errors returned by `normalize_error/1`.
+  Builds the given reference or root schema.
 
-  Because errors can be nested, the schema is recursive, so this function
-  returns a module based schema (a module name).
+  Returns the build context as well as a key, which is a pointer to the built
+  schema.
   """
-  @spec error_schema :: module
-  def error_schema do
-    JSV.ErrorFormatter.error_schema()
+  @doc group: @doc_group
+  @spec build_key!(build_context(), Ref.ns() | Ref.t()) :: {Key.t(), build_context()}
+  debang def build_key!(build_ctx, ref_or_ns)
+
+  def build_key!(build_ctx(builder: builder, validators: vds) = ctx, ref_or_ns)
+      when ref_or_ns == :root
+      when is_binary(ref_or_ns)
+      when is_struct(ref_or_ns, Ref) do
+    key = Key.of(ref_or_ns)
+
+    {new_vds, builder} = Builder.build!(builder, ref_or_ns, vds)
+    {key, build_ctx(ctx, builder: builder, validators: new_vds)}
+  end
+
+  @doc """
+  Returns a root with all the validators from the build context and the given
+  `root_key`. That key is used as the default entrypoint for validation when no
+  `:key` option is passed to `validate/2`.
+  """
+  @doc group: @doc_group
+  @spec to_root!(build_context, Key.t()) :: Root.t()
+  debang def to_root!(build_ctx, root_key)
+
+  def to_root!(build_ctx(validators: vds), root_key) do
+    %Root{raw: nil, validators: vds, root_key: root_key}
+  end
+
+  defp ensure_map_schema(map) when is_map(map) do
+    map
+  end
+
+  defp ensure_map_schema(module) when is_atom(module) do
+    JSV.Schema.from_module(module)
+  end
+
+  defp schema_to_key(raw_schema) do
+    case Map.get(raw_schema, "$id", :root) do
+      root_ns when is_binary(root_ns) or :root == root_ns -> ^root_ns = Key.of(root_ns)
+      other -> raise ArgumentError, "invalid root $id: #{inspect(other)}"
+    end
+  end
+
+  defp make_resolver(opts) do
+    {resolvers, opts} = Keyword.pop!(opts, :resolver)
+    {default_meta, opts} = Keyword.pop!(opts, :default_meta)
+
+    resolver =
+      resolvers
+      |> resolver_chain()
+      |> Resolver.chain_of(default_meta)
+
+    # |> Resolver.put_cached(root_key, raw_schema)
+
+    {resolver, opts}
+  end
+
+  defp make_builder(resolver, opts) do
+    Builder.new([{:resolver, resolver} | opts])
   end
 end

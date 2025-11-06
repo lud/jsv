@@ -13,7 +13,8 @@ defmodule JSV.Debanger do
     {:def, meta, [{fun, _, args}]} = call
 
     quote do
-      @__debang_bang_funs {unquote(fun), unquote(meta), unquote(Macro.escape(args))}
+      @__debang_bang_funs {unquote(fun), unquote(meta), unquote(Macro.escape(args)),
+                           Module.get_attribute(__MODULE__, :doc_group)}
       unquote(call)
     end
   end
@@ -23,7 +24,7 @@ defmodule JSV.Debanger do
     specs = Module.get_attribute(env.module, :spec)
 
     quoted_unbanged =
-      Enum.map(bang_funs, fn {bang_fun, bang_meta, args} ->
+      Enum.map(bang_funs, fn {bang_fun, bang_meta, args, doc_group} ->
         {:spec, {:"::", _, [{^bang_fun, _, arg_types}, return_type]}, _} = find_spec!(specs, bang_fun)
 
         args_no_defaults = args_no_defaults(args)
@@ -37,6 +38,10 @@ defmodule JSV.Debanger do
             errors and returns a result tuple.
             """
             @spec unquote(nobang_fun)(unquote_splicing(arg_types)) :: unquote(tuple_return_type)
+            if doc_group = unquote(doc_group) do
+              @doc group: doc_group
+            end
+
             def unquote(nobang_fun)(unquote_splicing(args)) do
               __debang_wrap__(unquote(bang_fun)(unquote_splicing(args_no_defaults)))
             rescue
