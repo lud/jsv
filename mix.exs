@@ -55,7 +55,7 @@ defmodule JSV.MixProject do
 
       # Optional Formats
       {:abnf_parsec, "~> 2.0"},
-      {:texture, "~> 0.1"},
+      {:texture, "~> 0.3"},
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
