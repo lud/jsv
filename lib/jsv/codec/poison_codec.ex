@@ -21,11 +21,11 @@ if Code.ensure_loaded?(Poison) do
     end
 
     def encode_to_iodata!(data) do
-      Poison.encode_to_iodata!(data, strict_keys: true)
+      Poison.encode_to_iodata!(data)
     end
 
     def format_to_iodata!(data) do
-      Poison.encode_to_iodata!(data, strict_keys: true, pretty: true)
+      Poison.encode_to_iodata!(data, pretty: true)
     end
 
     @spec to_ordered_data(term, term) :: no_return()

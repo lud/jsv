@@ -50,7 +50,7 @@ defmodule JSV.MixProject do
 
       # Optional JSON support
       {:jason, "~> 1.0", optional: true},
-      {:poison, "~> 6.0 or ~> 5.0", optional: true},
+      {:poison, ">= 3.0.0 and < 7.0.0", optional: true},
       {:decimal, "~> 2.0", optional: true},
 
       # Optional Formats

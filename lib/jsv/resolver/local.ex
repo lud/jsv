@@ -293,6 +293,7 @@ defmodule JSV.Resolver.Local do
       {:ok, decoded} when is_map(decoded) -> {:error, :schema_no_id}
       {:ok, _} -> {:error, :schema_not_object}
       {:error, reason} -> {:error, {:json_decode_error, reason}}
+      {:error, :invalid, reason} -> {:error, {:json_decode_error, {:invalid, reason}}}
     end
   end
 
