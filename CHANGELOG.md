@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.5] - 2025-11-12
+
+### 🐛 Bug Fixes
+
+- Relax Poison dependency version constraints
+
+### 📚 Documentation
+
+- Document function groups in main JSV module
+
 ## [0.11.4] - 2025-10-23
 
 ### 🐛 Bug Fixes
