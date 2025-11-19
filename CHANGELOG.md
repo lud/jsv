@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - 2025-11-19
+
+### 🚀 Features
+
+- Support normalizing structs into non-map values in the Normalizer
+- Added support for collecting additionalProperties in structs
+
 ## [0.11.5] - 2025-11-12
 
 ### 🐛 Bug Fixes
