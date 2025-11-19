@@ -65,6 +65,36 @@ defmodule JSV.Helpers.Traverse do
   def postwalk(data, acc, fun) when is_function(fun, 2) do
     {data, acc} = postwalk_subs(data, acc, fun)
     postwalk_parent(data, acc, fun)
+  rescue
+    e in ArgumentError ->
+      stack =
+        case __STACKTRACE__ do
+          [h | t] -> [h | filter_stacktrace(t)]
+          other -> other
+        end
+
+      reraise e, stack
+  end
+
+  # Remove the traverse numerous stacktraces except the topmost
+  defp filter_stacktrace(stack) do
+    not_traverse? = &(elem(&1, 0) != __MODULE__)
+    {zyx, cba} = Enum.split_while(stack, not_traverse?)
+
+    cba =
+      cba
+      # invert the stack to be top → bottom
+      |> :lists.reverse()
+      # take the top of the stack that is not traverse mod
+      |> Enum.split_while(not_traverse?)
+      # then reverse it to go back to bottom → top order
+      # also keep one traverse call if any
+      |> case do
+        {ab, [c | _]} -> [c | :lists.reverse(ab)]
+        {ab, []} -> :lists.reverse(ab)
+      end
+
+    zyx ++ cba
   end
 
   defp postwalk_parent(struct, acc, fun) when is_struct(struct) do

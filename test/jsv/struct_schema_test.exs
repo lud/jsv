@@ -1185,4 +1185,28 @@ defmodule JSV.StructSchemaTest do
       end
     end
   end
+
+  describe "defschema with additional properties" do
+    defmodule WithAdditionals do
+      use JSV.Schema
+
+      @additional_properties :ext
+      defschema %{type: :object, additionalProperties: string(), properties: %{name: string()}}
+    end
+
+    test "single additional properties" do
+      assert {:ok, root} = JSV.build(WithAdditionals)
+      assert {:ok, %WithAdditionals{name: "alice", ext: %{}}} = JSV.validate(%{"name" => "alice"}, root)
+
+      assert {:ok, %WithAdditionals{name: "alice", ext: %{"foo" => "bar"}}} =
+               JSV.validate(%{"name" => "alice", "foo" => "bar"}, root)
+    end
+
+    test "multiple additional properties" do
+      assert {:ok, root} = JSV.build(WithAdditionals)
+
+      assert {:ok, %WithAdditionals{name: "alice", ext: %{"bar" => "bar", "foo" => "foo"}}} =
+               JSV.validate(%{"foo" => "foo", "bar" => "bar", "name" => "alice"}, root)
+    end
+  end
 end

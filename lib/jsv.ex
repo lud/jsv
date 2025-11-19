@@ -505,6 +505,10 @@ defmodule JSV do
   If the `cast: false` option is given to `JSV.validate/3`, the additional
   properties will be kept.
 
+  It is also possible to collect additional properties in a new struct key by
+  defining the `@additional_properties` attribute above the `defschema` expression.
+  This property will have a default value of `%{}` (the empty map).
+
   ### Property List Syntax
 
   Alternatively, you can use a keyword list to define the properties where each
@@ -565,6 +569,26 @@ defmodule JSV do
       iex> JSV.validate(data, root, cast: false)
       {:ok, %{"name" => "Alice", "extra" => "hello!"}}
 
+  Collecting additional properties:
+
+      defmodule MyApp.UserSchemaWithAdds do
+        import JSV
+
+        @additional_properties :adds
+        defschema %{
+          type: :object,
+          properties: %{
+            name: %{type: :string, default: ""},
+            age: %{type: :integer, default: 123}
+          }
+        }
+      end
+
+      iex> {:ok, root} = JSV.build(MyApp.UserSchemaWithAdds)
+      iex> data = %{"name" => "Alice", "extra" => "hello!"}
+      iex> JSV.validate(data, root)
+      {:ok, %MyApp.UserSchemaWithAdds{name: "Alice", age: 123, adds: %{"extra" => "hello!"}}}
+
   A module can reference another module:
 
       defmodule MyApp.CompanySchema do
@@ -592,6 +616,8 @@ defmodule JSV do
   """
   @doc group: @doc_group
   defmacro defschema(schema_or_properties) do
+    Module.register_attribute(__CALLER__.module, :additional_properties, [])
+
     quote bind_quoted: [schema_or_properties: schema_or_properties] do
       schema =
         if is_list(schema_or_properties) do
@@ -603,6 +629,20 @@ defmodule JSV do
       :ok = JSV.StructSupport.validate!(schema)
       @jsv_keycast JSV.StructSupport.keycast_pairs(schema)
       {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
+
+      default_pairs =
+        case Module.get_attribute(__MODULE__, :additional_properties, nil) do
+          nil ->
+            @additional_properties_key nil
+            default_pairs
+
+          k when is_atom(k) ->
+            [{k, %{}} | default_pairs]
+
+          other ->
+            raise "invalid @additional_properties key, atom expected, got: #{inspect(other)}"
+        end
+
       required = JSV.StructSupport.list_required(schema)
 
       @jsv_tag 0
@@ -629,7 +669,7 @@ defmodule JSV do
 
       @doc false
       def __jsv__(@jsv_tag, data) do
-        pairs = JSV.StructSupport.take_keycast(data, @jsv_keycast)
+        pairs = JSV.StructSupport.take_keycast(data, @jsv_keycast, @additional_properties)
         {:ok, struct!(__MODULE__, pairs)}
       end
 

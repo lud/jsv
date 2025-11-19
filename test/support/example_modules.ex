@@ -13,6 +13,20 @@ defmodule MyApp.UserSchema do
   })
 end
 
+defmodule MyApp.UserSchemaWithAdds do
+  import JSV
+
+  @additional_properties :adds
+
+  defschema %{
+    type: :object,
+    properties: %{
+      name: %{type: :string, default: ""},
+      age: %{type: :integer, default: 123}
+    }
+  }
+end
+
 defmodule MyApp.CompanySchema do
   require JSV
 

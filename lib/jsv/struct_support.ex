@@ -112,15 +112,14 @@ defmodule JSV.StructSupport do
   implements a struct (with `defstruct/1`). When given, the function will
   validate that all schema keys exist in the given struct.
   """
-  @spec keycast_pairs(JSV.native_schema(), target :: nil | module) :: [{binary, atom}]
+  @spec keycast_pairs(JSV.native_schema(), target :: nil | module) :: %{binary => atom}
 
   def keycast_pairs(schema, target \\ nil)
 
   def keycast_pairs(schema, nil) do
     schema
     |> props!()
-    |> Enum.map(fn {k, _} when is_atom(k) -> {Atom.to_string(k), k} end)
-    |> Enum.sort()
+    |> Map.new(fn {k, _} when is_atom(k) -> {Atom.to_string(k), k} end)
   end
 
   def keycast_pairs(schema, target) do
@@ -215,14 +214,29 @@ defmodule JSV.StructSupport do
     end
   end
 
-  @spec take_keycast(map, [{binary, atom}]) :: [{atom, term}]
-  def take_keycast(data, keycast) when is_map(data) do
+  @spec take_keycast(map, %{binary => atom}, atom) :: [{atom, term}]
+  def take_keycast(data, keycast, additional_properties \\ nil)
+
+  def take_keycast(data, keycast, nil) when is_map(data) do
     Enum.reduce(keycast, [], fn {str_key, atom_key}, acc ->
       case data do
         %{^str_key => v} -> [{atom_key, v} | acc]
         _ -> acc
       end
     end)
+  end
+
+  @spec take_keycast(map, %{binary => atom}) :: [{atom, term}]
+  def take_keycast(data, keycast, additional_properties_key) when is_map(data) do
+    {props, add_props} =
+      Enum.reduce(data, {[], []}, fn {str_key, value}, {pairs, addprops} ->
+        case keycast do
+          %{^str_key => atom_key} -> {[{atom_key, value} | pairs], addprops}
+          _ -> {pairs, [{str_key, value} | addprops]}
+        end
+      end)
+
+    [{additional_properties_key, Map.new(add_props)} | props]
   end
 
   @doc """

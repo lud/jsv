@@ -77,7 +77,10 @@ if Code.ensure_loaded?(JSON) do
             k
 
           {:struct, struct, _cont} ->
-            raise ArgumentError, "ordered JSON encoding does not support structs, got: #{inspect(struct)}"
+            # Allow custom structs to be present when ordering data but we
+            # cannot enforce the orderding without introducing a new protocol
+            # just for that.
+            struct
         end)
       end
 

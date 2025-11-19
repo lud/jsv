@@ -162,26 +162,26 @@ defmodule JSV.StructSupportTest do
     end
 
     test "empty properties" do
-      assert [] == StructSupport.keycast_pairs(%{"properties" => %{}})
-      assert [] == StructSupport.keycast_pairs(%{:properties => %{}})
+      assert %{} == StructSupport.keycast_pairs(%{"properties" => %{}})
+      assert %{} == StructSupport.keycast_pairs(%{:properties => %{}})
     end
 
     test "returns a map of string to atom" do
       schema = %{properties: %{a: %{type: :string}, b: %{type: :string}}}
-      assert [{"a", :a}, {"b", :b}] == StructSupport.keycast_pairs(schema)
+      assert %{"a" => :a, "b" => :b} == StructSupport.keycast_pairs(schema)
 
       schema = %{"properties" => %{a: %{type: :string}, b: %{type: :string}}}
-      assert [{"a", :a}, {"b", :b}] == StructSupport.keycast_pairs(schema)
+      assert %{"a" => :a, "b" => :b} == StructSupport.keycast_pairs(schema)
     end
 
     test "from a struct" do
-      assert [{"a", :a}, {"b", :b}] ==
+      assert %{"a" => :a, "b" => :b} ==
                StructSupport.keycast_pairs(%{properties: %{a: %{type: :string}, b: %{type: :string}}}, TargetStruct)
 
-      assert [{"a", :a}] ==
+      assert %{"a" => :a} ==
                StructSupport.keycast_pairs(%{properties: %{a: %{type: :string}}}, TargetStruct)
 
-      assert [{"b", :b}] ==
+      assert %{"b" => :b} ==
                StructSupport.keycast_pairs(%{properties: %{b: %{type: :string}}}, TargetStruct)
 
       # When giving a struct all the defined keys must be defined in the struct
