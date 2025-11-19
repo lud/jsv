@@ -145,5 +145,63 @@ defmodule JSV.NormalizerTest do
       assert %{"$ref" => Internal.module_to_uri(:test_schema_module_to_ref_with_schema)} ==
                Schema.normalize(:test_schema_module_to_ref_with_schema)
     end
+
+    defmodule NormalizeTo do
+      defstruct [:value]
+    end
+
+    defimpl JSV.Normalizer.Normalize, for: NormalizeTo do
+      def normalize(%{value: value}) do
+        value
+      end
+    end
+
+    test "can replace struct with non-map values" do
+      assert "hello" = Schema.normalize(%NormalizeTo{value: "hello"})
+      assert [1, 2, "hello"] = Schema.normalize(%NormalizeTo{value: [1, 2, :hello]})
+
+      assert %{"some_key" => "some_val"} =
+               Schema.normalize(%NormalizeTo{
+                 value: %{some_key: %NormalizeTo{value: :some_val}}
+               })
+
+      # It is not supported to use struct as keys (yet?) because maps are not
+      # re-normalized when the traverse function operates on a {:struct, _, _}
+      # tuple. When the normalizer implementation for a struct returns a map,
+      # the keys must be correctly encoded.
+      assert_raise ArgumentError, ~r"invalid key", fn ->
+        Schema.normalize(%{%NormalizeTo{value: :some_key} => %NormalizeTo{value: :some_val}})
+      end
+
+      assert [1, 2, %{"k" => [%{"k2" => "sub"}]}] =
+               Schema.normalize([
+                 %NormalizeTo{value: 1},
+                 %NormalizeTo{value: 2},
+                 %NormalizeTo{
+                   value: %{
+                     k: %NormalizeTo{
+                       value: [
+                         %NormalizeTo{
+                           value: %{
+                             k2: %NormalizeTo{value: :sub}
+                           }
+                         }
+                       ]
+                     }
+                   }
+                 }
+               ])
+
+      # Tuples are not supported by the Schema normalizer but the general
+      # normalizer does accept them
+      assert_raise ArgumentError, ~r"invalid value in JSON data", fn ->
+        Schema.normalize(%NormalizeTo{value: {1, 2, :hello}})
+      end
+
+      # Returning a struct is invalid
+      assert_raise ArgumentError, ~r"continuation function does not accept structs", fn ->
+        Schema.normalize(%NormalizeTo{value: %MyStruct{}})
+      end
+    end
   end
 end

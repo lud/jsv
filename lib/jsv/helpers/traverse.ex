@@ -36,9 +36,13 @@ defmodule JSV.Helpers.Traverse do
     used as key will be passed as-is but the callback will not be called for
     individual tuple elements.
   * Structs will be passed as `{:struct, value, continuation}`. The struct keys
-    and values will **NOT** have been traversed yet. To operate on the struct
-    keys you MUST call it manually. To respect the post-order of traversal, it
-    SHOULD be called before further transformation of the struct:
+    and values will **NOT** have been traversed yet. The callback should extract
+    the struct into another term (for instance using `Map.from_struct/1`) and
+    call the continuation.
+
+    To normalize this new term you MUST call the conitnuation function manually.
+    To respect the post-order of traversal, it SHOULD be called before further
+    transformation of the struct:
 
         Traverse.postwalk(%MyStruct, [], fn
           {:struct, my_struct, cont}, acc ->
@@ -47,7 +51,13 @@ defmodule JSV.Helpers.Traverse do
           {:val, ...} -> ...
         end)
 
-    The continuation only accepts raw maps.
+    Note that if a map is given to the continuation function, the map itself
+    will not be passed to your callback as `{:val, map}`, each key and value
+    will be normalized directly.
+
+    Since key normalization does not support structs, the keys must be already
+    normalized and JSON-encodable when giving a map to the continuation
+    function.
 
   * General data is accepted: tuples, pid, refs, etc. *
   """
@@ -59,11 +69,14 @@ defmodule JSV.Helpers.Traverse do
 
   defp postwalk_parent(struct, acc, fun) when is_struct(struct) do
     cont = fn
-      map, acc when is_map(map) and not is_struct(map) ->
-        postwalk_map_pairs(map, acc, fun)
+      value, _acc when is_struct(value) ->
+        raise ArgumentError, "continuation function does not accept structs, got: #{inspect(value)}"
 
-      other, _ ->
-        raise ArgumentError, "continuation function only accepts raw maps, got: #{inspect(other)}"
+      value, acc when is_map(value) ->
+        postwalk_map_pairs(value, acc, fun)
+
+      value, acc ->
+        postwalk(value, acc, fun)
     end
 
     fun.({:struct, struct, cont}, acc)
