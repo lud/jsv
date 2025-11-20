@@ -16,7 +16,6 @@ defmodule JSV.ErrorFormatter.ValidationErrorSchema do
       valid: %{const: false},
       details: array_of(JSV.ErrorFormatter.ValidationUnitSchema)
     },
-    additionalProperties: false,
     required: [:valid]
   }
 end

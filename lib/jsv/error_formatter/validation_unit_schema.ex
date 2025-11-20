@@ -38,7 +38,6 @@ defmodule JSV.ErrorFormatter.ValidationUnitSchema do
         ),
       errors: array_of(JSV.ErrorFormatter.KeywordErrorSchema)
     },
-    additionalProperties: false,
     required: [:valid]
   }
 end

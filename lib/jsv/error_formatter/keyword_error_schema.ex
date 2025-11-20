@@ -3,15 +3,6 @@ defmodule JSV.ErrorFormatter.KeywordErrorSchema do
 
   @moduledoc false
 
-  # @kinds ~w(
-  #     additionalItems additionalProperties allOf anyOf arithmetic_error boolean_schema
-  #     const dependentRequired enum exclusiveMaximum exclusiveMinimum format
-  #     if/else if/then items items_as_prefix maxContains maximum
-  #     maxItems maxLength maxProperties minContains minimum minItems
-  #     minLength minProperties multipleOf not oneOf pattern
-  #     patternProperties prefixItems properties required type uniqueItems
-  #   )
-
   defschema %{
     type: :object,
     title: "JSV:KeywordError",
@@ -38,7 +29,6 @@ defmodule JSV.ErrorFormatter.KeywordErrorSchema do
       message: string(description: "An error message related to the invalidating keyword"),
       details: array_of(JSV.ErrorFormatter.ValidationUnitSchema)
     },
-    additionalProperties: false,
     required: [:kind, :message]
   }
 end
