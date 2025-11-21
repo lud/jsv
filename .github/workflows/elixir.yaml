@@ -34,7 +34,7 @@ jobs:
     name: "Test ${{matrix.elixir}}-otp-${{matrix.otp}}"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: erlef/setup-beam@v1
         id: setup_beam
