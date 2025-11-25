@@ -487,27 +487,49 @@ defmodule JSV do
   `properties` map. That map can be empty to define a struct without any key.
   Properties keys must be given as atoms.
 
-  The `required` keyword is supported and must use atom keys as well.
-
   If a default value is given in a property schema, it will be used as the
   default value for the corresponding struct key. Otherwise, the default value
   will be `nil`. A default value is _not_ validated against the property schema
   itself.
 
-  ### Additional properties
+      defmodule MyApp.UserSchema do
+        import JSV
 
-  Additional properties are allowed.
+        defschema %{
+          type: :object,
+          properties: %{
+            name: %{type: :string, default: ""},
+            age: %{type: :integer, default: 123}
+          }
+        }
+      end
 
-  If your schema does not define `additionalProperties: false`, the validation
-  will accept a map with additional properties, but the keys will not be added
-  to the resulting struct as it would be invalid.
+      iex> %MyApp.UserSchema{}
+      %MyApp.UserSchema{name: "", age: 123}
 
-  If the `cast: false` option is given to `JSV.validate/3`, the additional
-  properties will be kept.
+      iex> {:ok, root} = JSV.build(MyApp.UserSchema)
+      iex> JSV.validate(%{"name" => "Alice"}, root)
+      {:ok, %MyApp.UserSchema{name: "Alice", age: 123}}
 
-  It is also possible to collect additional properties in a new struct key by
-  defining the `@additional_properties` attribute above the `defschema` expression.
-  This property will have a default value of `%{}` (the empty map).
+  The `required` keyword is supported and must use atom keys as well.
+
+      defmodule MyApp.WithRequired do
+        import JSV
+
+        defschema %{
+          type: :object,
+          properties: %{
+            name: %{type: :string},
+            age: %{type: :integer, default: 123}
+          },
+          required: [:name]
+        }
+      end
+
+      iex> %MyApp.WithRequired{name: "Alice"}
+      %MyApp.WithRequired{name: "Alice", age: 123}
+
+
 
   ### Property List Syntax
 
@@ -520,56 +542,41 @@ defmodule JSV do
   - The `title` of the schema is set as the last segment of the module name.
 
   This provides a more concise way to define simple object schemas.
-  ### Examples
 
-  Given the following module definition:
+      defmodule MyApp.UserKW do
+        use JSV.Schema
 
-      defmodule MyApp.UserSchema do
-        import JSV
-
-        defschema %{
-          type: :object,
-          properties: %{
-            name: %{type: :string, default: ""},
-            age: %{type: :integer, default: 123}
-          }
-        }
-
-        # Or alternatively
-        defschema name: %{type: :string, default: ""},
-                  age: %{type: :integer, default: 123}
+        defschema name: string(default: ""),
+                  age: integer(default: 123)
       end
 
-  We can get the struct with default values:
+      iex> %MyApp.UserKW{}
+      %MyApp.UserKW{name: "", age: 123}
 
-      iex> %MyApp.UserSchema{}
-      %MyApp.UserSchema{name: "", age: 123}
+  ### Additional properties
 
-      iex> %MyApp.UserSchema{age: 999}
-      %MyApp.UserSchema{name: "", age: 999}
+  Additional properties are allowed by default.
 
-  And we can use the module as a schema:
-
-      iex> {:ok, root} = JSV.build(MyApp.UserSchema)
-      iex> data = %{"name" => "Alice"}
-      iex> JSV.validate(data, root)
-      {:ok, %MyApp.UserSchema{name: "Alice", age: 123}}
-
-  Additional properties are ignored:
+  If your schema does not define `additionalProperties: false`, the validation
+  will accept a map with additional properties, but the keys will not be added
+  to the resulting struct as it would make an invalid struct.
 
       iex> {:ok, root} = JSV.build(MyApp.UserSchema)
       iex> data = %{"name" => "Alice", "extra" => "hello!"}
       iex> JSV.validate(data, root)
       {:ok, %MyApp.UserSchema{name: "Alice", age: 123}}
 
-  Disabling struct casting with additional properties:
+  If the `cast: false` option is given to `JSV.validate/3`, structs will not be
+  created. In that case, the additional properties will be kept.
 
       iex> {:ok, root} = JSV.build(MyApp.UserSchema)
       iex> data = %{"name" => "Alice", "extra" => "hello!"}
       iex> JSV.validate(data, root, cast: false)
       {:ok, %{"name" => "Alice", "extra" => "hello!"}}
 
-  Collecting additional properties:
+  It is also possible to collect additional properties in a new struct key by
+  defining the `@additional_properties` attribute above the `defschema`
+  expression. This property will have a default value of `%{}` (the empty map).
 
       defmodule MyApp.UserSchemaWithAdds do
         import JSV
@@ -589,18 +596,43 @@ defmodule JSV do
       iex> JSV.validate(data, root)
       {:ok, %MyApp.UserSchemaWithAdds{name: "Alice", age: 123, adds: %{"extra" => "hello!"}}}
 
-  A module can reference another module:
+  ### Ignoring struct keys
+
+  Some keys can be defined in the schema but not included in the struct by using
+  the `@skip_keys` module attribute. This is helpful when a property uses
+  `const` but your code rather depends on the struct type.
+
+  Keys listed in `@skip_keys` will still be validated according to the schema!
+
+      defmodule MyApp.UserEvent do
+        use JSV.Schema
+
+        @skip_keys [:message_type]
+        defschema message_type: const("user_event"),
+                  user_id: integer(),
+                  event: string()
+      end
+
+      iex> {:ok, root} = JSV.build(MyApp.UserEvent)
+      iex> data = %{"message_type" => "user_event", "user_id" => 123, "event" => "login"}
+      iex> {:ok, result} = JSV.validate(data, root)
+      iex> result
+      %MyApp.UserEvent{user_id: 123, event: "login"}
+
+  ### Module references
+
+  A module can reference another module in its properties.
 
       defmodule MyApp.CompanySchema do
-        require JSV
+        import JSV
 
-        JSV.defschema(%{
+        defschema %{
           type: :object,
           properties: %{
             name: %{type: :string},
             owner: MyApp.UserSchema
           }
-        })
+        }
       end
 
       iex> root = JSV.build!(MyApp.CompanySchema)
@@ -627,7 +659,13 @@ defmodule JSV do
         end
 
       :ok = JSV.StructSupport.validate!(schema)
-      @jsv_keycast JSV.StructSupport.keycast_pairs(schema)
+
+      skip_keys = Map.new(Module.get_attribute(__MODULE__, :skip_keys, []), &{&1, true})
+
+      @jsv_keycast Map.filter(JSV.StructSupport.keycast_pairs(schema), fn {_bin, k} ->
+                     not is_map_key(skip_keys, k)
+                   end)
+      # @jsv_keycast JSV.StructSupport.keycast_pairs(schema)
       {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
 
       default_pairs =
@@ -643,14 +681,22 @@ defmodule JSV do
             raise "invalid @additional_properties key, atom expected, got: #{inspect(other)}"
         end
 
-      required = JSV.StructSupport.list_required(schema)
+      required = schema |> JSV.StructSupport.list_required() |> Enum.reject(&is_map_key(skip_keys, &1))
 
       @jsv_tag 0
 
       @jsv_schema Map.put(schema, :"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
 
       @enforce_keys required
-      defstruct keys_no_defaults ++ default_pairs
+
+      all_keys =
+        Enum.filter(keys_no_defaults ++ default_pairs, fn
+          {k, _} when is_map_key(skip_keys, k) -> false
+          k when is_map_key(skip_keys, k) -> false
+          _ -> true
+        end)
+
+      defstruct all_keys
 
       @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
       @doc false
@@ -1190,8 +1236,6 @@ defmodule JSV do
       resolvers
       |> resolver_chain()
       |> Resolver.chain_of(default_meta)
-
-    # |> Resolver.put_cached(root_key, raw_schema)
 
     {resolver, opts}
   end

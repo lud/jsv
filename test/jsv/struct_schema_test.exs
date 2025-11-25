@@ -1209,4 +1209,171 @@ defmodule JSV.StructSchemaTest do
                JSV.validate(%{"foo" => "foo", "bar" => "bar", "name" => "alice"}, root)
     end
   end
+
+  describe "defschema with skip keys" do
+    defmodule WithSkip do
+      use JSV.Schema
+
+      @skip_keys [:some_const]
+      defschema %{type: :object, properties: %{name: string(), some_const: const("foo")}}
+    end
+
+    test "@skip_keys keys are not defined in the struct" do
+      assert [%{default: nil, field: :name}] = WithSkip.__info__(:struct)
+    end
+
+    test "valid keys are not defined in the struct (as the field does not exist)" do
+      assert {:ok, root} = JSV.build(WithSkip)
+
+      # without the skipped key
+      assert {:ok, %WithSkip{name: "alice"}} == JSV.validate(%{"name" => "alice"}, root)
+
+      # with the skipped key
+      assert {:ok, %WithSkip{name: "alice"}} == JSV.validate(%{"name" => "alice", "some_const" => "foo"}, root)
+    end
+
+    test "invalid keys are still validated" do
+      assert {:ok, root} = JSV.build(WithSkip)
+
+      assert {
+               :error,
+               %JSV.ValidationError{
+                 errors: [
+                   %JSV.Validator.Error{
+                     kind: :properties,
+                     args: [key: "some_const"]
+                   },
+                   %JSV.Validator.Error{
+                     kind: :const
+                   }
+                 ]
+               }
+             } = JSV.validate(%{"name" => "alice", "some_const" => "not_foo"}, root)
+    end
+
+    defmodule WithSkipRequired do
+      use JSV.Schema
+
+      @skip_keys [:some_const]
+      defschema %{type: :object, properties: %{name: string(), some_const: const("foo")}, required: [:some_const]}
+    end
+
+    test "required keys can be skipped" do
+      assert {:ok, root} = JSV.build(WithSkipRequired)
+
+      # without the required skipped key, it is an error
+      assert {
+               :error,
+               %JSV.ValidationError{
+                 errors: [
+                   %JSV.Validator.Error{
+                     args: [required: ["some_const"]],
+                     kind: :required,
+                     data: %{"name" => "alice"}
+                   }
+                 ]
+               }
+             } = JSV.validate(%{"name" => "alice"}, root)
+
+      # with the skipped key
+      assert {:ok, %WithSkipRequired{name: "alice"}} == JSV.validate(%{"name" => "alice", "some_const" => "foo"}, root)
+
+      # with an invalid skipped, error
+      assert {
+               :error,
+               %JSV.ValidationError{
+                 errors: [
+                   %JSV.Validator.Error{
+                     kind: :properties,
+                     args: [key: "some_const"]
+                   },
+                   %JSV.Validator.Error{
+                     kind: :const
+                   }
+                 ]
+               }
+             } = JSV.validate(%{"name" => "alice", "some_const" => "not_foo"}, root)
+    end
+
+    defmodule WithSkipKV do
+      use JSV.Schema
+
+      @skip_keys [:some_const]
+      defschema name: string(), some_const: const("foo")
+    end
+
+    test "(kv schema) @skip_keys keys are not defined in the struct" do
+      # K/V schemas are always required by default
+
+      assert {:ok, root} = JSV.build(WithSkipKV)
+
+      # without the required skipped key, it is an error
+      assert {
+               :error,
+               %JSV.ValidationError{
+                 errors: [
+                   %JSV.Validator.Error{
+                     args: [required: ["some_const"]],
+                     kind: :required,
+                     data: %{"name" => "alice"}
+                   }
+                 ]
+               }
+             } = JSV.validate(%{"name" => "alice"}, root)
+
+      # with the skipped key
+      assert {:ok, %WithSkipKV{name: "alice"}} == JSV.validate(%{"name" => "alice", "some_const" => "foo"}, root)
+
+      # with an invalid skipped, error
+      assert {
+               :error,
+               %JSV.ValidationError{
+                 errors: [
+                   %JSV.Validator.Error{
+                     kind: :properties,
+                     args: [key: "some_const"]
+                   },
+                   %JSV.Validator.Error{
+                     kind: :const
+                   }
+                 ]
+               }
+             } = JSV.validate(%{"name" => "alice", "some_const" => "not_foo"}, root)
+    end
+
+    defmodule WithSkipKVOpt do
+      use JSV.Schema
+
+      @skip_keys [:some_const]
+      defschema name: string(), some_const: optional(const("foo"))
+    end
+
+    test "(kv schema with optional) @skip_keys keys are not defined in the struct" do
+      # K/V schemas are always required by default
+
+      assert {:ok, root} = JSV.build(WithSkipKVOpt)
+
+      # without the required skipped key, it is an error
+      assert {:ok, %JSV.StructSchemaTest.WithSkipKVOpt{name: "alice"}} = JSV.validate(%{"name" => "alice"}, root)
+
+      # with the skipped key
+      assert {:ok, %WithSkipKVOpt{name: "alice"}} == JSV.validate(%{"name" => "alice", "some_const" => "foo"}, root)
+
+      # with an invalid skipped, error
+      assert {
+               :error,
+               %JSV.ValidationError{
+                 errors: [
+                   %JSV.Validator.Error{
+                     kind: :properties,
+                     args: [key: "some_const"]
+                   },
+                   %JSV.Validator.Error{
+                     kind: :const
+                   }
+                 ]
+               }
+             } = JSV.validate(%{"name" => "alice", "some_const" => "not_foo"}, root)
+    end
+  end
 end

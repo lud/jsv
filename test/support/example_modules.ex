@@ -2,15 +2,35 @@
 # credo:disable-for-this-file Credo.Check.Readability.ModuleDoc
 
 defmodule MyApp.UserSchema do
-  require JSV
+  import JSV
 
-  JSV.defschema(%{
+  defschema %{
     type: :object,
     properties: %{
       name: %{type: :string, default: ""},
       age: %{type: :integer, default: 123}
     }
-  })
+  }
+end
+
+defmodule MyApp.UserKW do
+  use JSV.Schema
+
+  defschema name: string(default: ""),
+            age: integer(default: 123)
+end
+
+defmodule MyApp.WithRequired do
+  import JSV
+
+  defschema %{
+    type: :object,
+    properties: %{
+      name: %{type: :string},
+      age: %{type: :integer, default: 123}
+    },
+    required: [:name]
+  }
 end
 
 defmodule MyApp.UserSchemaWithAdds do
@@ -27,16 +47,25 @@ defmodule MyApp.UserSchemaWithAdds do
   }
 end
 
-defmodule MyApp.CompanySchema do
-  require JSV
+defmodule MyApp.UserEvent do
+  use JSV.Schema
 
-  JSV.defschema(%{
+  @skip_keys [:message_type]
+  defschema message_type: const("user_event"),
+            user_id: integer(),
+            event: string()
+end
+
+defmodule MyApp.CompanySchema do
+  import JSV
+
+  defschema %{
     type: :object,
     properties: %{
       name: %{type: :string},
       owner: MyApp.UserSchema
     }
-  })
+  }
 end
 
 defmodule MyApp.LocalResolver do
