@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - 2025-11-25
+
+### 🚀 Features
+
+- Relax additional properties in error schemas
+- Support the @skip_keys attribute for structs created with defschema
+- New hostname validator based on :idna (new JSON Schema suite tests)
+
 ## [0.12.0] - 2025-11-19
 
 ### 🚀 Features
