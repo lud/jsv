@@ -127,6 +127,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UuidTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "shifted dashes", x do
+      data = "2eb8aa0-8aa98-11e-ab4aa7-3b441d16380"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "valid version 4", x do
       data = "98d80576-482e-427f-8434-7f86890ab222"
       expected_valid = true

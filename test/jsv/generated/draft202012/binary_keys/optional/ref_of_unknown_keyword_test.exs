@@ -34,6 +34,31 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.RefOfUnknownKeywordTest 
     end
   end
 
+  describe "reference of a root arbitrary keyword with encoded ref" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "properties" => %{"bar" => %{"$ref" => "#/unknown~1keyword"}},
+        "unknown/keyword" => %{"type" => "integer"}
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "match", x do
+      data = %{"bar" => 3}
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "mismatch", x do
+      data = %{"bar" => true}
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
+
   describe "reference of an arbitrary keyword of a sub-schema" do
     setup do
       json_schema = %{
@@ -82,6 +107,33 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.RefOfUnknownKeywordTest 
 
     test "mismatch", x do
       data = 42
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
+
+  describe "reference of an arbitrary keyword of a sub-schema with encoded ref" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "properties" => %{
+          "bar" => %{"$ref" => "#/properties/foo/unknown~1keyword"},
+          "foo" => %{"unknown/keyword" => %{"type" => "integer"}}
+        }
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "match", x do
+      data = %{"bar" => 3}
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "mismatch", x do
+      data = %{"bar" => true}
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

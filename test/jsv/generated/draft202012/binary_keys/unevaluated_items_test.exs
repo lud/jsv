@@ -848,4 +848,23 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedItemsTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
+
+  describe "Evaluated items collection needs to consider instance location" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "prefixItems" => [%{"prefixItems" => [true, %{"type" => "string"}]}],
+        "unevaluatedItems" => false
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "with an unevaluated item that exists at another location", x do
+      data = [["foo", "bar"], "bar"]
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
 end

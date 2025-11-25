@@ -102,5 +102,17 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UriReferenceTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "unescaped non US-ASCII characters", x do
+      data = "/foobar®.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid backslash character", x do
+      data = "https://example.org/foobar\\.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

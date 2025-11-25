@@ -526,6 +526,8 @@ defmodule JSV.FormatValidationTest do
         ],
         # invalids
         [
+          ".",
+          ".com",
           "-stuff.com",
           ".com",
           "pref.stuff-.com",

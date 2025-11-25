@@ -3,7 +3,7 @@ defmodule JSV.MixProject do
 
   @source_url "https://github.com/lud/jsv"
   @version "0.12.0"
-  @jsts_ref "15e4505bf689de5d30c29d50782bb48fa465c93f"
+  @jsts_ref "a247442bca7a4798ab6187e035200feacd5423ed"
 
   def project do
     [
@@ -56,6 +56,7 @@ defmodule JSV.MixProject do
       # Optional Formats
       {:abnf_parsec, "~> 2.0"},
       {:texture, "~> 0.3"},
+      {:idna, "~> 6.1"},
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

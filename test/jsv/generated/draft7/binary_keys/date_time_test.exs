@@ -150,5 +150,11 @@ defmodule JSV.Generated.Draft7.BinaryKeys.DateTimeTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "invalid extended year", x do
+      data = "+11963-06-19T08:30:06.283185Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

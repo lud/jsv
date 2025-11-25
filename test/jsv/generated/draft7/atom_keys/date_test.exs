@@ -300,5 +300,11 @@ defmodule JSV.Generated.Draft7.AtomKeys.DateTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "an invalid time string in date-time format", x do
+      data = "2020-11-28T23:55:45Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

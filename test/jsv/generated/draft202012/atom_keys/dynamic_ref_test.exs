@@ -773,4 +773,55 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DynamicRefTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
+
+  describe "$dynamicRef avoids the root of each schema, but scopes are still registered" do
+    setup do
+      json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://test.json-schema.org/dynamic-ref-avoids-root-of-each-schema/base",
+        "$defs": %{
+          first: %JSV.Schema{
+            "$id": "first",
+            "$defs": %{
+              length: %JSV.Schema{
+                "$comment": "unused, because there is no $dynamicAnchor here",
+                maxLength: 1
+              },
+              stuff: %JSV.Schema{"$ref": "second#/$defs/stuff"}
+            }
+          },
+          second: %JSV.Schema{
+            "$id": "second",
+            "$defs": %{
+              length: %JSV.Schema{"$dynamicAnchor": "length", maxLength: 2},
+              stuff: %JSV.Schema{"$ref": "third#/$defs/stuff"}
+            }
+          },
+          third: %JSV.Schema{
+            "$id": "third",
+            "$defs": %{
+              length: %JSV.Schema{"$dynamicAnchor": "length", maxLength: 3},
+              stuff: %JSV.Schema{"$dynamicRef": "#length"}
+            }
+          }
+        },
+        "$ref": "first#/$defs/stuff"
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "data is sufficient for schema at second#/$defs/length", x do
+      data = "hi"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "data is not sufficient for schema at second#/$defs/length", x do
+      data = "hey"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
 end

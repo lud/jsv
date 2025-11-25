@@ -42,12 +42,6 @@ defmodule JSV.FormatValidator.Default do
     is_binary(data)
   end
 
-  @doc false
-  @spec hostname_regex :: Regex.t()
-  def hostname_regex do
-    ~r/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/
-  end
-
   @impl true
   def validate_cast("date-time", data) do
     case DateTime.from_iso8601(data) do
@@ -111,11 +105,7 @@ defmodule JSV.FormatValidator.Default do
   end
 
   def validate_cast("hostname", data) do
-    if Regex.match?(hostname_regex(), data) do
-      {:ok, data}
-    else
-      {:error, :invalid_hostname}
-    end
+    Optional.Hostname.validate(data)
   end
 
   def validate_cast("iri", data) do

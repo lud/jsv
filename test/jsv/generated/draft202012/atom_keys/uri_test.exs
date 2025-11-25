@@ -174,5 +174,65 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UriTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "invalid userinfo", x do
+      data = "https://[@example.org/test.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "unescaped non US-ASCII characters", x do
+      data = "https://example.org/foobar®.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid backslash character", x do
+      data = "https://example.org/foobar\\.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid \" character", x do
+      data = "https://example.org/foobar\".txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid <> characters", x do
+      data = "https://example.org/foobar<>.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid {} characters", x do
+      data = "https://example.org/foobar{}.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid ^ character", x do
+      data = "https://example.org/foobar^.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid ` character", x do
+      data = "https://example.org/foobar`.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid SPACE character", x do
+      data = "https://example.org/foo bar.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid | character", x do
+      data = "https://example.org/foobar|.txt"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

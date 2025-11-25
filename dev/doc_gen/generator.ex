@@ -1,6 +1,5 @@
 if Code.ensure_loaded?(Readmix.Generator) do
   defmodule JSV.DocGen.Generator do
-    alias JSV.FormatValidator.Default
     use Readmix.Generator
 
     @moduledoc false
@@ -9,6 +8,7 @@ if Code.ensure_loaded?(Readmix.Generator) do
 
     abnf_req = "Depends on `:abnf_parsec` (automatically included)"
     texture = "Depends on `:texture` (automatically included)"
+    idna = "Depends on `:idna` (automatically included)"
 
     @formats_specs %{
       "date" => %{
@@ -46,13 +46,8 @@ if Code.ensure_loaded?(Readmix.Generator) do
         ]
       },
       "hostname" => %{
-        input: "some-host",
-        native: Regex,
-        notes: [
-          "Accepts numerical TLDs and single letter TLDs.",
-          ~s[Uses this regular expression: `#{Regex.source(Default.hostname_regex())}` (<a href="https://regexper.com/##{URI.encode(Regex.source(Default.hostname_regex()))}">Regexper</a>).],
-          "Length of components is not checked. Some hostnames could exceed the allowed length."
-        ]
+        input: "xn--zca29lwxobi7a",
+        support: idna
       },
       "ipv4" => %{
         input: "127.0.0.1",

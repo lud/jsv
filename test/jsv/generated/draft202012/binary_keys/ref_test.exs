@@ -672,6 +672,44 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefTest do
     end
   end
 
+  describe "order of evaluation: $id and $ref on nested schema" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$id" => "https://example.com/draft2020-12/ref-and-id3/base.json",
+        "$defs" => %{
+          "bar" => %{
+            "$id" => "nested/bar.json",
+            "type" => "number",
+            "$comment" => "canonical uri: https://example.com/draft2020-12/ref-and-id3/nested/bar.json"
+          },
+          "foo" => %{
+            "$id" => "nested/foo.json",
+            "$ref" => "./bar.json",
+            "$comment" => "canonical uri: https://example.com/draft2020-12/ref-and-id3/nested/foo.json"
+          }
+        },
+        "$ref" => "nested/foo.json",
+        "$comment" => "$id must be evaluated before $ref to get the proper $ref destination"
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "data is valid against nested sibling", x do
+      data = 5
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "data is invalid against nested sibling", x do
+      data = "a"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
+
   describe "simple URN base URI with $ref via the URN" do
     setup do
       json_schema = %{

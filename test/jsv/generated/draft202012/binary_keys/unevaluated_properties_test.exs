@@ -455,13 +455,13 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
     end
 
     test "when if is true and has no unevaluated properties", x do
-      data = %{"bar" => "bar", "foo" => "then"}
-      expected_valid = false
+      data = %{"foo" => "then"}
+      expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "when if is true and has unevaluated properties", x do
-      data = %{"bar" => "bar", "baz" => "baz", "foo" => "then"}
+      data = %{"bar" => "bar", "foo" => "then"}
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -1429,6 +1429,27 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
     test "unevaluatedProperties sees bar when foo2 is present", x do
       data = %{"bar" => "", "foo2" => ""}
       expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
+
+  describe "Evaluated properties collection needs to consider instance location" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "properties" => %{
+          "foo" => %{"properties" => %{"bar" => %{"type" => "string"}}}
+        },
+        "unevaluatedProperties" => false
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "with an unevaluated property that exists at another location", x do
+      data = %{"bar" => "bar", "foo" => %{"bar" => "foo"}}
+      expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
