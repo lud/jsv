@@ -94,12 +94,12 @@ defmodule JSV.Schema.Helpers do
   defpreset :any_of, [anyOf: schemas :: [Schema.schema()]] when is_list(schemas)
   defpreset :one_of, [oneOf: schemas :: [Schema.schema()]] when is_list(schemas)
 
-  defpreset :string_to_integer, type: :string, "jsv-cast": JSV.Cast.string_to_integer()
-  defpreset :string_to_float, type: :string, "jsv-cast": JSV.Cast.string_to_float()
-  defpreset :string_to_number, type: :string, "jsv-cast": JSV.Cast.string_to_number()
-  defpreset :string_to_boolean, type: :string, "jsv-cast": JSV.Cast.string_to_boolean()
-  defpreset :string_to_existing_atom, type: :string, "jsv-cast": JSV.Cast.string_to_existing_atom()
-  defpreset :string_to_atom, type: :string, "jsv-cast": JSV.Cast.string_to_atom()
+  defpreset :string_to_integer, type: :string, "x-jsv-cast": JSV.Cast.string_to_integer()
+  defpreset :string_to_float, type: :string, "x-jsv-cast": JSV.Cast.string_to_float()
+  defpreset :string_to_number, type: :string, "x-jsv-cast": JSV.Cast.string_to_number()
+  defpreset :string_to_boolean, type: :string, "x-jsv-cast": JSV.Cast.string_to_boolean()
+  defpreset :string_to_existing_atom, type: :string, "x-jsv-cast": JSV.Cast.string_to_existing_atom()
+  defpreset :string_to_atom, type: :string, "x-jsv-cast": JSV.Cast.string_to_atom()
 
   defpreset :string, type: :string
   defpreset :date, type: :string, format: :date
@@ -153,7 +153,7 @@ defmodule JSV.Schema.Helpers do
               # it will be JSON-encoded as `nil` instead of `"null". But this
               # caster only accepts strings.
               enum: Enum.map(enum, &Atom.to_string/1) <- enum :: [atom],
-              "jsv-cast": JSV.Cast.string_to_atom()
+              "x-jsv-cast": JSV.Cast.string_to_atom()
             ]
             when is_list(enum)
 
@@ -168,7 +168,7 @@ defmodule JSV.Schema.Helpers do
               # it will be JSON-encoded as `nil` instead of `"null". But this
               # caster only accepts strings.
               enum: [nil | Enum.map(enum, &Atom.to_string/1)] <- enum :: [atom],
-              "jsv-cast": JSV.Cast.string_to_atom_or_nil()
+              "x-jsv-cast": JSV.Cast.string_to_atom_or_nil()
             ]
             when is_list(enum)
 

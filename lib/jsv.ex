@@ -188,7 +188,7 @@ defmodule JSV do
                             doc: """
                             Enables calling generic cast functions on validation.
 
-                            This is based on the `jsv-cast` JSON Schema custom keyword
+                            This is based on the `x-jsv-cast` JSON Schema custom keyword
                             and is typically used by `defschema/1`.
 
                             While it is on by default, some specific casting features are enabled
@@ -685,7 +685,7 @@ defmodule JSV do
 
       @jsv_tag 0
 
-      @jsv_schema Map.put(schema, :"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
+      @jsv_schema Map.put(schema, :"x-jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
 
       @enforce_keys required
 
@@ -863,7 +863,7 @@ defmodule JSV do
       @jsv_tag 1
 
       @jsv_schema schema
-                  |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
+                  |> Map.put(:"x-jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
                   |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
 
       @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
@@ -1012,7 +1012,7 @@ defmodule JSV do
   ```
 
   This macro will define the `to_existing_atom/1` function in the calling
-  module, and enable it to be referenced in the `jsv-cast` schema custom
+  module, and enable it to be referenced in the `x-jsv-cast` schema custom
   keyword.
 
       iex> MyApp.Cast.to_existing_atom("erlang")
@@ -1030,9 +1030,9 @@ defmodule JSV do
   This is accepted by `JSV.Schema.with_cast/2`:
 
       iex> JSV.Schema.with_cast(MyApp.Cast.to_existing_atom())
-      %JSV.Schema{"jsv-cast": ["Elixir.MyApp.Cast", "to_existing_atom"]}
+      %JSV.Schema{"x-jsv-cast": ["Elixir.MyApp.Cast", "to_existing_atom"]}
 
-  With a `jsv-cast` property defined in a schema, data will be cast when the
+  With a `x-jsv-cast` property defined in a schema, data will be cast when the
   schema is validated:
 
       iex> schema = JSV.Schema.string() |> JSV.Schema.with_cast(MyApp.Cast.to_existing_atom())
@@ -1049,7 +1049,7 @@ defmodule JSV do
 
       iex> schema = %{
       ...>   "type" => "string",
-      ...>   "jsv-cast" => ["Elixir.MyApp.Cast", "to_existing_atom"]
+      ...>   "x-jsv-cast" => ["Elixir.MyApp.Cast", "to_existing_atom"]
       ...> }
       iex> root = JSV.build!(schema)
       iex> JSV.validate("noreply", root)
@@ -1064,12 +1064,12 @@ defmodule JSV do
 
       iex> schema = %{
       ...>   "type" => "string",
-      ...>   "jsv-cast" => ["Elixir.MyApp.Cast", "accepts_anything"]
+      ...>   "x-jsv-cast" => ["Elixir.MyApp.Cast", "accepts_anything"]
       ...> }
       iex> root = JSV.build!(schema)
       iex> {:error, %JSV.ValidationError{errors: [%JSV.Validator.Error{kind: :"bad-cast"}]}} = JSV.validate("anything", root)
 
-  Finally, you can customize the name present in the `jsv-cast` property by
+  Finally, you can customize the name present in the `x-jsv-cast` property by
   using a custom tag:
 
   ```elixir

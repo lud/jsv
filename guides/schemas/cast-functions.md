@@ -14,14 +14,14 @@ registry of cast functions, so any library you use can define its own JSV casts
 without needing you to copy their mapping, registry or whatever in your
 configuration.
 
-That information is stored under the `jsv-cast` custom schema keyword as an
+That information is stored under the `x-jsv-cast` custom schema keyword as an
 array containing a module name (as string) and a custom "tag".
 
 ```json
 {
   "description": "an existing Elixir atom",
   "type": "string",
-  "jsv-cast": ["Elixir.MyApp.Schemas.Cast", "existing_atom"]
+  "x-jsv-cast": ["Elixir.MyApp.Schemas.Cast", "existing_atom"]
 }
 ```
 
@@ -41,7 +41,7 @@ This solution has multiple advantages:
 
 There are some drawbacks as well:
 
-* The `jsv-cast` information needs to be JSON-serializable, so modules are
+* The `x-jsv-cast` information needs to be JSON-serializable, so modules are
   referenced as strings, and custom tags to identify the cast function can only
   be simple data. Currently JSV only accepts strings or integers.
 * Module names are leaked into the schemas. If this is not acceptable, you can
@@ -49,7 +49,7 @@ There are some drawbacks as well:
   there. Sometimes just cleaning the schemas before making them public is enough
   too.
 * Refactoring can be harder. In general, you will not write the content of
-  `jsv-cast` by hand but rather use our helper functions. Refactoring will be
+  `x-jsv-cast` by hand but rather use our helper functions. Refactoring will be
   the same as with regular code.
 * Indirection for the cast functions is required. See the security concerns
   below.
@@ -134,7 +134,7 @@ schema:
 schema = JSV.Schema.string() |> JSV.Schema.with_cast(MyApp.Schemas.Cast.to_uppercase())
 # => %JSV.Schema{
 #      type: :string,
-#      "jsv-cast": ["Elixir.MyApp.Schemas.Cast", "to_uppercase"]
+#      "x-jsv-cast": ["Elixir.MyApp.Schemas.Cast", "to_uppercase"]
 #    }
 
 root = JSV.build!(schema)

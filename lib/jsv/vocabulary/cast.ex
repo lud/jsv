@@ -15,9 +15,9 @@ defmodule JSV.Vocabulary.Cast do
     %{}
   end
 
-  take_keyword :"jsv-cast", [module_str, arg], vds, builder, _ do
+  take_keyword :"x-jsv-cast", [module_str, arg], vds, builder, _ do
     module = unwrap_ok(StringExt.safe_string_to_existing_module(module_str))
-    {Map.put(vds, :"jsv-cast", {module, arg}), builder}
+    {Map.put(vds, :"x-jsv-cast", {module, arg}), builder}
   end
 
   ignore_any_keyword()
@@ -31,7 +31,7 @@ defmodule JSV.Vocabulary.Cast do
   end
 
   @impl true
-  def validate(data, %{"jsv-cast": {module, arg}}, vctx) do
+  def validate(data, %{"x-jsv-cast": {module, arg}}, vctx) do
     cond do
       Validator.error?(vctx) ->
         {:ok, data, vctx}
@@ -51,7 +51,7 @@ defmodule JSV.Vocabulary.Cast do
 
       {:error, reason} ->
         {:error,
-         JSV.Validator.__with_error__(__MODULE__, vctx, :"jsv-cast", data, module: module, reason: reason, arg: arg)}
+         JSV.Validator.__with_error__(__MODULE__, vctx, :"x-jsv-cast", data, module: module, reason: reason, arg: arg)}
     end
   rescue
     e in [UndefinedFunctionError, FunctionClauseError] ->
@@ -66,7 +66,7 @@ defmodule JSV.Vocabulary.Cast do
   end
 
   @impl true
-  def format_error(:"jsv-cast", args, data) do
+  def format_error(:"x-jsv-cast", args, data) do
     if function_exported?(args.module, :format_error, 3) do
       case args.module.format_error(args.arg, args.reason, data) do
         message when is_binary(message) -> {:cast, message}
