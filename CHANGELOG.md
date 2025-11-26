@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.1] - 2025-11-26
+
+### 🐛 Bug Fixes
+
+- Invalidate empty labels in hostname validation
+
 ## [0.13.0] - 2025-11-25
 
 ### 🚀 Features
