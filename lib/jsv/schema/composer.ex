@@ -99,12 +99,12 @@ defmodule JSV.Schema.Composer do
   defcompose :any_of, [anyOf: schemas :: [Schema.schema()]] when is_list(schemas)
   defcompose :one_of, [oneOf: schemas :: [Schema.schema()]] when is_list(schemas)
 
-  defcompose :string_to_integer, type: :string, "jsv-cast": JSV.Cast.string_to_integer()
-  defcompose :string_to_float, type: :string, "jsv-cast": JSV.Cast.string_to_float()
-  defcompose :string_to_number, type: :string, "jsv-cast": JSV.Cast.string_to_number()
-  defcompose :string_to_boolean, type: :string, "jsv-cast": JSV.Cast.string_to_boolean()
-  defcompose :string_to_existing_atom, type: :string, "jsv-cast": JSV.Cast.string_to_existing_atom()
-  defcompose :string_to_atom, type: :string, "jsv-cast": JSV.Cast.string_to_atom()
+  defcompose :string_to_integer, type: :string, "x-jsv-cast": JSV.Cast.string_to_integer()
+  defcompose :string_to_float, type: :string, "x-jsv-cast": JSV.Cast.string_to_float()
+  defcompose :string_to_number, type: :string, "x-jsv-cast": JSV.Cast.string_to_number()
+  defcompose :string_to_boolean, type: :string, "x-jsv-cast": JSV.Cast.string_to_boolean()
+  defcompose :string_to_existing_atom, type: :string, "x-jsv-cast": JSV.Cast.string_to_existing_atom()
+  defcompose :string_to_atom, type: :string, "x-jsv-cast": JSV.Cast.string_to_atom()
 
   @doc """
   Accepts a list of atoms and validates that a given value is a string
@@ -133,7 +133,7 @@ defmodule JSV.Schema.Composer do
                # it will be JSON-encoded as `nil` instead of `"null". But this
                # caster only accepts strings.
                enum: Enum.map(enum, &Atom.to_string/1) <- enum :: [atom],
-               "jsv-cast": JSV.Cast.string_to_atom()
+               "x-jsv-cast": JSV.Cast.string_to_atom()
              ]
              when is_list(enum)
 

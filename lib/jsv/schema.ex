@@ -170,7 +170,7 @@ defmodule JSV.Schema do
     :writeOnly,
 
     # Internal keys
-    :"jsv-cast"
+    :"x-jsv-cast"
   ]
 
   @derive {Inspect, optional: @all_keys}
@@ -335,18 +335,18 @@ defmodule JSV.Schema do
   ### Examples
 
       iex> JSV.Schema.with_cast([MyApp.Cast, :a_cast_function])
-      %JSV.Schema{"jsv-cast": ["Elixir.MyApp.Cast", "a_cast_function"]}
+      %JSV.Schema{"x-jsv-cast": ["Elixir.MyApp.Cast", "a_cast_function"]}
 
       iex> JSV.Schema.with_cast([MyApp.Cast, 1234])
-      %JSV.Schema{"jsv-cast": ["Elixir.MyApp.Cast", 1234]}
+      %JSV.Schema{"x-jsv-cast": ["Elixir.MyApp.Cast", 1234]}
 
       iex> JSV.Schema.with_cast(["some_erlang_module", "custom_tag"])
-      %JSV.Schema{"jsv-cast": ["some_erlang_module", "custom_tag"]}
+      %JSV.Schema{"x-jsv-cast": ["some_erlang_module", "custom_tag"]}
   """
   @spec with_cast(merge_base, [atom | binary | integer, ...]) :: schema()
   def with_cast(merge_base \\ nil, [mod, tag] = _mod_tag)
       when (is_atom(mod) or is_binary(mod)) and (is_atom(tag) or is_binary(tag) or is_integer(tag)) do
-    merge(merge_base, "jsv-cast": [to_string_if_atom(mod), to_string_if_atom(tag)])
+    merge(merge_base, "x-jsv-cast": [to_string_if_atom(mod), to_string_if_atom(tag)])
   end
 
   @doc false

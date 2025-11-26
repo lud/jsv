@@ -14,7 +14,7 @@ defmodule JSV.CastTest do
 
       schema = %{
         type: :string,
-        "jsv-cast": [to_string(ExpectsString), "some_arg"]
+        "x-jsv-cast": [to_string(ExpectsString), "some_arg"]
       }
 
       root = JSV.build!(schema)
@@ -31,7 +31,7 @@ defmodule JSV.CastTest do
 
       schema = %{
         type: :integer,
-        "jsv-cast": [to_string(ExpectsInteger), "some_arg"]
+        "x-jsv-cast": [to_string(ExpectsInteger), "some_arg"]
       }
 
       root = JSV.build!(schema)
@@ -53,7 +53,7 @@ defmodule JSV.CastTest do
 
       schema = %{
         type: :string,
-        "jsv-cast": [to_string(ReturnsError), "some_arg"]
+        "x-jsv-cast": [to_string(ReturnsError), "some_arg"]
       }
 
       root = JSV.build!(schema)
@@ -73,7 +73,7 @@ defmodule JSV.CastTest do
     test "does not crash on unexported functions" do
       schema = %{
         type: :string,
-        "jsv-cast": ["Elixir.System", "stop"]
+        "x-jsv-cast": ["Elixir.System", "stop"]
       }
 
       root = JSV.build!(schema)
@@ -99,7 +99,7 @@ defmodule JSV.CastTest do
 
       schema = %{
         type: :string,
-        "jsv-cast": [to_string(NestedUnexportedFunction), "some_tag"]
+        "x-jsv-cast": [to_string(NestedUnexportedFunction), "some_tag"]
       }
 
       root = JSV.build!(schema)
@@ -118,7 +118,7 @@ defmodule JSV.CastTest do
 
       schema = %{
         type: :string,
-        "jsv-cast": [to_string(DoesNotKnowTag), "ANOTHER TAG"]
+        "x-jsv-cast": [to_string(DoesNotKnowTag), "ANOTHER TAG"]
       }
 
       root = JSV.build!(schema)
@@ -148,7 +148,7 @@ defmodule JSV.CastTest do
 
       schema = %{
         type: :string,
-        "jsv-cast": [to_string(NestedFunctionClauseError), "some_tag"]
+        "x-jsv-cast": [to_string(NestedFunctionClauseError), "some_tag"]
       }
 
       root = JSV.build!(schema)
@@ -222,7 +222,7 @@ defmodule JSV.CastTest do
     #
     # The wrapping schema does not validate anything.
     defp call_with(caster, data) when is_binary(caster) when is_integer(caster) do
-      schema = %{"jsv-cast": [to_string(CastExample), caster]}
+      schema = %{"x-jsv-cast": [to_string(CastExample), caster]}
       root = JSV.build!(schema)
       JSV.validate(data, root)
     end
@@ -237,7 +237,7 @@ defmodule JSV.CastTest do
               %JSV.ValidationError{
                 errors: [
                   %JSV.Validator.Error{
-                    kind: :"jsv-cast",
+                    kind: :"x-jsv-cast",
                     data: _,
                     args: [module: JSV.CastTest.CastExample, reason: reason, arg: ^caster],
                     formatter: JSV.Vocabulary.Cast
@@ -448,7 +448,7 @@ defmodule JSV.CastTest do
     test "parent cast overrides the child" do
       schema = %{
         type: :object,
-        "jsv-cast": [__MODULE__, "topcast"],
+        "x-jsv-cast": [__MODULE__, "topcast"],
         allOf: [
           %{properties: %{bar: %{type: :integer}}, required: [:bar]},
           Child
