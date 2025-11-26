@@ -2,7 +2,6 @@ defmodule JSV.StructSchemaTest do
   alias JSV.Schema
   require JSV
   use ExUnit.Case, async: true
-  use JSV.Schema
 
   defmodule BasicDefine do
     JSV.defschema(%Schema{
@@ -870,6 +869,8 @@ defmodule JSV.StructSchemaTest do
       assert {:ok, ^valid_data_self} = JSV.validate(valid_data_self, root_self, cast: false)
     end
   end
+
+  import JSV
 
   defschema SubMod,
     age: integer(),

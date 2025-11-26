@@ -819,10 +819,10 @@ defmodule JSV do
     quoted =
       quote do
         defmodule unquote(module) do
+          use JSV.Schema
+
           schema_or_properties = unquote(schema_or_properties)
           description = unquote(description)
-
-          use JSV.Schema
 
           @moduledoc description
 
