@@ -44,6 +44,10 @@ defmodule JSV.FormatValidator.Default.Optional.Hostname do
     :exit, _ -> {:error, :invalid_hostname}
   end
 
+  defp bad_hostname_label?("") do
+    true
+  end
+
   defp bad_hostname_label?(label) do
     String.starts_with?(label, "-") ||
       String.ends_with?(label, "-") ||
