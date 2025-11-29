@@ -189,8 +189,7 @@ defcast :to_upper
 defcast "custom_tag", :to_upper
 defcast ?u, :to_upper
 
-# The function needs to be
-# defined in the module as `def` or `defp`.
+# The function needs to be defined in the module as `def` or `defp`.
 def to_upper(data) when is_binary(data), do: {:ok, String.upcase(data)}
 def to_upper(data), do: {:error, :expected_string}
 
@@ -234,7 +233,7 @@ JSV.normalize_error(err)
 ```
 <!-- rdmx /:section -->
 
-The code above gies the following normalized error:
+The code above gvies the following normalized error:
 
 <!-- rdmx :eval section:example_error  -->
 ```elixir
