@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2025-12-30
+
+### 🚀 Features
+
+- Allow to use schema helpers with import JSV and defschema/3
+- Added json serialization skip option in optional() properties
+
 ## [0.13.1] - 2025-11-26
 
 ### 🐛 Bug Fixes
