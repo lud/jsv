@@ -219,21 +219,38 @@ defmodule JSV.Schema.Helpers do
 
   @doc """
   Marks a schema as optional when using the keyword list syntax with
-  `JSV.defschema/1`.
+  `JSV.defschema/1` or `JSV.defschema/3`.
 
   This is useful for recursive module references where you want to avoid
   infinite nesting requirements. When used in property list syntax with
   `defschema`, the property will not be marked as required.
 
-  #### Example
-
   ```
   defschema name: string(),
             parent: optional(MySelfReferencingModule)
   ```
+
+  ### Skipping optional keys during JSON serialization
+
+  **This is only applicable to schema defined with `JSV.desfschema/3`**. The
+  more generic macro `JSV.defschema/1` let you implement a full module so you
+  must implement the protocols yourself, or use anyOf: null/sub schema for some
+  properties.
+
+  When encoding a struct to JSON, optional value (set as `nil` in the struct)
+  are still rendered, which may be invalid if someone needs to validate the
+  serialized value with the original schema. As the optional properties are not
+  required, the `:nskip` option (for "normalization skip") with a constant value
+  can be given. The value will not be serialized if it matches the value.
+
+  ```
+  defschema name: string(),
+            parent: optional(MySelfReferencingModule, nskip: nil)
+  ```
   """
-  @spec optional(term) :: {:optional, term}
-  def optional(schema) do
-    {:optional, schema}
+  @spec optional(term) :: {:__optional__, term, keyword()}
+  @spec optional(term, keyword()) :: {:__optional__, term, keyword()}
+  def optional(schema, opts \\ []) do
+    {:__optional__, schema, opts}
   end
 end

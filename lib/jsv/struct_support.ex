@@ -251,7 +251,7 @@ defmodule JSV.StructSupport do
     # the returned schema from macros.
     {props, required} =
       Enum.map_reduce(properties, _required = [], fn
-        {k, {:optional, prop_schema}}, required when is_map(prop_schema) when is_atom(prop_schema) ->
+        {k, {:__optional__, prop_schema, _}}, required when is_map(prop_schema) when is_atom(prop_schema) ->
           {{k, prop_schema}, required}
 
         {k, prop_schema}, required when is_map(prop_schema) ->
@@ -264,8 +264,9 @@ defmodule JSV.StructSupport do
         {k, prop_schema}, required when is_atom(prop_schema) ->
           {{k, prop_schema}, [k | required]}
 
-        _, _ ->
-          raise ArgumentError, errmsg("as properties must be a keyword list, got: #{inspect(properties)}")
+        other, _ ->
+          raise ArgumentError,
+                errmsg("as properties must be a keyword list with valid property tuples, got: #{inspect(other)}")
       end)
 
     Map.merge(
@@ -280,5 +281,32 @@ defmodule JSV.StructSupport do
 
   defp errmsg(msg) do
     "schema given to defschema/1 " <> msg
+  end
+
+  @doc """
+  Takes a list of schema properties (used in `JSV.defschema/3`) and returns a
+  map of key/constant tuples.
+
+  The items in the list are all the keys whose property is wrapped with the
+  `JSV.Schema.Helpers.optional/2` helper and the `:nskip` option is defined with
+  a constant.
+  """
+  @spec serialization_skips(keyword) :: %{optional(atom) => term}
+  def serialization_skips(props) do
+    props
+    |> Enum.flat_map(fn
+      {_key, {:__optional__, _, []}} ->
+        []
+
+      {key, {:__optional__, _, opts}} ->
+        case Keyword.fetch(opts, :nskip) do
+          {:ok, const} -> [{key, const}]
+          :error -> []
+        end
+
+      {_, _} ->
+        []
+    end)
+    |> Map.new()
   end
 end

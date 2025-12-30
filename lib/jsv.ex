@@ -599,7 +599,7 @@ defmodule JSV do
   ### Ignoring struct keys
 
   Some keys can be defined in the schema but not included in the struct by using
-  the `@skip_keys` module attribute. This is helpful when a property uses
+  the `@def` module attribute. This is helpful when a property uses
   `const` but your code rather depends on the struct type.
 
   Keys listed in `@skip_keys` will still be validated according to the schema!
@@ -816,6 +816,9 @@ defmodule JSV do
     # not giving the caller env so we do not expand the module name to its FQMN
     module_name = inspect(Macro.expand_literals(module, __ENV__))
 
+    json_encoder = derive_json_encoder()
+    jason_encoder = derive_jason_encoder()
+
     quoted =
       quote do
         defmodule unquote(module) do
@@ -826,21 +829,19 @@ defmodule JSV do
 
           @moduledoc description
 
-          schema =
+          {schema, serialization_skips} =
             if is_list(schema_or_properties) do
+              props = schema_or_properties
               overrides = %{title: unquote(module_name), description: description}
-              JSV.StructSupport.props_to_schema(schema_or_properties, overrides)
+              schema = JSV.StructSupport.props_to_schema(props, overrides)
+              skips = JSV.StructSupport.serialization_skips(props)
+              {schema, skips}
             else
-              schema_or_properties
+              {schema_or_properties, []}
             end
 
-          if Code.ensure_loaded?(JSON.Encoder) do
-            @derive JSON.Encoder
-          end
-
-          if Code.ensure_loaded?(Jason.Encoder) do
-            @derive Jason.Encoder
-          end
+          unquote(json_encoder)
+          unquote(jason_encoder)
 
           defschema schema
         end
@@ -849,6 +850,58 @@ defmodule JSV do
     # I'm not sure why ElixirLS points to this macro's line when using
     # go-to-definition on defined modules. This does not seem to solve it.
     Macro.update_meta(quoted, &Keyword.put(&1, :line, __CALLER__.line))
+  end
+
+  defp derive_json_encoder do
+    quote do
+      if Code.ensure_loaded?(JSON.Encoder) do
+        case serialization_skips do
+          m when map_size(m) == 0 ->
+            @derive JSON.Encoder
+
+          skips ->
+            defimpl JSON.Encoder do
+              @skips skips
+              def encode(%mod{} = struct, encoder) do
+                value = JSV.__json_norm_skip__(struct, @skips)
+                encoder.(value, encoder)
+              end
+            end
+        end
+      end
+    end
+  end
+
+  defp derive_jason_encoder do
+    quote do
+      if Code.ensure_loaded?(Jason.Encoder) do
+        case serialization_skips do
+          m when map_size(m) == 0 ->
+            @derive Jason.Encoder
+
+          skips ->
+            defimpl Jason.Encoder do
+              @skips skips
+              def encode(%mod{} = struct, opts) do
+                value = JSV.__json_norm_skip__(struct, @skips)
+                Jason.Encode.map(value, opts)
+              end
+            end
+        end
+      end
+    end
+  end
+
+  @doc false
+  @spec __json_norm_skip__(struct(), map()) :: map()
+  def __json_norm_skip__(struct, serialization_skips) do
+    struct
+    |> Map.from_struct()
+    |> Enum.flat_map(fn
+      {k, v} when :erlang.map_get(k, serialization_skips) == v -> []
+      {k, v} -> [{k, v}]
+    end)
+    |> Map.new()
   end
 
   @doc false

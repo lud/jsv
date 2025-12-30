@@ -237,4 +237,34 @@ defmodule JSV.StructSupportTest do
       assert [:a, :b, :c] == StructSupport.list_required(%{:properties => %{}, required: [:a, :b, :c]})
     end
   end
+
+  describe "serialization skips" do
+    test "no properties" do
+      assert %{} == StructSupport.serialization_skips([])
+    end
+
+    test "no optional properties" do
+      use JSV.Schema
+      assert %{} == StructSupport.serialization_skips(foo: string(), bar: integer())
+    end
+
+    test "one optional property without nskip" do
+      use JSV.Schema
+      assert %{} == StructSupport.serialization_skips(foo: string(), bar: optional(integer()))
+    end
+
+    test "properties with nskip" do
+      use JSV.Schema
+      assert %{bar: nil} = StructSupport.serialization_skips(foo: string(), bar: optional(integer(), nskip: nil))
+
+      assert %{bar: nil, baz: 123, qux: "hello"} =
+               StructSupport.serialization_skips(
+                 foo: string(),
+                 bar: optional(integer(), nskip: nil),
+                 baz: optional(integer(), nskip: 123),
+                 stuff: string(),
+                 qux: optional(object(), nskip: "hello")
+               )
+    end
+  end
 end

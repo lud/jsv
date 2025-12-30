@@ -1,10 +1,10 @@
 defmodule JSV.StructSchemaTest do
   alias JSV.Schema
-  require JSV
+  use JSV.Schema
   use ExUnit.Case, async: true
 
   defmodule BasicDefine do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         name: %{type: :string},
@@ -14,7 +14,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule BasicDefineRawMap do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         name: %{type: :string},
@@ -24,7 +24,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule WithRequired do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         name: %{type: :string},
@@ -35,7 +35,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule RefsAnother do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         with_req: WithRequired
@@ -45,7 +45,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule RecursiveA do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         name: Schema.string(),
@@ -56,7 +56,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule RecursiveB do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         name: Schema.string(),
@@ -68,7 +68,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule RecursiveSelf do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         name: Schema.string(),
@@ -80,7 +80,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule RecursiveSelfWithCustomId do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       "$id": "custom:my-custom-id",
       type: :object,
       properties: %{
@@ -93,7 +93,7 @@ defmodule JSV.StructSchemaTest do
   end
 
   defmodule NoAdditional do
-    JSV.defschema(%Schema{
+    defschema(%Schema{
       type: :object,
       properties: %{
         name: %{type: :string},
@@ -117,7 +117,7 @@ defmodule JSV.StructSchemaTest do
     }
 
     # Schema should be defineable from a function call
-    JSV.defschema(get_in(schema, [:"$defs", :user]))
+    defschema(get_in(schema, [:"$defs", :user]))
   end
 
   defmodule WithKW do
@@ -169,6 +169,21 @@ defmodule JSV.StructSchemaTest do
               sub_self: optional(__MODULE__)
   end
 
+  # Automatic json protocol definition is only implemented with the defschema/3
+  # macro
+
+  defschema OptionalSkipNil,
+    name: Schema.string(),
+    age: optional(integer(), nskip: nil)
+
+  defschema OptionalSkip999,
+    name: Schema.string(),
+    age: optional(integer(), nskip: 999)
+
+  #
+
+  #
+
   describe "generating modules from schemas" do
     defp call_mod(mod, data) do
       JSV.validate(data, JSV.build!(mod))
@@ -189,7 +204,7 @@ defmodule JSV.StructSchemaTest do
     test "binary keys are invalid" do
       assert_raise ArgumentError, ~r/must be defined with atom keys/, fn ->
         defmodule BasicDefineBinaryKeys do
-          JSV.defschema(%{
+          defschema(%{
             "type" => "object",
             "properties" => %{
               "name" => %{"type" => "string"},
@@ -587,6 +602,13 @@ defmodule JSV.StructSchemaTest do
   end
 
   describe "optional schemas" do
+    defp encode_decode(module, value) do
+      value
+      |> module.encode!()
+      |> module.decode!()
+    end
+
+    # Here we do not test the "optional()"
     test "schema can be given in oneOf" do
       schema = %{oneOf: [%{type: :null}, BasicDefine]}
       root = JSV.build!(schema)
@@ -594,6 +616,39 @@ defmodule JSV.StructSchemaTest do
 
       assert {:ok, %BasicDefine{name: "Alice", age: 456}} ==
                JSV.validate(%{"name" => "Alice", "age" => 456}, root)
+    end
+
+    test "optional normalization with Jason" do
+      value = %OptionalSkipNil{name: "Alice", age: 123}
+      assert %{"age" => 123, "name" => "Alice"} == encode_decode(Jason, value)
+
+      # Nil will be skipped
+
+      value = %OptionalSkipNil{name: "Alice", age: nil}
+      assert %{"name" => "Alice"} == encode_decode(Jason, value)
+
+      # It works with any specified value. Here we use a module that skips if
+      # the value is 999
+
+      value = %OptionalSkip999{name: "Alice", age: nil}
+      assert %{"name" => "Alice", "age" => nil} == encode_decode(Jason, value)
+
+      value = %OptionalSkip999{name: "Alice", age: 999}
+      assert %{"name" => "Alice"} == encode_decode(Jason, value)
+    end
+
+    test "optional normalization with JSON" do
+      value = %OptionalSkipNil{name: "Alice", age: 123}
+      assert %{"age" => 123, "name" => "Alice"} == encode_decode(JSON, value)
+
+      value = %OptionalSkipNil{name: "Alice", age: nil}
+      assert %{"name" => "Alice"} == encode_decode(JSON, value)
+
+      value = %OptionalSkip999{name: "Alice", age: nil}
+      assert %{"name" => "Alice", "age" => nil} == encode_decode(JSON, value)
+
+      value = %OptionalSkip999{name: "Alice", age: 999}
+      assert %{"name" => "Alice"} == encode_decode(JSON, value)
     end
   end
 
@@ -604,7 +659,7 @@ defmodule JSV.StructSchemaTest do
     end
 
     defmodule DenormToStruct do
-      JSV.defschema_for(OriginalStruct, %{
+      defschema_for(OriginalStruct, %{
         type: :object,
         properties: %{
           # Orginal default is 100, but we override it
@@ -644,7 +699,7 @@ defmodule JSV.StructSchemaTest do
     test "requires the schema to correspond to the struct" do
       # The schema can be defined
       defmodule DenormToStructWithLessKeys do
-        JSV.defschema_for(OriginalStruct, %{
+        defschema_for(OriginalStruct, %{
           type: :object,
           properties: %{}
         })
@@ -660,7 +715,7 @@ defmodule JSV.StructSchemaTest do
     test "cannot provide extra keys" do
       assert_raise ArgumentError, ~r/ does not define keys given in defschema_for\//, fn ->
         defmodule DenormToStructWithExtraKeys do
-          JSV.defschema_for(OriginalStruct, %{
+          defschema_for(OriginalStruct, %{
             type: :object,
             properties: %{
               some_unknown_key: %{}
@@ -778,7 +833,7 @@ defmodule JSV.StructSchemaTest do
     test "property list with non-atom keys should fail" do
       assert_raise ArgumentError, ~r/properties must be defined with atom keys/, fn ->
         defmodule BadKW do
-          JSV.defschema([{"string_key", %{type: :string}}])
+          defschema([{"string_key", %{type: :string}}])
         end
       end
     end
