@@ -232,7 +232,7 @@ defmodule JSV.Schema.Helpers do
 
   ### Skipping optional keys during JSON serialization
 
-  **This is only applicable to schema defined with `JSV.desfschema/3`**. The
+  **This is only applicable to schema defined with `JSV.defschema/3`**. The
   more generic macro `JSV.defschema/1` let you implement a full module so you
   must implement the protocols yourself, or use anyOf: null/sub schema for some
   properties.

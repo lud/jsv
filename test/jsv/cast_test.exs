@@ -359,7 +359,7 @@ defmodule JSV.CastTest do
 
     # Tests made to fix a bug.
     #
-    # When using oneOf with a desfchema module in the oneOf, the value is cast
+    # When using oneOf with a defchema module in the oneOf, the value is cast
     # before some keywords are executed, like required: ["foo"] that will not
     # work since the value has been casted to a struct with a :foo key.
     #
