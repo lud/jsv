@@ -3,12 +3,17 @@ defmodule JSV.NullableTest do
 
   import JSV.Schema.Helpers
 
+  @nullable_tests [
+    {:integer, 42},
+    {:boolean, true},
+    {:number, 3.14}
+  ]
+
   describe "nullable option" do
     test "string(nullable: true) accepts nil values" do
       schema = props(foo: string(nullable: true))
       root = JSV.build!(schema)
 
-      # nil should be valid when nullable: true
       assert {:ok, _} = JSV.validate(%{"foo" => nil}, root)
     end
 
@@ -23,36 +28,20 @@ defmodule JSV.NullableTest do
       schema = props(foo: string())
       root = JSV.build!(schema)
 
-      # nil should be invalid without nullable: true
       assert {:error, _} = JSV.validate(%{"foo" => nil}, root)
     end
 
-    test "integer(nullable: true) accepts nil values" do
-      schema = props(foo: integer(nullable: true))
-      root = JSV.build!(schema)
+    for {type_helper, valid_value} <- @nullable_tests do
+      test "#{type_helper}(nullable: true) accepts nil and #{type_helper} values" do
+        helper = unquote(type_helper)
+        valid_value = unquote(valid_value)
 
-      assert {:ok, _} = JSV.validate(%{"foo" => nil}, root)
-    end
+        schema = props(foo: apply(JSV.Schema.Helpers, helper, [[nullable: true]]))
+        root = JSV.build!(schema)
 
-    test "integer(nullable: true) still accepts integer values" do
-      schema = props(foo: integer(nullable: true))
-      root = JSV.build!(schema)
-
-      assert {:ok, _} = JSV.validate(%{"foo" => 42}, root)
-    end
-
-    test "boolean(nullable: true) accepts nil values" do
-      schema = props(foo: boolean(nullable: true))
-      root = JSV.build!(schema)
-
-      assert {:ok, _} = JSV.validate(%{"foo" => nil}, root)
-    end
-
-    test "number(nullable: true) accepts nil values" do
-      schema = props(foo: number(nullable: true))
-      root = JSV.build!(schema)
-
-      assert {:ok, _} = JSV.validate(%{"foo" => nil}, root)
+        assert {:ok, _} = JSV.validate(%{"foo" => nil}, root)
+        assert {:ok, _} = JSV.validate(%{"foo" => valid_value}, root)
+      end
     end
   end
 end
