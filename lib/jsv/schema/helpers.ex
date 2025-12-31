@@ -253,4 +253,76 @@ defmodule JSV.Schema.Helpers do
   def optional(schema, opts \\ []) do
     {:__optional__, schema, opts}
   end
+
+  @doc """
+  Makes a schema nullable by adding `:null` to the allowed types.
+
+  This conforms to OpenAPI spec 3.1 where nullable types are represented
+  as `type: ["original_type", "null"]`.
+
+  ### Example
+
+      iex> nullable(integer())
+      %{type: [:integer, :null]}
+
+      iex> nullable(%{type: :integer, anyOf: [%{minimum: 1}, %{maximum: -1}]})
+      %{
+        type: [:integer, :null],
+        anyOf: [%{type: :null}, %{minimum: 1}, %{maximum: -1}]
+      }
+  """
+  @spec nullable(map()) :: map()
+  def nullable(schema) do
+    Map.new(schema, fn
+      {:type, t} -> {:type, nullable_type(t)}
+      {:anyOf, schemas} -> {:anyOf, nullable_list(schemas)}
+      {:oneOf, schemas} -> {:oneOf, nullable_list(schemas)}
+      other -> other
+    end)
+  end
+
+  defp nullable_type(:null) do
+    :null
+  end
+
+  defp nullable_type(t) when is_atom(t) do
+    [t, :null]
+  end
+
+  defp nullable_type(t) when is_list(t) do
+    [:null | t -- [:null]]
+  end
+
+  defp nullable_list(list) do
+    [%{type: :null} | list]
+  end
+
+  @doc """
+  Marks a schema as both nullable and optional when using the keyword list
+  syntax with `JSV.defschema/1` or `JSV.defschema/3`.
+
+  This is a convenience function that combines `nullable/1` and `optional/1`.
+  The schema will accept `null` values and will not be required when used
+  as a property in an object schema.
+
+  ```elixir
+  defschema name: string(),
+            nickname: nullish(string())
+  ```
+
+  In this example, `nickname` is not required, and when present it can be
+  either a string or `null`:
+
+  ```elixir
+  # All of these are valid:
+  JSV.validate(%{"name" => "Alice"}, root)
+  JSV.validate(%{"name" => "Alice", "nickname" => "Ali"}, root)
+  JSV.validate(%{"name" => "Alice", "nickname" => nil}, root)
+  ```
+  """
+  @spec nullish(map()) :: {:__optional__, map(), keyword()}
+  @spec nullish(map(), keyword()) :: {:__optional__, map(), keyword()}
+  def nullish(schema, opts \\ []) do
+    optional(nullable(schema), opts)
+  end
 end
