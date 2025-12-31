@@ -306,14 +306,27 @@ defmodule JSV.Schema do
   @doc """
   Merges two sets of attributes into a single map. Attributes can be a keyword
   list or a map.
+
+  If `nullable: true` is present in the first argument and a `type` is defined
+  in the second argument, the type will be converted to include `:null`.
+  For example, `combine([nullable: true], [type: :string])` will result in
+  `%{type: [:string, :null]}`.
   """
   @spec combine(attributes, attributes) :: schema
   def combine(map, attributes) when is_map(map) do
-    Enum.into(attributes, map)
+    Enum.into(attributes, map) |> maybe_apply_nullable()
   end
 
   def combine(list, attributes) when is_list(list) do
-    Enum.into(attributes, Map.new(list))
+    Enum.into(attributes, Map.new(list)) |> maybe_apply_nullable()
+  end
+
+  defp maybe_apply_nullable(%{nullable: true, type: type} = schema) when not is_nil(type) do
+    Map.put(schema, :type, Enum.uniq(List.wrap(type) ++ [:null]))
+  end
+
+  defp maybe_apply_nullable(schema) do
+    schema
   end
 
   @deprecated "Use `JSV.Schema.Composer.merge/2`."
