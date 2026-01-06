@@ -423,11 +423,30 @@ defmodule JSV.Schema do
   to their own definitions, the schema returned from this function may not be
   valid. To prevent this, schemas with definitions should define an `$id` and
   use this in `$ref` references.
-  """
-  @spec normalize_collect(term) :: %{optional(binary) => schema_data} | atom
-  def normalize_collect(term)
 
-  def normalize_collect(term) when is_atom(term) when is_map(term) do
+  ### Options
+
+  - `:as_root` - boolean, when `true` and used in combination with a
+    module-based schema, that module's schema will be kept as the root schema
+    instead of being wrapped in a definition. This will overwrite any `$defs`
+    present in the schema.
+  """
+  @spec normalize_collect(term, keyword()) :: %{optional(binary) => schema_data} | atom
+  def normalize_collect(term, opts \\ [])
+
+  def normalize_collect(term, opts) when is_atom(term) do
+    if Keyword.get(opts, :as_root) == true and schema_module?(term) do
+      do_normalize_collect(term.json_schema(), opts)
+    else
+      do_normalize_collect(term, opts)
+    end
+  end
+
+  def normalize_collect(term, opts) when is_map(term) do
+    do_normalize_collect(term, opts)
+  end
+
+  defp do_normalize_collect(term, _opts) when is_atom(term) when is_map(term) do
     # We will have to run several loops. We call the normalizer, replacing
     # modules with a reference, collecting the module in the acc.
     #
@@ -476,8 +495,11 @@ defmodule JSV.Schema do
         {pending, acc} = get_and_update_in(acc.pending, &{&1, []})
 
         defs = normalize_collect_defs(pending, acc, normalize_opts)
-        false = Map.has_key?(root_schema, "$defs")
-        Map.put(root_schema, "$defs", defs)
+
+        case map_size(defs) do
+          0 -> root_schema
+          _ -> Map.put(root_schema, "$defs", defs)
+        end
 
       {other, _} ->
         other
