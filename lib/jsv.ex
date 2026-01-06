@@ -832,7 +832,13 @@ defmodule JSV do
           {schema, serialization_skips} =
             if is_list(schema_or_properties) do
               props = schema_or_properties
-              overrides = %{title: unquote(module_name), description: description}
+
+              overrides =
+                case description do
+                  nil -> %{title: unquote(module_name)}
+                  d when is_binary(d) -> %{title: unquote(module_name), description: d}
+                end
+
               schema = JSV.StructSupport.props_to_schema(props, overrides)
               skips = JSV.StructSupport.serialization_skips(props)
               {schema, skips}

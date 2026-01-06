@@ -984,7 +984,9 @@ defmodule JSV.StructSchemaTest do
     end
 
     test "the title and description are defined" do
-      assert nil == SubMod.json_schema().description
+      # description is not defined if not provided
+      assert :error == Map.fetch(SubMod.json_schema(), :description)
+
       assert "A submodule embedded in another one" == SubMod.Wrapper.json_schema().description
 
       assert "SubMod" == SubMod.json_schema().title
