@@ -253,4 +253,82 @@ defmodule JSV.Schema.Helpers do
   def optional(schema, opts \\ []) do
     {:__optional__, schema, opts}
   end
+
+  @doc """
+  Makes a schema nullable by adding `:null` to the allowed types.
+
+  ### Example
+
+      iex> nullable(integer())
+      %{type: [:integer, :null]}
+
+      iex> nullable(%{type: :integer, anyOf: [%{minimum: 1}, %{maximum: -1}]})
+      %{
+        type: [:integer, :null],
+        anyOf: [%{type: :null}, %{minimum: 1}, %{maximum: -1}]
+      }
+
+      iex> nullable(%{type: :integer, oneOf: [%{minimum: 1}, %{maximum: -1}]})
+      %{
+        type: [:integer, :null],
+        oneOf: [%{type: :null}, %{minimum: 1}, %{maximum: -1}]
+      }
+
+  When given a schema module, wraps it in an `anyOf` that allows either the
+  module's schema or null:
+
+      iex> defmodule Position do
+      ...>   use JSV.Schema
+      ...>   defschema x: integer(), y: integer()
+      ...> end
+      iex> nullable(Position)
+      %{anyOf: [%{type: :null}, Position]}
+
+      iex> defmodule Point do
+      ...>   def json_schema do
+      ...>     %{
+      ...>       "properties" => %{
+      ...>         "x" => %{"type" => "integer"},
+      ...>         "y" => %{"type" => "integer"}
+      ...>       }
+      ...>     }
+      ...>   end
+      ...> end
+      iex> nullable(Point)
+      %{anyOf: [%{type: :null}, Point]}
+  """
+  @spec nullable(map() | module()) :: map()
+  def nullable(schema) when is_atom(schema) do
+    if Schema.schema_module?(schema) do
+      %{anyOf: [%{type: :null}, schema]}
+    else
+      raise ArgumentError,
+            "nullable/1 expected a schema map or a schema module, got: #{inspect(schema)}"
+    end
+  end
+
+  def nullable(schema) when is_map(schema) do
+    Map.new(schema, fn
+      {:type, t} -> {:type, nullable_type(t)}
+      {:anyOf, schemas} -> {:anyOf, nullable_list(schemas)}
+      {:oneOf, schemas} -> {:oneOf, nullable_list(schemas)}
+      other -> other
+    end)
+  end
+
+  defp nullable_type(:null) do
+    :null
+  end
+
+  defp nullable_type(t) when is_atom(t) do
+    [t, :null]
+  end
+
+  defp nullable_type(t) when is_list(t) do
+    [:null | t -- [:null]]
+  end
+
+  defp nullable_list(list) do
+    [%{type: :null} | list]
+  end
 end
