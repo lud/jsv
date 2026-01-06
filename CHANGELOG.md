@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.0] - 2026-01-06
+
+### 🚀 Features
+
+- Added JSV.Schema.normalize_collect to generate self-contained schemas from modules
+- Added the nullable/1 schema helper
+
+### 📚 Documentation
+
+- Fixed docs for the optional helper
+
 ## [0.14.0] - 2025-12-30
 
 ### 🚀 Features
