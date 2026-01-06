@@ -270,9 +270,28 @@ defmodule JSV.Schema.Helpers do
         type: [:integer, :null],
         anyOf: [%{type: :null}, %{minimum: 1}, %{maximum: -1}]
       }
+
+  When given a schema module (defined with `defschema`), wraps it in an `anyOf`
+  that allows either the module's schema or null:
+
+      iex> defmodule Position do
+      ...>   use JSV.Schema
+      ...>   defschema x: integer(), y: integer()
+      ...> end
+      iex> nullable(Position)
+      %{anyOf: [%{type: :null}, Position]}
   """
-  @spec nullable(map()) :: map()
-  def nullable(schema) do
+  @spec nullable(map() | module()) :: map()
+  def nullable(schema) when is_atom(schema) do
+    if Schema.schema_module?(schema) do
+      %{anyOf: [%{type: :null}, schema]}
+    else
+      raise ArgumentError,
+            "nullable/1 expected a schema map or a schema module, got: #{inspect(schema)}"
+    end
+  end
+
+  def nullable(schema) when is_map(schema) do
     Map.new(schema, fn
       {:type, t} -> {:type, nullable_type(t)}
       {:anyOf, schemas} -> {:anyOf, nullable_list(schemas)}

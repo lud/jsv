@@ -202,6 +202,108 @@ defmodule JSV.Schema.HelpersNullableTest do
     end)
   end
 
+  describe "nullable/1 with schema modules" do
+    defmodule Position do
+      use JSV.Schema
+
+      defschema x: Helpers.integer(description: "X coordinate"),
+                y: Helpers.integer(description: "Y coordinate")
+    end
+
+    defmodule Node do
+      use JSV.Schema
+
+      defschema id: Helpers.string(format: :uuid, description: "Node ID"),
+                position: Helpers.nullable(Position)
+    end
+
+    test "nullable schema module accepts the schema value" do
+      root = JSV.build!(Node)
+
+      assert {:ok, _} =
+               JSV.validate(
+                 %{
+                   "id" => "550e8400-e29b-41d4-a716-446655440000",
+                   "position" => %{"x" => 10, "y" => 20}
+                 },
+                 root
+               )
+    end
+
+    test "nullable schema module accepts null" do
+      root = JSV.build!(Node)
+
+      assert {:ok, _} =
+               JSV.validate(
+                 %{
+                   "id" => "550e8400-e29b-41d4-a716-446655440000",
+                   "position" => nil
+                 },
+                 root
+               )
+    end
+
+    test "nullable schema module rejects invalid values" do
+      root = JSV.build!(Node)
+
+      assert {:error, _} =
+               JSV.validate(
+                 %{
+                   "id" => "550e8400-e29b-41d4-a716-446655440000",
+                   "position" => "invalid"
+                 },
+                 root
+               )
+
+      assert {:error, _} =
+               JSV.validate(
+                 %{
+                   "id" => "550e8400-e29b-41d4-a716-446655440000",
+                   "position" => %{"x" => 10}
+                 },
+                 root
+               )
+    end
+
+    test "nullable returns anyOf schema for schema modules" do
+      schema = Helpers.nullable(Position)
+
+      assert %{anyOf: [%{type: :null}, Position]} = schema
+    end
+
+    test "nullish also works with schema modules" do
+      defmodule NodeWithNullishPosition do
+        use JSV.Schema
+
+        defschema id: Helpers.string(format: :uuid, description: "Node ID"),
+                  position: Helpers.nullish(Position)
+      end
+
+      root = JSV.build!(NodeWithNullishPosition)
+
+      assert {:ok, _} =
+               JSV.validate(
+                 %{"id" => "550e8400-e29b-41d4-a716-446655440000"},
+                 root
+               )
+
+      assert {:ok, _} =
+               JSV.validate(
+                 %{"id" => "550e8400-e29b-41d4-a716-446655440000", "position" => nil},
+                 root
+               )
+
+      assert {:ok, _} =
+               JSV.validate(
+                 %{
+                   "id" => "550e8400-e29b-41d4-a716-446655440000",
+                   "position" => %{"x" => 10, "y" => 20}
+                 },
+                 root
+               )
+    end
+  end
+
   describe "nullable vs optional vs nullish comparison" do
     defmodule OnlyOptionalSchema do
       use JSV.Schema
