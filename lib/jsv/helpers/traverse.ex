@@ -21,7 +21,7 @@ defmodule JSV.Helpers.Traverse do
 
   @doc """
   Updates a JSON-compatible data structure in depth-first, post-order traversal
-  while carrying an accumulator.
+  while carrying an accumulator. Maps are iterated in order.
 
   The callback must return a `{new_value, new_acc}` tuple.
 
@@ -150,14 +150,21 @@ defmodule JSV.Helpers.Traverse do
   end
 
   defp postwalk_map_pairs(map, acc, fun) do
-    {pairs, acc} =
-      Enum.map_reduce(map, acc, fn {k, v}, acc ->
+    iter = :maps.iterator(map, :ordered)
+    {pairs, acc} = do_map_pairs(iter, [], acc, fun)
+    {Map.new(pairs), acc}
+  end
+
+  defp do_map_pairs(iter, pairs, acc, fun) do
+    case :maps.next(iter) do
+      {k, v, iter1} ->
         {v, acc} = postwalk(v, acc, fun)
         {k, acc} = fun.({:key, k}, acc)
-        {{k, v}, acc}
-      end)
+        do_map_pairs(iter1, [{k, v} | pairs], acc, fun)
 
-    {Map.new(pairs), acc}
+      :none ->
+        {pairs, acc}
+    end
   end
 
   @doc """

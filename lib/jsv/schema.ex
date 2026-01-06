@@ -410,11 +410,139 @@ defmodule JSV.Schema do
     normal
   end
 
+  @doc """
+  Behaves like `normalize/1` but all nested module-based schemas are collected
+  into `$defs` so the result is a self contained schema, whereas the default
+  normalization function returns references for `JSV.Resolver.Internal`.
+
+  Schemas are collected using their title for the key under `$defs`. If multiple
+  schemas use the same title, the title is suffixed with `_1`, `_2` and so on.
+
+  This function does not support schemas with pre-existing `$defs`, it will
+  ignore them and keep them nested. If such schemas are present and use `$ref`
+  to their own definitions, the schema returned from this function may not be
+  valid. To prevent this, schemas with definitions should define an `$id` and
+  use this in `$ref` references.
+  """
+  @spec normalize_collect(term) :: %{optional(binary) => schema_data} | atom
+  def normalize_collect(term)
+
+  def normalize_collect(term) when is_atom(term) when is_map(term) do
+    # We will have to run several loops. We call the normalizer, replacing
+    # modules with a reference, collecting the module in the acc.
+    #
+    # After the call, if we collected some modules, we merge the refs and start
+    # over but we keep the previously used modules and refs so we can skip them
+    # and directly use the ref
+
+    accin = %{
+      # Collected definitions to merge in the final result
+      defs: %{},
+
+      # module to ref, used to see if we handled the module and store the ref
+      modules: %{},
+
+      # modules for which we generated a reference and we need to normalize into
+      # a definition.
+      pending: []
+    }
+
+    normalize_opts = [
+      on_general_atom: fn atom, acc ->
+        if schema_module?(atom) do
+          case Map.fetch(acc.modules, atom) do
+            {:ok, ref} ->
+              {%{"$ref" => ref}, acc}
+
+            :error ->
+              schema = from_module(atom)
+              title = module_schema_title(schema, atom)
+              refname = available_module_schema_refname(acc.defs, title)
+              ref = "#/$defs/#{refname}"
+              acc = put_in(acc.modules[atom], ref)
+              acc = put_in(acc.defs[refname], :__placeholder__)
+              acc = update_in(acc.pending, &[{refname, schema} | &1])
+              {%{"$ref" => ref}, acc}
+          end
+        else
+          {Atom.to_string(atom), acc}
+        end
+      end
+    ]
+
+    # On the first iteration we get the root schema
+    case JSV.Normalizer.normalize(term, accin, normalize_opts) do
+      {root_schema, acc} when is_map(root_schema) ->
+        {pending, acc} = get_and_update_in(acc.pending, &{&1, []})
+
+        defs = normalize_collect_defs(pending, acc, normalize_opts)
+        false = Map.has_key?(root_schema, "$defs")
+        Map.put(root_schema, "$defs", defs)
+
+      {other, _} ->
+        other
+    end
+  end
+
+  defp normalize_collect_defs([{refname, schema} | pending], acc, normalize_opts) do
+    {def_schema, acc} = JSV.Normalizer.normalize(schema, acc, normalize_opts)
+
+    acc = update_in(acc.defs[refname], fn :__placeholder__ -> def_schema end)
+    normalize_collect_defs(pending, acc, normalize_opts)
+  end
+
+  defp normalize_collect_defs([], acc, normalize_opts) do
+    case acc.pending do
+      [] ->
+        acc.defs
+
+      more ->
+        acc = Map.put(acc, :pending, [])
+        normalize_collect_defs(more, acc, normalize_opts)
+    end
+  end
+
+  defp module_schema_title(%{"title" => title}, _module) when is_binary(title) and title != "" do
+    title
+  end
+
+  defp module_schema_title(%{title: title}, _module) when is_binary(title) and title != "" do
+    title
+  end
+
+  defp module_schema_title(_schema, module) do
+    inspect(module)
+  end
+
+  # we do not append a number at the end of the title on the first try
+  defp available_module_schema_refname(schemas, title) do
+    if Map.has_key?(schemas, title) do
+      available_module_schema_refname(schemas, title, 1)
+    else
+      title
+    end
+  end
+
+  defp available_module_schema_refname(_schemas, title, n) when n > 1000 do
+    # This should not happen but lets not iterate forever
+    raise "could not generate a unique name for #{title}"
+  end
+
+  defp available_module_schema_refname(schemas, title, n) do
+    name = "#{title}_#{Integer.to_string(n)}"
+
+    if Map.has_key?(schemas, name) do
+      available_module_schema_refname(schemas, title, n + 1)
+    else
+      name
+    end
+  end
+
   @common_atom_values [
     true,
     false,
     nil,
-    #
+    # Common types
     :array,
     :boolean,
     :enum,
@@ -422,7 +550,29 @@ defmodule JSV.Schema do
     :null,
     :number,
     :object,
-    :string
+    :string,
+    # Common Elixir
+    :ok,
+    :error,
+    :date,
+    # Formats
+    :ipv4,
+    :ipv6,
+    :unknown,
+    :regex,
+    :date,
+    :"date-time",
+    :time,
+    :hostname,
+    :uri,
+    :"uri-reference",
+    :uuid,
+    :email,
+    :iri,
+    :"iri-reference",
+    :"uri-template",
+    :"json-pointer",
+    :"relative-json-pointer"
   ]
 
   @doc """
