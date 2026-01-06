@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.1] - 2026-01-06
+
+### 🚀 Features
+
+- Added :as_root option for normalize_collect
+
+### 🐛 Bug Fixes
+
+- Do not add description to schema with defschema/3 if nil
+
 ## [0.15.0] - 2026-01-06
 
 ### 🚀 Features
