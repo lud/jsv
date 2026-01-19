@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.2] - 2026-01-19
+
+### 🐛 Bug Fixes
+
+- Fixed type error on serialization optional values
+
 ## [0.15.1] - 2026-01-06
 
 ### 🚀 Features
@@ -335,5 +341,4 @@ All notable changes to this project will be documented in this file.
 - Document functions with doc and spec
 
 ## [0.1.0] - 2025-01-01
-
 
