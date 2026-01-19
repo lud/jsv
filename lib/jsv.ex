@@ -660,10 +660,10 @@ defmodule JSV do
 
       :ok = JSV.StructSupport.validate!(schema)
 
-      skip_keys = Map.new(Module.get_attribute(__MODULE__, :skip_keys, []), &{&1, true})
+      skip_keys_set = Map.new(Module.get_attribute(__MODULE__, :skip_keys, []), &{&1, true})
 
       @jsv_keycast Map.filter(JSV.StructSupport.keycast_pairs(schema), fn {_bin, k} ->
-                     not is_map_key(skip_keys, k)
+                     not is_map_key(skip_keys_set, k)
                    end)
       # @jsv_keycast JSV.StructSupport.keycast_pairs(schema)
       {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
@@ -681,7 +681,7 @@ defmodule JSV do
             raise "invalid @additional_properties key, atom expected, got: #{inspect(other)}"
         end
 
-      required = schema |> JSV.StructSupport.list_required() |> Enum.reject(&is_map_key(skip_keys, &1))
+      required = schema |> JSV.StructSupport.list_required() |> Enum.reject(&is_map_key(skip_keys_set, &1))
 
       @jsv_tag 0
 
@@ -691,8 +691,8 @@ defmodule JSV do
 
       all_keys =
         Enum.filter(keys_no_defaults ++ default_pairs, fn
-          {k, _} when is_map_key(skip_keys, k) -> false
-          k when is_map_key(skip_keys, k) -> false
+          {k, _} when is_map_key(skip_keys_set, k) -> false
+          k when is_map_key(skip_keys_set, k) -> false
           _ -> true
         end)
 
@@ -840,10 +840,10 @@ defmodule JSV do
                 end
 
               schema = JSV.StructSupport.props_to_schema(props, overrides)
-              skips = JSV.StructSupport.serialization_skips(props)
-              {schema, skips}
+              serialization_skips = JSV.StructSupport.serialization_skips(props)
+              {schema, serialization_skips}
             else
-              {schema_or_properties, []}
+              {schema_or_properties, _serialization_skips = nil}
             end
 
           unquote(json_encoder)
@@ -862,14 +862,17 @@ defmodule JSV do
     quote do
       if Code.ensure_loaded?(JSON.Encoder) do
         case serialization_skips do
+          nil ->
+            @derive JSON.Encoder
+
           m when map_size(m) == 0 ->
             @derive JSON.Encoder
 
-          skips ->
+          skips when is_map(skips) ->
             defimpl JSON.Encoder do
-              @skips skips
+              @serialization_skips skips
               def encode(%mod{} = struct, encoder) do
-                value = JSV.__json_norm_skip__(struct, @skips)
+                value = JSV.__json_norm_skip__(struct, @serialization_skips)
                 encoder.(value, encoder)
               end
             end
@@ -882,14 +885,17 @@ defmodule JSV do
     quote do
       if Code.ensure_loaded?(Jason.Encoder) do
         case serialization_skips do
+          nil ->
+            @derive Jason.Encoder
+
           m when map_size(m) == 0 ->
             @derive Jason.Encoder
 
-          skips ->
+          skips when is_map(skips) ->
             defimpl Jason.Encoder do
-              @skips skips
+              @serialization_skips skips
               def encode(%mod{} = struct, opts) do
-                value = JSV.__json_norm_skip__(struct, @skips)
+                value = JSV.__json_norm_skip__(struct, @serialization_skips)
                 Jason.Encode.map(value, opts)
               end
             end
