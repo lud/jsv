@@ -5,7 +5,7 @@ defmodule JSV.ErrorFormatter.ValidationUnitSchema do
 
   defschema %{
     type: :object,
-    title: "JSV:ValidationUnit",
+    title: "JSV.ValidationUnit",
     description: ~SD"""
     Describes all errors found at given instanceLocation raised by the same
     sub-schema (same schemaLocation and evaluationPath).

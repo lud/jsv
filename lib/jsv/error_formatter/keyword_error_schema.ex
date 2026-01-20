@@ -5,7 +5,7 @@ defmodule JSV.ErrorFormatter.KeywordErrorSchema do
 
   defschema %{
     type: :object,
-    title: "JSV:KeywordError",
+    title: "JSV.KeywordError",
     description: ~SD"""
     Represents an returned by a single keyword like `type` or `required`, or
     a combination of keywords like `if` and `else`.
