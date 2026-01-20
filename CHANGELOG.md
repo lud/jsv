@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.0] - 2026-01-20
+
+### 🚀 Features
+
+- [**breaking**] Changed schema titles for JSV.KeywordError, JSV.ValidationError and JSV.ValidationUnit
+
 ## [0.15.2] - 2026-01-19
 
 ### 🐛 Bug Fixes
