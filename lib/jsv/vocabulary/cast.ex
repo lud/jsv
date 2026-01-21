@@ -69,15 +69,15 @@ defmodule JSV.Vocabulary.Cast do
   def format_error(:"jsv-cast", args, data) do
     if function_exported?(args.module, :format_error, 3) do
       case args.module.format_error(args.arg, args.reason, data) do
-        message when is_binary(message) -> {:cast, message}
+        message when is_binary(message) -> %{kind: :cast, message: message}
         other -> other
       end
     else
-      {:cast, "cast failed"}
+      %{kind: :cast, message: "cast failed"}
     end
   end
 
   def format_error(:"bad-cast", _args, _data) do
-    {:cast, "invalid cast"}
+    %{kind: :cast, message: "invalid cast"}
   end
 end

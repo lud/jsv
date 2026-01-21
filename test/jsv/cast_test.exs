@@ -47,7 +47,7 @@ defmodule JSV.CastTest do
         end
 
         def format_error("some_arg", {:expected, "goodbye", "hello", :in, pid}, "hello") when pid == self() do
-          {:custom_kind, "this is an err msg"}
+          %{kind: :custom_kind, message: "this is an err msg"}
         end
       end
 

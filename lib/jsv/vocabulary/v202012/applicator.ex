@@ -640,7 +640,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   def format_error(:oneOf, %{validated: [], invalidated: invalidated}, _data) do
     sub_errors = format_invalidated_subs(invalidated)
-    {"value did not conform to one of the given schemas", sub_errors}
+    %{message: "value did not conform to one of the given schemas", annots: sub_errors}
   end
 
   def format_error(:oneOf, %{validated: validated}, _data) do
@@ -651,20 +651,19 @@ defmodule JSV.Vocabulary.V202012.Applicator do
         ErrorFormatter.valid_annot(subschema, vctx)
       end)
 
-    # {"value did conform to more than one of the given schemas", %{validated: validated}}
-    {"value did conform to more than one of the given schemas", validated}
+    %{message: "value did conform to more than one of the given schemas", annots: validated}
   end
 
   def format_error(:anyOf, %{invalidated: invalidated}, _data) do
     sub_errors = format_invalidated_subs(invalidated)
 
-    {"value did not conform to any of the given schemas", sub_errors}
+    %{message: "value did not conform to any of the given schemas", annots: sub_errors}
   end
 
   def format_error(:allOf, %{invalidated: invalidated}, _data) do
     sub_errors = format_invalidated_subs(invalidated)
 
-    {"value did not conform to all of the given schemas", sub_errors}
+    %{message: "value did not conform to all of the given schemas", annots: sub_errors}
   end
 
   def format_error(:not, _, _data) do
@@ -674,12 +673,18 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   def format_error(:jsv@if, meta, _data) do
     case meta do
       %{ok_if_subschema: if_schema, ok_if_vctx: ok_if_vctx, after_err_vctx: then_err} ->
-        {:"if/then", "value validated 'if' but not 'then'",
-         [ErrorFormatter.valid_annot(if_schema, ok_if_vctx)] ++ Validator.flat_errors(then_err)}
+        %{
+          message: "value validated 'if' but not 'then'",
+          kind: :"if/then",
+          annots: [ErrorFormatter.valid_annot(if_schema, ok_if_vctx)] ++ Validator.flat_errors(then_err)
+        }
 
       %{err_if_vctx: err_if_vctx, after_err_vctx: else_err} ->
-        {:"if/else", "value validated neither 'if' nor 'else'",
-         Validator.flat_errors(err_if_vctx) ++ Validator.flat_errors(else_err)}
+        %{
+          message: "value validated neither 'if' nor 'else'",
+          kind: :"if/else",
+          annots: Validator.flat_errors(err_if_vctx) ++ Validator.flat_errors(else_err)
+        }
     end
   end
 

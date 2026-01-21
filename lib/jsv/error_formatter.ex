@@ -87,11 +87,21 @@ defmodule JSV.ErrorFormatter do
     end
   end
 
-  defp normalize_errors(errors, opts) do
+  defp normalize_errors(errors, formatter \\ nil, opts) do
     errors
     |> Enum.group_by(fn
-      %Error{data_path: dp, eval_path: ep, schema_path: sp} -> {dp, ep, sp}
-      %{valid: _, instanceLocation: _, evaluationPath: _, schemaLocation: _} = already_normalized -> already_normalized
+      %Error{data_path: dp, eval_path: ep, schema_path: sp} ->
+        {dp, ep, sp}
+
+      %{valid: _, instanceLocation: _, evaluationPath: _, schemaLocation: _} = already_normalized ->
+        already_normalized
+
+      other when formatter != nil ->
+        raise ArgumentError,
+              "invalid annotation returned by #{inspect(formatter)}, expected #{inspect(Error)} struct or raw annotation, got: #{other}"
+
+      other ->
+        raise ArgumentError, "invalid annotation, expected #{inspect(Error)} struct or raw annotation, got: #{other}"
     end)
     |> Enum.map(fn
       {{data_path, eval_path, schema_path}, errors} -> error_annot(data_path, eval_path, schema_path, errors, opts)
@@ -126,14 +136,63 @@ defmodule JSV.ErrorFormatter do
       message when is_binary(message) ->
         %{message: message, kind: kind}
 
+      tuple when is_tuple(tuple) ->
+        cast_deprecated_error_format(tuple, kind, opts, formatter)
+
+      %{message: message} = map when is_binary(message) ->
+        build_error(Map.delete(map, :message), %{message: message, kind: kind}, formatter, opts)
+    end
+  end
+
+  defp build_error(map, acc, formatter, opts) do
+    Enum.reduce(map, acc, fn
+      {:annots, annots}, acc when is_list(annots) ->
+        Map.put(acc, :details, normalize_errors(annots, formatter, opts))
+
+      {:kind, kind}, acc when is_binary(kind) when is_atom(kind) ->
+        Map.put(acc, :kind, kind)
+
+      {k, v}, _ when k in [:annots, :kind] ->
+        raise "invalid format_error value for key #{inspect(k)} from formatter #{inspect(formatter)}: #{inspect(v)}"
+
+      {k, v}, _ ->
+        IO.warn("unknown format_error value with key #{inspect(k)} from formatter #{inspect(formatter)}: #{inspect(v)}")
+        acc
+    end)
+  end
+
+  defp cast_deprecated_error_format(tuple, kind, opts, formatter) do
+    :ok = warn_deprecated_format_error(formatter, tuple)
+
+    case tuple do
       {new_kind, message} when is_atom(new_kind) and is_binary(message) ->
         %{message: message, kind: new_kind}
 
       {message, sub_errors} when is_binary(message) and is_list(sub_errors) ->
-        %{message: message, kind: kind, details: normalize_errors(sub_errors, opts)}
+        %{message: message, kind: kind, details: normalize_errors(sub_errors, formatter, opts)}
 
       {new_kind, message, sub_errors} when is_atom(new_kind) and is_binary(message) and is_list(sub_errors) ->
-        %{message: message, kind: new_kind, details: normalize_errors(sub_errors, opts)}
+        %{message: message, kind: new_kind, details: normalize_errors(sub_errors, formatter, opts)}
+    end
+  end
+
+  if Mix.env() == :test do
+    @spec warn_deprecated_format_error(module, term) :: :ok
+    defp warn_deprecated_format_error(formatter, value) do
+      if Process.get({__ENV__.file, __ENV__.line}) == 1 do
+        :ok
+      else
+        raise """
+        deprecated format_error return value from #{inspect(formatter)}
+
+        Expected message or map but got:
+        #{inspect(value, pretty: true)}
+        """
+      end
+    end
+  else
+    defp warn_deprecated_format_error(formatter, _) do
+      IO.warn("deprecated format_error return value from #{inspect(formatter)}")
     end
   end
 
