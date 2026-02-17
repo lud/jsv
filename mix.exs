@@ -168,7 +168,7 @@ defmodule JSV.MixProject do
 
   defp package do
     [
-      licenses: ["MIT"],
+      licenses: ["Apache-2.0"],
       links: %{
         "Github" => @source_url,
         "Changelog" => "https://github.com/lud/jsv/blob/main/CHANGELOG.md"
