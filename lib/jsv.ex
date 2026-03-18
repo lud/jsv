@@ -648,8 +648,6 @@ defmodule JSV do
   """
   @doc group: @doc_group
   defmacro defschema(schema_or_properties) do
-    Module.register_attribute(__CALLER__.module, :additional_properties, [])
-
     quote bind_quoted: [schema_or_properties: schema_or_properties] do
       schema =
         if is_list(schema_or_properties) do
@@ -668,10 +666,11 @@ defmodule JSV do
       # @jsv_keycast JSV.StructSupport.keycast_pairs(schema)
       {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
 
+      @additional_properties_key Module.get_attribute(__MODULE__, :additional_properties, nil)
+
       default_pairs =
-        case Module.get_attribute(__MODULE__, :additional_properties, nil) do
+        case @additional_properties_key do
           nil ->
-            @additional_properties_key nil
             default_pairs
 
           k when is_atom(k) ->
@@ -715,7 +714,7 @@ defmodule JSV do
 
       @doc false
       def __jsv__(@jsv_tag, data) do
-        pairs = JSV.StructSupport.take_keycast(data, @jsv_keycast, @additional_properties)
+        pairs = JSV.StructSupport.take_keycast(data, @jsv_keycast, @additional_properties_key)
         {:ok, struct!(__MODULE__, pairs)}
       end
 
@@ -810,6 +809,33 @@ defmodule JSV do
       defschema Category,
                 name: string(),
                 parent: optional(__MODULE__)
+
+  ## Inherited Module Attributes
+
+  This macro reads `@skip_keys` and `@additional_properties` from the caller
+  module and applies them to the generated nested module.
+
+  Those attributes are consumed from the caller when `defschema/3` is expanded.
+  If you define multiple schemas with `defschema/3` in the same parent module,
+  you must redeclare those attributes before each schema that needs them.
+
+      defmodule Parent do
+        use JSV.Schema
+
+        @skip_keys [:kind]
+        @additional_properties :ext
+        defschema User,
+                  name: string(),
+                  kind: const("user")
+
+        # Attributes above were consumed by the previous defschema/3 call.
+        # Redeclare them if they should apply to this schema too.
+        @skip_keys [:kind]
+        @additional_properties :ext
+        defschema Team,
+                  name: string(),
+                  kind: const("team")
+      end
   """
   @doc group: @doc_group
   defmacro defschema(module, description \\ nil, schema_or_properties) do
@@ -821,11 +847,28 @@ defmodule JSV do
 
     quoted =
       quote do
+        inherit_attr_skip_keys =
+          if __MODULE__ do
+            Module.delete_attribute(__MODULE__, :skip_keys) || []
+          else
+            []
+          end
+
+        inherit_attr_additional_properties =
+          if __MODULE__ do
+            Module.delete_attribute(__MODULE__, :additional_properties)
+          else
+            nil
+          end
+
         defmodule unquote(module) do
           use JSV.Schema
 
           schema_or_properties = unquote(schema_or_properties)
           description = unquote(description)
+
+          @skip_keys inherit_attr_skip_keys
+          @additional_properties inherit_attr_additional_properties
 
           @moduledoc description
 

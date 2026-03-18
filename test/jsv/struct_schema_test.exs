@@ -974,6 +974,27 @@ defmodule JSV.StructSchemaTest do
               additionalProperties: false
             }
 
+  # Test modules for inherited module attributes in defschema/3
+  @skip_keys [:some_const]
+  defschema SubModWithSkip,
+    name: string(),
+    some_const: const("foo")
+
+  @additional_properties :ext
+  defschema SubModWithAdditionals,
+            "Additional properties in defschema/3",
+            %{type: :object, properties: %{name: %{type: :string}}, additionalProperties: %{type: :string}}
+
+  @skip_keys [:some_const]
+  @additional_properties :ext
+  defschema SubModWithSkipAndAdditionals,
+            "Skip keys and additional properties in defschema/3",
+            %{
+              type: :object,
+              properties: %{name: %{type: :string}, some_const: %{const: "foo"}},
+              additionalProperties: %{type: :string}
+            }
+
   describe "defschema/3 that defines modules" do
     test "module is defined as an alias when defined as a nested module" do
       assert "Elixir.#{inspect(__MODULE__)}.SubMod" == to_string(SubMod)
@@ -1241,6 +1262,122 @@ defmodule JSV.StructSchemaTest do
 
         assert is_binary(JSON.encode!(data))
       end
+    end
+  end
+
+  describe "defschema/3 inherited module attributes" do
+    test "@skip_keys: skipped key is absent from the struct" do
+      assert fields = SubModWithSkip.__info__(:struct)
+      refute Enum.any?(fields, &(&1.field == :some_const))
+    end
+
+    test "@skip_keys: skipped key is still validated" do
+      assert {:ok, root} = JSV.build(SubModWithSkip)
+
+      assert {:ok, %SubModWithSkip{name: "alice"}} = JSV.validate(%{"name" => "alice", "some_const" => "foo"}, root)
+
+      assert {
+               :error,
+               %JSV.ValidationError{
+                 errors: [
+                   %JSV.Validator.Error{kind: :properties, args: [key: "some_const"]},
+                   %JSV.Validator.Error{kind: :const}
+                 ]
+               }
+             } = JSV.validate(%{"name" => "alice", "some_const" => "wrong"}, root)
+    end
+
+    test "@additional_properties: extra properties are collected into the designated key" do
+      assert {:ok, root} = JSV.build(SubModWithAdditionals)
+
+      assert {:ok, %SubModWithAdditionals{name: "alice", ext: %{}}} =
+               JSV.validate(%{"name" => "alice"}, root)
+
+      assert {:ok, %SubModWithAdditionals{name: "alice", ext: %{"color" => "blue"}}} =
+               JSV.validate(%{"name" => "alice", "color" => "blue"}, root)
+    end
+
+    test "@additional_properties: extra properties are still validated" do
+      assert {:ok, root} = JSV.build(SubModWithAdditionals)
+
+      assert {:error, %JSV.ValidationError{}} =
+               JSV.validate(%{"name" => "alice", "color" => 123}, root)
+    end
+
+    test "@skip_keys and @additional_properties work together" do
+      assert {:ok, root} = JSV.build(SubModWithSkipAndAdditionals)
+
+      fields = SubModWithSkipAndAdditionals.__info__(:struct)
+      refute Enum.any?(fields, &(&1.field == :some_const))
+      assert Enum.any?(fields, &(&1.field == :ext))
+
+      assert {:ok, %SubModWithSkipAndAdditionals{name: "alice", ext: %{"color" => "blue"}}} =
+               JSV.validate(%{"name" => "alice", "some_const" => "foo", "color" => "blue"}, root)
+    end
+
+    defmodule ConsumedAttrsParent do
+      use JSV.Schema
+
+      @skip_keys [:some_const]
+      @additional_properties :ext
+      defschema SubModConsumed,
+        name: string(),
+        some_const: const("foo")
+
+      # @skip_keys and @additional_properties were consumed above — defschema/1 does not get them
+      defschema name: string(), some_const: const("foo")
+    end
+
+    defmodule ConsumedAttrsMultipleSubmods do
+      use JSV.Schema
+
+      @skip_keys [:some_const]
+      @additional_properties :ext
+      defschema SubModOne,
+        name: string(),
+        some_const: const("foo")
+
+      # Attributes are consumed by the first defschema/3 call above.
+      # Without redeclaring them, they should not apply here.
+      defschema SubModTwo,
+        name: string(),
+        some_const: const("foo")
+    end
+
+    test "attributes consumed by defschema/3 are not available to a subsequent defschema/1 (negative test)" do
+      # This is expected behaviour: defschema/3 consumes @skip_keys and @additional_properties
+      # from the caller module, so a defschema/1 call in the same module won't see them.
+
+      # defschema/3 DID use the attributes: some_const absent, ext present
+      sub_fields = ConsumedAttrsParent.SubModConsumed.__info__(:struct)
+      refute Enum.any?(sub_fields, &(&1.field == :some_const))
+      assert Enum.any?(sub_fields, &(&1.field == :ext))
+
+      # defschema/1 did NOT use the attributes: some_const present, ext absent
+      parent_fields = ConsumedAttrsParent.__info__(:struct)
+      assert Enum.any?(parent_fields, &(&1.field == :some_const))
+      refute Enum.any?(parent_fields, &(&1.field == :ext))
+    end
+
+    test "defschema/3 called outside a module (no __MODULE__ context) does not crash" do
+      # When defschema/3 is used at the top level (e.g. in README examples evaluated
+      # by tooling), __MODULE__ is nil and Module.delete_attribute must not be called.
+      assert {{:module, _, _, _}, _} =
+               Code.eval_string("""
+               import JSV, only: :macros
+               import JSV.Schema.Helpers
+               defschema TestTopLevelSchema, name: string()
+               """)
+    end
+
+    test "attributes consumed by defschema/3 must be redeclared for another defschema/3" do
+      sub_one_fields = ConsumedAttrsMultipleSubmods.SubModOne.__info__(:struct)
+      refute Enum.any?(sub_one_fields, &(&1.field == :some_const))
+      assert Enum.any?(sub_one_fields, &(&1.field == :ext))
+
+      sub_two_fields = ConsumedAttrsMultipleSubmods.SubModTwo.__info__(:struct)
+      assert Enum.any?(sub_two_fields, &(&1.field == :some_const))
+      refute Enum.any?(sub_two_fields, &(&1.field == :ext))
     end
   end
 
