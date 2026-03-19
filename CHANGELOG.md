@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.0] - 2026-03-19
+
+### 🚀 Features
+
+- New return type signature for custom error formatters
+- [**breaking**] Read and consume module attributes for defschema/3
+
+### 🧪 Testing
+
+- Upgraded JSON Schema Test Suite
+
+### ⚙️ Miscellaneous Tasks
+
+- Updated license to Apache-2.0
+
 ## [0.16.0] - 2026-01-20
 
 ### 🚀 Features
