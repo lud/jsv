@@ -234,5 +234,53 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UriTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "URI with leading-zero IPv4 is structurally valid as a reg-name", x do
+      data = "http://087.10.0.1/"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "URI with out-of-bounds IPv4 is structurally valid as a reg-name", x do
+      data = "http://999.999.999.999/"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid percent-encoding with non-hex digits", x do
+      data = "http://example.com/%6G"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "incomplete percent-encoding triplet", x do
+      data = "http://example.com/%A"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "lone percent sign is invalid", x do
+      data = "http://example.com/%"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "scheme must start with a letter", x do
+      data = "1http://example.com"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid character in scheme", x do
+      data = "ht_tp://example.com"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "non-numeric port is invalid", x do
+      data = "http://example.com:abc/path"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

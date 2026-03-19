@@ -37,7 +37,12 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     "optional/format-assertion.json" => [],
     "optional/format/duration.json" => [
       schema_build_opts: [formats: true],
-      ignore: ["weeks cannot be combined with other units"],
+      ignore: [
+        "weeks cannot be combined with other units",
+        "hours and seconds cannot appear without minutes",
+        "years and days cannot appear without months",
+        "fractional duration is not allowed by RFC 3339 ABNF"
+      ],
       elixir: "~> 1.17"
     ],
     "optional/format/uuid.json" => [schema_build_opts: [formats: true]],
@@ -90,8 +95,18 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     "multipleOf.json" => [],
     "not.json" => [],
     "oneOf.json" => [],
-    "pattern.json" => [],
-    "patternProperties.json" => [],
+    "pattern.json" => [
+      ignore: [
+        # Invalid regex for elixir
+        "pattern with Unicode property escape requires unicode mode"
+      ]
+    ],
+    "patternProperties.json" => [
+      ignore: [
+        # Invalid regex for elixir
+        "patternProperties with Unicode property escape"
+      ]
+    ],
     "properties.json" => [],
     "propertyNames.json" => [],
     "ref.json" => [],

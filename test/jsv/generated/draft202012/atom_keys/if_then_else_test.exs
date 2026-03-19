@@ -298,4 +298,44 @@ defmodule JSV.Generated.Draft202012.AtomKeys.IfThenElseTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
+
+  describe "then: false fails when condition matches" do
+    setup do
+      json_schema = %JSV.Schema{if: %{const: 1}, then: false}
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "matches if → then=false → invalid", x do
+      data = 1
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "does not match if → then ignored → valid", x do
+      data = 2
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
+
+  describe "else: false fails when condition does not match" do
+    setup do
+      json_schema = %JSV.Schema{else: false, if: %{const: 1}}
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "matches if → else ignored → valid", x do
+      data = 1
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "does not match if → else executes → invalid", x do
+      data = 2
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
 end

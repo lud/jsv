@@ -91,18 +91,6 @@ defmodule JSV.Generated.Draft7.BinaryKeys.Ipv4Test do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "invalid leading zeroes, as they are treated as octals", x do
-      data = "087.10.0.1"
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
-    test "value without leading zero is valid", x do
-      data = "87.10.0.1"
-      expected_valid = true
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
     test "invalid non-ASCII '২' (a Bengali 2)", x do
       data = "1২7.0.0.1"
       expected_valid = false
@@ -111,6 +99,120 @@ defmodule JSV.Generated.Draft7.BinaryKeys.Ipv4Test do
 
     test "netmask is not a part of ipv4 address", x do
       data = "192.168.1.0/24"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "leading whitespace is invalid", x do
+      data = " 192.168.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "trailing whitespace is invalid", x do
+      data = "192.168.0.1 "
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "trailing newline is invalid", x do
+      data = "192.168.0.1\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "hexadecimal notation is invalid", x do
+      data = "0x7f.0.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "octal notation explicit is invalid", x do
+      data = "0o10.0.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "empty part (double dot) is invalid", x do
+      data = "192.168..1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "leading dot is invalid", x do
+      data = ".192.168.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "trailing dot is invalid", x do
+      data = "192.168.0.1."
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "minimum valid IPv4 address", x do
+      data = "0.0.0.0"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "maximum valid IPv4 address", x do
+      data = "255.255.255.255"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "empty string is invalid", x do
+      data = ""
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "plus sign is invalid", x do
+      data = "+1.2.3.4"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "negative sign is invalid", x do
+      data = "-1.2.3.4"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "exponential notation is invalid", x do
+      data = "1e2.0.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "alpha characters are invalid", x do
+      data = "192.168.a.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "internal whitespace is invalid", x do
+      data = "192. 168.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "tab character is invalid", x do
+      data = "192.168.0.1\t"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "with port number is invalid", x do
+      data = "192.168.0.1:80"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "single octet out of range in last position", x do
+      data = "192.168.0.256"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

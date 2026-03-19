@@ -75,7 +75,10 @@ defmodule JSV.FormatValidator.Default do
   end
 
   def validate_cast("ipv4", data) do
-    :inet.parse_strict_address(String.to_charlist(data))
+    case data do
+      <<c, _::binary>> when c in ?0..?9 -> :inet.parse_strict_address(String.to_charlist(data))
+      _ -> {:error, :einval}
+    end
   end
 
   def validate_cast("ipv6", data) do

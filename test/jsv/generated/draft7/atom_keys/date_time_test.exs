@@ -97,6 +97,24 @@ defmodule JSV.Generated.Draft7.AtomKeys.DateTimeTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "an invalid hour in date-time string", x do
+      data = "1990-12-31T24:00:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an invalid minute in date-time string", x do
+      data = "1990-12-31T15:60:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an invalid offset minute in date-time string", x do
+      data = "1990-12-31T10:00:00+10:60"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "an invalid day in date-time string", x do
       data = "1990-02-31T15:59:59.123-08:00"
       expected_valid = false

@@ -147,24 +147,6 @@ defmodule JSV.Generated.Draft7.AtomKeys.AdditionalItemsTest do
     end
   end
 
-  describe "additionalItems does not look in applicators, valid case" do
-    setup do
-      json_schema = %JSV.Schema{
-        additionalItems: %JSV.Schema{type: "boolean"},
-        allOf: [%JSV.Schema{items: [%JSV.Schema{type: "integer"}]}]
-      }
-
-      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "http://json-schema.org/draft-07/schema")
-      {:ok, json_schema: json_schema, schema: schema}
-    end
-
-    test "items defined in allOf are not examined", x do
-      data = [1, nil]
-      expected_valid = true
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-  end
-
   describe "additionalItems does not look in applicators, invalid case" do
     setup do
       json_schema = %JSV.Schema{

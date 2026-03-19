@@ -175,6 +175,84 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DurationTest do
         expected_valid = false
         JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
       end
+
+      test "all date and time components", x do
+        data = "P1Y2M3DT4H5M6S"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "date components only", x do
+        data = "P1Y2M3D"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "time components only", x do
+        data = "PT1H2M3S"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "month and day", x do
+        data = "P1M2D"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "hour and minute", x do
+        data = "PT1H30M"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "multi-digit values in all components", x do
+        data = "P10Y10M10DT10H10M10S"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "leading whitespace is invalid", x do
+        data = " P1D"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "trailing whitespace is invalid", x do
+        data = "P1D "
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "empty string is invalid", x do
+        data = ""
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "years and months can appear without days", x do
+        data = "P1Y2M"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "months and days can appear without years", x do
+        data = "P1M2D"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "hours and minutes can appear without seconds", x do
+        data = "PT1H2M"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "minutes and seconds can appear without hour", x do
+        data = "PT1M2S"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
     end
   end
 end

@@ -56,7 +56,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.MaximumTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "below the maximum is invalid", x do
+    test "below the maximum is valid", x do
       data = 299.97
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)

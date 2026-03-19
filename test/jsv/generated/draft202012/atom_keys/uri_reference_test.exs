@@ -114,5 +114,17 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UriReferenceTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "URI with leading-zero IPv4 is structurally valid as a reg-name", x do
+      data = "http://087.10.0.1/"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "URI with out-of-bounds IPv4 is structurally valid as a reg-name", x do
+      data = "http://999.999.999.999/"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

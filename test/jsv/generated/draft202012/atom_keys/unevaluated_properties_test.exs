@@ -141,6 +141,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
+        properties: %{foo: %JSV.Schema{type: "string"}},
         additionalProperties: true,
         unevaluatedProperties: false
       }
@@ -166,6 +168,8 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        type: "object",
+        properties: %{foo: %JSV.Schema{type: "string"}},
         additionalProperties: %JSV.Schema{type: "string"},
         unevaluatedProperties: false
       }
@@ -174,15 +178,15 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "with only valid additional properties", x do
+    test "with no additional properties", x do
       data = %{"foo" => "foo"}
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "with invalid additional properties", x do
-      data = %{"bar" => 1, "foo" => "foo"}
-      expected_valid = false
+    test "with additional properties", x do
+      data = %{"bar" => "bar", "foo" => "foo"}
+      expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end

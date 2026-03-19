@@ -315,7 +315,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "$ref" => "http://localhost:1234/different-id-ref-string.json"
+        "$ref" => "http://localhost:1234/draft2020-12/different-id-ref-string.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -339,7 +339,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "$ref" => "http://localhost:1234/urn-ref-string.json"
+        "$ref" => "http://localhost:1234/draft2020-12/urn-ref-string.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
@@ -363,7 +363,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RefRemoteTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "$ref" => "http://localhost:1234/nested-absolute-ref-to-string.json"
+        "$ref" => "http://localhost:1234/draft2020-12/nested-absolute-ref-to-string.json"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")

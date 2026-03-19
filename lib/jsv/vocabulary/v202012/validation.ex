@@ -80,7 +80,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   take_keyword :pattern, pattern, acc, builder, _ do
-    re = unwrap_ok(Regex.compile(pattern))
+    re = unwrap_ok(Regex.compile(pattern, "u"))
     {[{:pattern, re} | acc], builder}
   end
 
@@ -575,6 +575,10 @@ defmodule JSV.Vocabulary.V202012.Validation do
     [last | [_ | _] = rest] = :lists.reverse(list)
     rest = :lists.reverse(rest)
     [Enum.intersperse(rest, ", "), " ", operator, " ", last]
+  end
+
+  defp verbose_list([], _) do
+    "(empty list)"
   end
 
   defp quote_prop(val) do
