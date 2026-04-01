@@ -380,7 +380,7 @@ defmodule JSV.Schema do
   ### Examples
 
       defmodule Elixir.ASchemaExportingModule do
-        def schema, do: %{}
+        def json_schema, do: %{}
       end
 
       iex> JSV.Schema.normalize(ASchemaExportingModule)
@@ -606,7 +606,6 @@ defmodule JSV.Schema do
     false
   end
 
-  # TODO(schema-fun): Remove check for the schema/0 function
   def schema_module?(module) do
     case Code.ensure_compiled(module) do
       {:error, _} ->
@@ -614,32 +613,16 @@ defmodule JSV.Schema do
 
       {:module, ^module} ->
         Code.ensure_loaded!(module)
-        function_exported?(module, :json_schema, 0) || function_exported?(module, :schema, 0)
+        function_exported?(module, :json_schema, 0)
     end
   end
 
-  # TODO(schema-fun): Remove support for the schema/0 function
   @doc """
-  Calls the `json_schema/0` function on the given module, with a fallback to the
-  deprecated `schema/0` function if exported.
+  Calls the `json_schema/0` function on the given module.
   """
   @spec from_module(module) :: schema()
   def from_module(module) do
     module.json_schema()
-  rescue
-    e in UndefinedFunctionError ->
-      with %{module: ^module, function: :json_schema, arity: 0} <- e,
-           true <- function_exported?(module, :schema, 0) do
-        IO.warn(
-          "JSON schemas modules exporting a schema/0 function are deprecated, " <>
-            "please export a json_schema/0 function instead",
-          __STACKTRACE__
-        )
-
-        module.schema()
-      else
-        _ -> reraise e, __STACKTRACE__
-      end
   end
 
   @doc """

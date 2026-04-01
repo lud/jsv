@@ -106,8 +106,8 @@ defmodule JSV.NormalizerTest do
 
     test "converts modules that export json_schema/0 to refs" do
       defmodule ExportsSchema do
-        @spec schema :: no_return()
-        def schema do
+        @spec json_schema :: no_return()
+        def json_schema do
           raise "will not be called"
         end
       end
@@ -132,11 +132,11 @@ defmodule JSV.NormalizerTest do
       assert "test_schema_module_to_ref" == Schema.normalize(:test_schema_module_to_ref)
     end
 
-    test "converts Erlang modules that export schema_schema/0 to $ref" do
+    test "converts Erlang modules that export json_schema/0 to $ref" do
       # This is not an Elixir module, so we cannot know if it's a custom type, format, etc.
       defmodule unquote(:test_schema_module_to_ref_with_schema) do
-        @spec schema :: no_return()
-        def schema do
+        @spec json_schema :: no_return()
+        def json_schema do
           raise "will not be called"
         end
       end

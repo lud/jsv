@@ -94,7 +94,7 @@ defmodule CustomSchemaStruct do
 end
 
 defmodule Elixir.ASchemaExportingModule do
-  def schema do
+  def json_schema do
     %{}
   end
 end
