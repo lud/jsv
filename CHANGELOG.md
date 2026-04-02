@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0] - 2026-04-02
+
+### 🚀 Features
+
+- [**breaking**] Removed support for deprecated schema/0 export from schema modules
+
 ## [0.17.1] - 2026-03-19
 
 ### 🐛 Bug Fixes
