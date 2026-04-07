@@ -37,6 +37,20 @@ defmodule JSV.BuilderTest do
              } = err
     end
 
+    test "returns a build error for a bad properties value" do
+      raw_schema = %{
+        properties: "bad-value"
+      }
+
+      assert {:error, err} = JSV.build(raw_schema)
+
+      assert %{
+               reason: {:invalid_properties, "bad-value"},
+               action: {JSV.Resolver, :resolve, _},
+               build_path: "#"
+             } = err
+    end
+
     # TODO this should be fixed so we get the actual build path for refs
     #
     # test "returns a correct build error for resolver errors" do
