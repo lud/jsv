@@ -315,8 +315,8 @@ defmodule JSV.Resolver do
       {"properties", props}, acc when is_map(props) ->
         scan_map_values(props, parent_id, nss, meta, ["properties" | path], acc)
 
-      {"properties", props}, _ ->
-        raise "invalid properties: #{inspect(props)}"
+      {"properties", props}, _acc ->
+        {:error, {:invalid_properties, props, ["properties" | path]}}
 
       {ignored, _}, _ when ignored in ["enum", "const"] ->
         {:ok, acc}
