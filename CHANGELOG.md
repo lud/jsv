@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.1] - 2026-04-08
+
+### 🚀 Features
+
+- Return a BuildError instead of raising a RuntimeError for :invalid_properties
+
 ## [0.18.0] - 2026-04-02
 
 ### 🚀 Features
