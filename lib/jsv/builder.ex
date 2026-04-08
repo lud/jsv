@@ -461,8 +461,19 @@ defmodule JSV.Builder do
   # top level and the buil path is just [:root] or [ns].
   @spec fail(t, term, term) :: no_return()
   def fail(%__MODULE__{} = builder, reason, action) do
-    build_path = ErrorFormatter.format_schema_path(builder.current_rev_path)
+    {reason, rev_path} = unwrap_resolver_path(reason, builder.current_rev_path)
+    build_path = ErrorFormatter.format_schema_path(rev_path)
 
     raise BuildError.of(reason, action, build_path)
+  end
+
+  # Some resolver errors carry the rev_path where the error occurred, since the
+  # builder's current_rev_path is not yet set during schema resolution.
+  defp unwrap_resolver_path({:invalid_properties, props, rev_path}, _default) do
+    {{:invalid_properties, props}, rev_path}
+  end
+
+  defp unwrap_resolver_path(reason, default) do
+    {reason, default}
   end
 end

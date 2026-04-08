@@ -37,17 +37,39 @@ defmodule JSV.BuilderTest do
              } = err
     end
 
-    test "returns a build error for a bad properties value" do
+    test "returns a build error for an invalid properties value at the root" do
       raw_schema = %{
-        properties: "bad-value"
+        properties: "badmap"
       }
 
       assert {:error, err} = JSV.build(raw_schema)
 
       assert %{
-               reason: {:invalid_properties, "bad-value"},
+               reason: {:invalid_properties, "badmap"},
                action: {JSV.Resolver, :resolve, _},
-               build_path: "#"
+               build_path: "#/properties"
+             } = err
+    end
+
+    test "returns a build error for an invalid properties value deeply nested" do
+      raw_schema = %{
+        properties: %{
+          foo: %{
+            properties: %{
+              bar: %{
+                properties: "badmap"
+              }
+            }
+          }
+        }
+      }
+
+      assert {:error, err} = JSV.build(raw_schema)
+
+      assert %{
+               reason: {:invalid_properties, "badmap"},
+               action: {JSV.Resolver, :resolve, _},
+               build_path: "#/properties/foo/properties/bar/properties"
              } = err
     end
 
