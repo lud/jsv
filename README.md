@@ -201,4 +201,4 @@ documentation style.
 
 ## License
 
-JSV is released under the [MIT License](LICENSE).
+JSV is released under the [Apache License Version 2.0](LICENSE).
