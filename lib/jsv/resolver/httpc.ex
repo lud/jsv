@@ -37,8 +37,8 @@ defmodule JSV.Resolver.Httpc do
 
   ### Example
 
-      resolver_opts = [allowed_prefixes: ["https://my-company.org/schemas"], cache_dir: "_build/custom/dir"]
-      JSV.build(schema, resolver: {JSV.Resolver.BuiltIn, resolver_opts})
+      iex> resolver_opts = [allowed_prefixes: ["https://www.schemastore.org/"], cache_dir: "_build/custom/dir"]
+      iex> {:ok, _root} = JSV.build(%{"$ref": "https://www.schemastore.org/github-action.json"}, resolver: {JSV.Resolver.Httpc, resolver_opts})
 
   """
 

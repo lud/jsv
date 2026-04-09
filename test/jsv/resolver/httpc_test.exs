@@ -3,8 +3,9 @@ defmodule JSV.Resolver.HttpcTest do
   alias JSV.Resolver.Embedded
   alias JSV.Resolver.Httpc
   use ExUnit.Case, async: false
-
   use Patch
+
+  doctest Httpc, tags: [:skip]
 
   test "will not resolve an URL if the prefix is not allowed" do
     assert {:error, {:restricted_url, _}} =
