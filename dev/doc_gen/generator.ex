@@ -85,7 +85,8 @@ if Code.ensure_loaded?(Readmix.Generator) do
         native: Time,
         notes: [
           "The native `Time` implementation will completely discard the time offset information. Invalid offsets will be valid.",
-          "Decimal precision is not capped to milliseconds. `23:10:00.500000001` will be valid."
+          "Decimal precision is not capped to milliseconds. `23:10:00.500000001` will be valid.",
+          ~s[The RFC 3339 §4.3 unknown local offset (`-00:00`) is not supported. `12:34:56-00:00` will be invalid.]
         ]
       },
       "unknown" => %{
@@ -98,7 +99,8 @@ if Code.ensure_loaded?(Readmix.Generator) do
         native: URI,
         support: abnf_req,
         notes: [
-          "Without the optional dependency, the `URI` module is used and a minimum checks on hostname and scheme presence are made."
+          "Without the optional dependency, the `URI` module is used and a minimum checks on hostname and scheme presence are made.",
+          "LDAP URLs with an IPv6 host and `?`-delimited query fields (e.g. `ldap://[2001:db8::7]/c=GB?objectClass?one`) are not supported and will be invalid."
         ]
       },
       "uri-reference" => %{

@@ -246,5 +246,17 @@ defmodule JSV.Generated.Draft7.BinaryKeys.JsonPointerTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "valid JSON-pointer (Unicode characters allowed by RFC 6901)", x do
+      data = "/foo/bar/😎"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "valid JSON-pointer (control characters allowed after JSON unescaping)", x do
+      data = <<47, 102, 111, 111, 0, 98, 97, 114, 10, 9, 98, 97, 122>>
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

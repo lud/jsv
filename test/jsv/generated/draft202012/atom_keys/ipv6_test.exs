@@ -67,7 +67,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Ipv6Test do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an IPv6 address with out-of-range values", x do
+    test "a group with 5 hex digits is invalid", x do
       data = "12345::"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)

@@ -3,7 +3,7 @@ defmodule JSV.MixProject do
 
   @source_url "https://github.com/lud/jsv"
   @version "0.18.1"
-  @jsts_ref "ee3fc3d8048c10d810b86848c8d380ca2ece5c99"
+  @jsts_ref "e819f329268130e0ed5bbc87b071c83d8e02a68a"
 
   def project do
     [
@@ -198,7 +198,8 @@ defmodule JSV.MixProject do
     [
       mount: [
         {JSV, "lib/jsv"},
-        {JSV.DocGen, "dev/doc_gen"}
+        {JSV.DocGen, "dev/doc_gen"},
+        {Mix.Tasks.Jsv, "dev", flavor: :mix_task}
       ]
     ]
   end

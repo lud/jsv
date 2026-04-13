@@ -91,7 +91,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.IriTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an invalid IRI based on IPv6", x do
+    test "an IPv6 address without enclosing brackets is invalid", x do
       data = "http://2001:0db8:85a3:0000:0000:8a2e:0370:7334"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)

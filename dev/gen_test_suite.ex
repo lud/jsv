@@ -144,8 +144,8 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     "optional/format/uri.json" => [
       schema_build_opts: [formats: true],
       ignore: [
-        # invalid ipv6 according to official grammar. Trailing space in test name
-        "a valid URL "
+        # LDAP URL with IPv6 and ?-separated query fields – valid URI but rejected by Erlang's uri_string
+        "a valid URL"
       ]
     ],
     "optional/format/time.json" => [
@@ -164,7 +164,10 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
         "no time offset with second fraction",
 
         # Elixir supports more formats that RFC3339
-        "only RFC3339 not all of ISO 8601 are valid"
+        "only RFC3339 not all of ISO 8601 are valid",
+
+        # Elixir does not support RFC 3339 §4.3 "-00:00" unknown local offset
+        "time with unknown local offset is valid"
       ]
     ],
     "optional/format/date-time.json" => [

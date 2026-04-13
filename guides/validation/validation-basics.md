@@ -149,6 +149,7 @@ The listing below describe values returned when that option is enabled.
 * The format is implemented with the native `Time` module.
 * The native `Time` implementation will completely discard the time offset information. Invalid offsets will be valid.
 * Decimal precision is not capped to milliseconds. `23:10:00.500000001` will be valid.
+* The RFC 3339 §4.3 unknown local offset (`-00:00`) is not supported. `12:34:56-00:00` will be invalid.
 
 ### unknown
 
@@ -164,6 +165,7 @@ The listing below describe values returned when that option is enabled.
 * **output**: `%URI{scheme: "http", authority: "example.com", userinfo: nil, host: "example.com", port: 80, path: nil, query: nil, fragment: nil}`
 * The format is implemented with the native `URI` module.
 * Without the optional dependency, the `URI` module is used and a minimum checks on hostname and scheme presence are made.
+* LDAP URLs with an IPv6 host and `?`-delimited query fields (e.g. `ldap://[2001:db8::7]/c=GB?objectClass?one`) are not supported and will be invalid.
 
 ### uri-reference
 
