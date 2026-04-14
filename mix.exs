@@ -73,7 +73,7 @@ defmodule JSV.MixProject do
 
       # JSON Schema Test Suite
       json_schema_test_suite(),
-      {:modkit, "~> 0.8.0", only: [:dev, :test], runtime: false}
+      {:modkit, "~> 0.9.0", only: [:dev, :test], runtime: false}
     ]
   end
 
