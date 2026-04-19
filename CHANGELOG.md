@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.2] - 2026-04-19
+
+### 🐛 Bug Fixes
+
+- Allow root $ref to resolve against root $id in Draft-7
+
+### 📚 Documentation
+
+- Fixed documentation for httpc resolver
+
+### ⚙️ Miscellaneous Tasks
+
+- Updated JSON Schema test suite
+
 ## [0.18.1] - 2026-04-08
 
 ### 🚀 Features
