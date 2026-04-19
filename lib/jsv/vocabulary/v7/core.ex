@@ -14,16 +14,19 @@ defmodule JSV.Vocabulary.V7.Core do
   take_keyword :"$ref", raw_ref, _acc, builder, raw_schema do
     ref_relative_to_ns =
       case {raw_schema, builder} do
-        # The ref is not relative to the current $id if defined at the same
-        # level and there is a parent $id.
-        #
-        # Parent cannot be :root because a ref cannot target :root, it must be a
-        # defined $id.
-        {%{"$id" => _}, %{ns: _, parent_ns: parent}} when parent != :root ->
+        {%{"$id" => _}, %{ns: _, parent_ns: parent}} when is_binary(parent) ->
+          # $ref and $id are siblings inside a nested subschema. We know it is in
+          # a subschema because parent in a binary.
+          #
+          # In this case, $id does not change the base URI used to resolve $ref.
+          # The $ref resolves against the enclosing parent $id instead. This only
+          # applies when there is an actual outer $id (a binary).
           parent
 
-        # Otherwise take the $id at the same level or higher
         {_, %{ns: current_ns}} ->
+          # $ref at the top-level. In that case, the sibling $id (if exists) is
+          # used for the basis of $ref resolution. If it does not exist, the
+          # $ref will resolve against :root.
           current_ns
       end
 
