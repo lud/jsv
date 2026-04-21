@@ -167,13 +167,13 @@ defmodule JSV.RefTest do
              } = ref
     end
 
-    test "parses numeric segments as integers" do
+    test "keeps numeric segments as strings" do
       {:ok, ref} = Ref.parse("#/items/0", :root)
 
       assert %Ref{
                ns: :root,
                kind: :pointer,
-               arg: ["items", 0],
+               arg: ["items", "0"],
                dynamic?: false
              } = ref
     end

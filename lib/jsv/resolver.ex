@@ -593,6 +593,19 @@ defmodule JSV.Resolver do
     end
   end
 
+  defp do_fetch_docpath(list, [h | t], parents) when is_list(list) and is_binary(h) do
+    case Integer.parse(h) do
+      {n, ""} when n >= 0 ->
+        case Enum.fetch(list, n) do
+          {:ok, item} -> do_fetch_docpath(item, t, [list | parents])
+          :error -> {:error, {:pointer_error, h, list}}
+        end
+
+      _ ->
+        {:error, {:pointer_error, h, list}}
+    end
+  end
+
   defp do_fetch_docpath(raw_schema, [h | t], parents) when is_map(raw_schema) and is_binary(h) do
     case Map.fetch(raw_schema, h) do
       {:ok, sub} -> do_fetch_docpath(sub, t, [raw_schema | parents])

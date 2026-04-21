@@ -107,10 +107,7 @@ defmodule JSV.Ref do
   end
 
   defp parse_pointer_segment(string) do
-    case Integer.parse(string) do
-      {int, ""} -> int
-      _ -> unescape_json_pointer(string)
-    end
+    unescape_json_pointer(string)
   end
 
   defp unescape_json_pointer(str) do
