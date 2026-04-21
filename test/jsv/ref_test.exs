@@ -364,4 +364,147 @@ defmodule JSV.RefTest do
       assert {:error, _} = JSV.validate(1, root)
     end
   end
+
+  describe "properties as literal keys" do
+    test "parses properties in dependencies in draft-07" do
+      schema = %{
+        "$schema" => "http://json-schema.org/draft-07/schema",
+        "type" => "object",
+        "properties" => %{
+          "properties" => true,
+          "foo" => %{"type" => "string"}
+        },
+        "dependencies" => %{
+          "properties" => ["foo"]
+        }
+      }
+
+      root = JSV.build!(schema)
+      data = %{"properties" => ["bar"], "foo" => "baz"}
+
+      assert {:ok, data} == JSV.validate(data, root)
+      assert {:error, _} = JSV.validate(%{"properties" => ["bar"]}, root)
+    end
+
+    test "parses properties in dependentRequired" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{
+          "properties" => true,
+          "foo" => %{"type" => "string"}
+        },
+        "dependentRequired" => %{
+          "properties" => ["foo"]
+        }
+      }
+
+      root = JSV.build!(schema)
+      data = %{"properties" => ["bar"], "foo" => "baz"}
+
+      assert {:ok, data} == JSV.validate(data, root)
+      assert {:error, _} = JSV.validate(%{"properties" => ["bar"]}, root)
+    end
+
+    test "a property named \"properties\" with a boolean schema is built" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{"properties" => true}
+      }
+
+      root = JSV.build!(schema)
+      assert {:ok, %{"properties" => 123}} = JSV.validate(%{"properties" => 123}, root)
+      assert {:ok, %{"properties" => "whatever"}} = JSV.validate(%{"properties" => "whatever"}, root)
+    end
+
+    test "a property named \"properties\" with a subschema is validated" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{
+          "properties" => %{"type" => "array"}
+        }
+      }
+
+      root = JSV.build!(schema)
+      assert {:ok, _} = JSV.validate(%{"properties" => []}, root)
+      assert {:error, _} = JSV.validate(%{"properties" => "not an array"}, root)
+    end
+
+    test "a property named \"properties\" with nested $id is resolvable via $ref" do
+      schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$id" => "http://example.com/root.json",
+        "type" => "object",
+        "properties" => %{
+          "properties" => %{
+            "$id" => "inner.json",
+            "type" => "integer"
+          },
+          "ref_to_inner" => %{"$ref" => "inner.json"}
+        }
+      }
+
+      root = JSV.build!(schema)
+
+      assert {:ok, _} = JSV.validate(%{"properties" => 1, "ref_to_inner" => 2}, root)
+      assert {:error, _} = JSV.validate(%{"properties" => "nope", "ref_to_inner" => 2}, root)
+      assert {:error, _} = JSV.validate(%{"properties" => 1, "ref_to_inner" => "nope"}, root)
+    end
+
+    test "parses properties in dependentSchemas with a schema value" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{
+          "properties" => true,
+          "foo" => %{"type" => "string"}
+        },
+        "dependentSchemas" => %{
+          "properties" => %{"required" => ["foo"]}
+        }
+      }
+
+      root = JSV.build!(schema)
+      assert {:ok, _} = JSV.validate(%{"properties" => [1], "foo" => "bar"}, root)
+      assert {:error, _} = JSV.validate(%{"properties" => [1]}, root)
+    end
+
+    test "a property named \"enum\" does not break the scan" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{
+          "enum" => %{"type" => "integer"}
+        }
+      }
+
+      root = JSV.build!(schema)
+      assert {:ok, _} = JSV.validate(%{"enum" => 1}, root)
+      assert {:error, _} = JSV.validate(%{"enum" => "not an int"}, root)
+    end
+
+    test "an invalid (non-map) properties value still fails the build" do
+      schema = %{"properties" => "badmap"}
+      assert {:error, %JSV.BuildError{}} = JSV.build(schema)
+    end
+
+    test "a \"properties\" definition under $defs with an $id is resolvable via $ref" do
+      schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$id" => "http://example.com/root.json",
+        "$defs" => %{
+          "properties" => %{
+            "$id" => "http://example.com/inner.json",
+            "type" => "integer"
+          }
+        },
+        "type" => "object",
+        "properties" => %{
+          "value" => %{"$ref" => "http://example.com/inner.json"}
+        }
+      }
+
+      root = JSV.build!(schema)
+
+      assert {:ok, %{"value" => 1}} = JSV.validate(%{"value" => 1}, root)
+      assert {:error, _} = JSV.validate(%{"value" => "not an int"}, root)
+    end
+  end
 end

@@ -212,7 +212,7 @@ defmodule JSV.Resolver do
 
     acc = [top_descriptor]
 
-    scan_map_values(top_schema, id, nss, meta, [ns], acc)
+    scan_schema_pairs(top_schema, id, nss, meta, [ns], acc)
   end
 
   defp scan_subschema(raw_schema, ns, nss, meta, path, acc) when is_map(raw_schema) do
@@ -270,7 +270,7 @@ defmodule JSV.Resolver do
           [descriptor | acc]
       end
 
-    scan_map_values(raw_schema, ns, nss, meta, path, acc)
+    scan_schema_pairs(raw_schema, ns, nss, meta, path, acc)
   end
 
   defp scan_subschema(scalar, _parent_id, _nss, _meta, _path, acc)
@@ -310,19 +310,33 @@ defmodule JSV.Resolver do
     {id, anchor, dynamic_anchor}
   end
 
-  defp scan_map_values(schema, parent_id, nss, meta, path, acc) do
+  # Keywords whose value is a map from user-defined names (or patterns) to
+  # subschemas, arrays or other generic maps.
+  @generic_map_keywords [
+    "$defs",
+    "definitions",
+    "dependencies",
+    "dependentSchemas",
+    "patternProperties",
+    "properties"
+  ]
+
+  defp scan_schema_pairs(schema, parent_id, nss, meta, path, acc) do
     EnumExt.reduce_ok(schema, acc, fn
-      {"properties", props}, acc when is_map(props) ->
-        scan_map_values(props, parent_id, nss, meta, ["properties" | path], acc)
+      {k, v}, acc when k in @generic_map_keywords and is_map(v) ->
+        scan_generic_map(v, parent_id, nss, meta, [k | path], acc)
 
-      {"properties", props}, _acc ->
-        {:error, {:invalid_properties, props, ["properties" | path]}}
-
-      {ignored, _}, _ when ignored in ["enum", "const"] ->
+      {ignored, _}, acc when ignored in ["enum", "const"] ->
         {:ok, acc}
 
       {k, v}, acc ->
         scan_subschema(v, parent_id, nss, meta, [k | path], acc)
+    end)
+  end
+
+  defp scan_generic_map(map, parent_id, nss, meta, path, acc) do
+    EnumExt.reduce_ok(map, acc, fn {name, subschema}, acc ->
+      scan_subschema(subschema, parent_id, nss, meta, [name | path], acc)
     end)
   end
 

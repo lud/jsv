@@ -46,8 +46,8 @@ defmodule JSV.BuilderTest do
 
       assert %{
                reason: {:invalid_properties, "badmap"},
-               action: {JSV.Resolver, :resolve, _},
-               build_path: "#/properties"
+               action: :properties,
+               build_path: "#"
              } = err
     end
 
@@ -68,8 +68,8 @@ defmodule JSV.BuilderTest do
 
       assert %{
                reason: {:invalid_properties, "badmap"},
-               action: {JSV.Resolver, :resolve, _},
-               build_path: "#/properties/foo/properties/bar/properties"
+               action: :properties,
+               build_path: "#/properties/foo/properties/bar"
              } = err
     end
 

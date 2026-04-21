@@ -34,6 +34,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     {[{:properties, Map.new(props_validators)} | acc], builder}
   end
 
+  take_keyword :properties, properties, _acc, builder, _ do
+    Builder.fail(builder, {:invalid_properties, properties}, :properties)
+  end
+
   take_keyword :additionalProperties, additional_properties, acc, builder, _ do
     take_sub(:additionalProperties, additional_properties, acc, builder)
   end
