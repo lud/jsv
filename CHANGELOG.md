@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.3] - 2026-04-21
+
+### 🐛 Bug Fixes
+
+- Fixed schema scanning around non-schemas like properties
+- Allow to dereference numeric pointers from maps in refs
+
+### ⚙️ Miscellaneous Tasks
+
+- Updated JSON Schema Test Suite
+
 ## [0.18.2] - 2026-04-19
 
 ### 🐛 Bug Fixes
