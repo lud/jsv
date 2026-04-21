@@ -21,6 +21,12 @@ defmodule JSV.Generated.Draft7.DecimalValues.MultipleOfTest do
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "-4.5 is multiple of 1.5", x do
+      data = Decimal.new("-4.5")
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 
   describe "by small number" do

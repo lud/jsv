@@ -54,6 +54,12 @@ defmodule JSV.Generated.Draft7.BinaryKeys.MultipleOfTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "-4.5 is multiple of 1.5", x do
+      data = -4.5
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "35 is not multiple of 1.5", x do
       data = 35
       expected_valid = false
