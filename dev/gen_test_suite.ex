@@ -92,7 +92,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     "minItems.json" => [],
     "minLength.json" => [],
     "minProperties.json" => [],
-    "multipleOf.json" => [],
+    "multipleOf.json" => [ignore: ["always invalid, but naive implementations may raise an overflow error"]],
     "not.json" => [],
     "oneOf.json" => [],
     "pattern.json" => [

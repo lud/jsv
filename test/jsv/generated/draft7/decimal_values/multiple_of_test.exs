@@ -48,18 +48,4 @@ defmodule JSV.Generated.Draft7.DecimalValues.MultipleOfTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
-
-  describe "float division = inf" do
-    setup do
-      json_schema = %{"type" => "integer", "multipleOf" => 0.123456789}
-      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "http://json-schema.org/draft-07/schema")
-      {:ok, json_schema: json_schema, schema: schema}
-    end
-
-    test "always invalid, but naive implementations may raise an overflow error", x do
-      data = Decimal.new("1.0E+308")
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-  end
 end

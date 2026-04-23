@@ -51,8 +51,16 @@ defmodule JSV.Vocabulary.V202012.Validation do
     Builder.fail(builder, "mutipleOf zero is not allowed", :multipleOf)
   end
 
-  take_keyword :multipleOf, multiple_of, acc, builder, _ do
-    take_number(:multipleOf, multiple_of, acc, builder)
+  with_decimal do
+    take_keyword :multipleOf, multiple_of, acc, builder, _ do
+      {[{:multipleOf, n} | acc], builder} = take_number(:multipleOf, multiple_of, acc, builder)
+
+      {[{:multipleOf, to_decimal(n)} | acc], builder}
+    end
+  else
+    take_keyword :multipleOf, multiple_of, acc, builder, _ do
+      take_number(:multipleOf, multiple_of, acc, builder)
+    end
   end
 
   take_keyword :const, const, acc, builder, _ do
@@ -262,21 +270,18 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:minItems, _})
 
-  def validate_keyword({:multipleOf, n}, data, vctx) when is_number(data) do
-    case Math.fractional_is_zero?(data / n) do
-      true -> {:ok, data, vctx}
-      false -> {:error, Validator.with_error(vctx, :multipleOf, data, multipleOf: n)}
-    end
-  rescue
-    # Rescue infinite division (huge numbers divided by float, too large invalid
-    # floats)
-    _ in ArithmeticError -> {:error, Validator.with_error(vctx, :arithmetic_error, data, context: "multipleOf")}
-  end
-
   with_decimal do
-    def validate_keyword({:multipleOf, n}, %Decimal{} = data, vctx) do
-      data
-      |> Decimal.rem(to_decimal(n))
+    def validate_keyword({:multipleOf, %Decimal{} = n}, %Decimal{} = data, vctx) do
+      validate_decimal_multiple_of(data, data, n, vctx)
+    end
+
+    def validate_keyword({:multipleOf, %Decimal{} = n}, data, vctx) when is_number(data) do
+      validate_decimal_multiple_of(to_decimal(data), data, n, vctx)
+    end
+
+    defp validate_decimal_multiple_of(d, data, n, vctx) do
+      d
+      |> Decimal.rem(n)
       |> Decimal.eq?(0)
       |> case do
         true -> {:ok, data, vctx}
@@ -284,6 +289,17 @@ defmodule JSV.Vocabulary.V202012.Validation do
       end
     rescue
       _ in Decimal.Error -> {:error, Validator.with_error(vctx, :arithmetic_error, data, context: "multipleOf")}
+    end
+  else
+    def validate_keyword({:multipleOf, n}, data, vctx) when is_number(data) do
+      case Math.fractional_is_zero?(data / n) do
+        true -> {:ok, data, vctx}
+        false -> {:error, Validator.with_error(vctx, :multipleOf, data, multipleOf: n)}
+      end
+    rescue
+      # Rescue infinite division (huge numbers divided by float, too large invalid
+      # floats)
+      _ in ArithmeticError -> {:error, Validator.with_error(vctx, :arithmetic_error, data, context: "multipleOf")}
     end
   end
 
