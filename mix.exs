@@ -55,7 +55,7 @@ defmodule JSV.MixProject do
 
       # Optional Formats
       {:abnf_parsec, "~> 2.0"},
-      {:texture, "~> 0.3"},
+      {:texture, "~> 1.0"},
       {:idna, "~> 6.0 or ~> 7.0"},
 
       # Dev
