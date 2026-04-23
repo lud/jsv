@@ -194,6 +194,15 @@ way. The code above will cast the data (and the birthdate as well):
 ```
 <!-- rdmx /:eval -->
 
+## Roadmap
+
+Features and changes for v1.0.0 release:
+
+* [ ] Move `defschema` and `defcast` to `JSV.Schema`
+* [ ] New cast system with caster arguments, migrate `jsv-cast` to `x-jsv-cast` keyword.
+* [ ] Custom vocabularies appendable to well-known metas like `https://json-schema.org/draft/2020-12/schema`.
+* [ ] Struct-less atom-keyed maps cast.
+
 ## Contributing
 
 Please ensure your changes include thorough tests and follow the existing
