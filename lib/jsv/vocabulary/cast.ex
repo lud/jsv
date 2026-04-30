@@ -36,13 +36,16 @@ defmodule JSV.Vocabulary.Cast do
   end
 
   defmodule BadCastReturnValueError do
-    @enforce_keys [:module, :function, :arity, :value, :expected]
+    @enforce_keys [:module, :function, :arity, :value]
     defexception @enforce_keys
 
     @spec message(Exception.t()) :: binary
     def message(t) do
-      %{module: module, function: fun, arity: arity, value: value, expected: hint} = t
-      "bad return from " <> Exception.format_mfa(module, fun, arity) <> ", expected #{hint}, got: #{inspect(value)}"
+      %{module: module, function: fun, arity: arity, value: value} = t
+
+      "bad return from " <>
+        Exception.format_mfa(module, fun, arity) <>
+        ", expected result tuple, got: #{inspect(value)}"
     end
   end
 
@@ -208,17 +211,13 @@ defmodule JSV.Vocabulary.Cast do
          )}
 
       other ->
-        raise bad_return_error(cast, other)
+        {:error,
+         JSV.Validator.__with_error__(__MODULE__, vctx, :"bad-cast-return", data,
+           cast: cast,
+           reason: bad_return_error(cast, other)
+         )}
     end
   rescue
-    e in BadCastReturnValueError ->
-      # log_test_error(e, __STACKTRACE__)
-      {:error,
-       JSV.Validator.__with_error__(__MODULE__, vctx, :"bad-cast-return", data,
-         cast: cast,
-         reason: e
-       )}
-
     e in [UndefinedFunctionError, FunctionClauseError] ->
       stack = __STACKTRACE__
       # log_test_error(e, stack)
@@ -238,7 +237,7 @@ defmodule JSV.Vocabulary.Cast do
 
   defp bad_return_error(cast, value) do
     %{module: module, function: fun, arity: arity} = cast
-    %BadCastReturnValueError{module: module, function: fun, arity: arity, value: value, expected: "result tuple"}
+    %BadCastReturnValueError{module: module, function: fun, arity: arity, value: value}
   end
 
   defp call_cast(%{capture: fun}, 1 = _arity, data, _vctx) do
@@ -253,6 +252,7 @@ defmodule JSV.Vocabulary.Cast do
     fun.(data, args, vctx)
   end
 
+  # public because unused
   @doc false
   @spec log_test_error(Exception.t(), Exception.stacktrace()) :: :ok
   if Mix.env() == :test do

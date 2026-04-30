@@ -342,7 +342,7 @@ defmodule JSV.Schema do
 
   @doc """
   This is a legacy function using the custom `jsv-cast` schema keyword. It will
-  be deprecated in the next release. Use `xcast/12`.
+  be deprecated in the next release. Use `xcast/2`.
 
   Includes the cast function in a schema. The cast function must be given as a
   list with two items:
@@ -433,7 +433,7 @@ defmodule JSV.Schema do
     case schema do
       %{:"x-jsv-cast" => _, "x-jsv-cast" => _} ->
         raise ArgumentError,
-              "JSV.SChema.xcast/2 base mixing " <>
+              "JSV.Schema.xcast/2 base mixing " <>
                 "#{inspect(:"x-jsv-cast")} and #{inspect("x-jsv-cast")} " <>
                 "keys: #{inspect(schema)}"
 

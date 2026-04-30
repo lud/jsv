@@ -1270,8 +1270,6 @@ defmodule JSV do
     quote generated: true do
       case unquote(handler_arity) do
         1 ->
-          []
-
           def unquote(fun)() do
             [unquote(mod_str), unquote(tag)]
           end

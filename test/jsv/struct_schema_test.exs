@@ -652,28 +652,6 @@ defmodule JSV.StructSchemaTest do
       assert %{"name" => "Alice"} == encode_decode(Jason, value)
     end
 
-    # TODO serialization skips is not supported for plain defschema modules
-    # since we do not have automatic JSON encoder defimpl
-    #
-    # test "optional normalization with Jason - defschema/1" do value =
-    #   %OptionalSkipPlainNil{name: "Alice", age: 123} assert %{"age" => 123,
-    #   "name" => "Alice"} == encode_decode(Jason, value)
-
-    #   # Nil will be skipped
-
-    #   value = %OptionalSkipPlainNil{name: "Alice", age: nil}
-    #   assert %{"name" => "Alice"} == encode_decode(Jason, value)
-
-    #   # It works with any specified value. Here we use a module that skips if
-    #   # the value is 999
-
-    #   value = %OptionalSkipPlain999{name: "Alice", age: nil}
-    #   assert %{"name" => "Alice", "age" => nil} == encode_decode(Jason, value)
-
-    #   value = %OptionalSkipPlain999{name: "Alice", age: 999}
-    #   assert %{"name" => "Alice"} == encode_decode(Jason, value)
-    # end
-
     test "optional normalization with JSON - defschema/3" do
       value = %OptionalSkipNil{name: "Alice", age: 123}
       assert %{"age" => 123, "name" => "Alice"} == encode_decode(JSON, value)
@@ -687,23 +665,6 @@ defmodule JSV.StructSchemaTest do
       value = %OptionalSkip999{name: "Alice", age: 999}
       assert %{"name" => "Alice"} == encode_decode(JSON, value)
     end
-
-    # TODO serialization skips is not supported for plain defschema modules
-    # since we do not have automatic JSON encoder defimpl
-    #
-    # test "optional normalization with JSON - defschema/1" do
-    #   value = %OptionalSkipPlainNil{name: "Alice", age: 123}
-    #   assert %{"age" => 123, "name" => "Alice"} == encode_decode(JSON, value)
-
-    #   value = %OptionalSkipPlainNil{name: "Alice", age: nil}
-    #   assert %{"name" => "Alice"} == encode_decode(JSON, value)
-
-    #   value = %OptionalSkipPlain999{name: "Alice", age: nil}
-    #   assert %{"name" => "Alice", "age" => nil} == encode_decode(JSON, value)
-
-    #   value = %OptionalSkipPlain999{name: "Alice", age: 999}
-    #   assert %{"name" => "Alice"} == encode_decode(JSON, value)
-    # end
   end
 
   describe "deserializing into another module with defschema_for" do
@@ -1768,13 +1729,15 @@ defmodule JSV.StructSchemaTest do
 
     test "local defcast after two casts" do
       assert %{
-               #
+               "x-jsv-cast": [
+                 ["Elixir.JSV.StructSchemaTest.WithDefcast", "append", "-some-suffix"],
+                 "Elixir.JSV.StructSchemaTest.WithDefcast"
+               ]
              } = WithDefcast.json_schema()
 
       root = JSV.build!(WithDefcast)
 
-      # First cast normalizes name to lowercase, second adds default role,
-      # then struct cast converts to struct.
+      # First cast adds suffix then struct cast converts to struct.
       assert {:ok, %WithDefcast{name: "alice-some-suffix", role: nil}} =
                JSV.validate(%{"name" => "alice"}, root)
     end
