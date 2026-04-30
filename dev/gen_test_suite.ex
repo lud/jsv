@@ -10,202 +10,212 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
 
   @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
 
-  @enabled_specific_202012 %{
-    "anchor.json" => [],
-    "content.json" => [],
-    "defs.json" => [],
-    "dependentRequired.json" => [],
-    "dependentSchemas.json" => [],
-    "dynamicRef.json" => [],
-    "maxContains.json" => [],
-    "minContains.json" => [],
-    "prefixItems.json" => [],
-    "unevaluatedItems.json" => [],
-    "unevaluatedProperties.json" => [],
-    "vocabulary.json" => [],
+  defp enabled_specific_202012 do
+    %{
+      "anchor.json" => [],
+      "content.json" => [],
+      "defs.json" => [],
+      "dependentRequired.json" => [],
+      "dependentSchemas.json" => [],
+      "dynamicRef.json" => [],
+      "maxContains.json" => [],
+      "minContains.json" => [],
+      "prefixItems.json" => [],
+      "unevaluatedItems.json" => [],
+      "unevaluatedProperties.json" => [],
+      "vocabulary.json" => [],
 
-    # Optional
+      # Optional
 
-    "optional/anchor.json" => [],
-    "optional/no-schema.json" => [],
-    "optional/dependencies-compatibility.json" => [],
-    "optional/dynamicRef.json" => [],
-    "optional/refOfUnknownKeyword.json" => [],
+      "optional/anchor.json" => [],
+      "optional/no-schema.json" => [],
+      "optional/dependencies-compatibility.json" => [],
+      "optional/dynamicRef.json" => [],
+      "optional/refOfUnknownKeyword.json" => [],
 
-    # Formats
+      # Formats
 
-    "optional/format-assertion.json" => [],
-    "optional/format/duration.json" => [
-      schema_build_opts: [formats: true],
-      ignore: [
-        "weeks cannot be combined with other units",
-        "hours and seconds cannot appear without minutes",
-        "years and days cannot appear without months",
-        "fractional duration is not allowed by RFC 3339 ABNF"
+      "optional/format-assertion.json" => [],
+      "optional/format/duration.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          "weeks cannot be combined with other units",
+          "hours and seconds cannot appear without minutes",
+          "years and days cannot appear without months",
+          "fractional duration is not allowed by RFC 3339 ABNF"
+        ],
+        elixir: "~> 1.17"
       ],
-      elixir: "~> 1.17"
-    ],
-    "optional/format/uuid.json" => [schema_build_opts: [formats: true]],
+      "optional/format/uuid.json" => [schema_build_opts: [formats: true]],
 
-    # Unsupported
+      # Unsupported
 
-    "optional/format/ecmascript-regex.json" => :unsupported
-  }
+      "optional/format/ecmascript-regex.json" => :unsupported
+    }
+  end
 
-  @enabled_specific_7 %{
-    "additionalItems.json" => [],
-    "definitions.json" => [],
-    "dependencies.json" => [],
+  defp enabled_specific_7 do
+    %{
+      "additionalItems.json" => [],
+      "definitions.json" => [],
+      "dependencies.json" => [],
 
-    # Unsupported
+      # Unsupported
 
-    "optional/content.json" => :unsupported
-  }
+      "optional/content.json" => :unsupported
+    }
+  end
 
-  @enabled_common %{
-    "additionalProperties.json" => [
-      atom_ignore: [
-        # Those tests use regexes in pattern properties. We do not want to
-        # render those as atoms as it will be confusing.
-        "additionalProperties being false does not allow other properties",
-        "non-ASCII pattern with additionalProperties"
-      ]
-    ],
-    "allOf.json" => [],
-    "anyOf.json" => [],
-    "boolean_schema.json" => [],
-    "const.json" => [decimal_ignore: true],
-    "contains.json" => [],
-    "default.json" => [],
-    "enum.json" => [decimal_ignore: true],
-    "exclusiveMaximum.json" => [],
-    "exclusiveMinimum.json" => [],
-    "format.json" => [],
-    "if-then-else.json" => [],
-    "infinite-loop-detection.json" => [],
-    "items.json" => [],
-    "maximum.json" => [],
-    "maxItems.json" => [],
-    "maxLength.json" => [],
-    "maxProperties.json" => [],
-    "minimum.json" => [],
-    "minItems.json" => [],
-    "minLength.json" => [],
-    "minProperties.json" => [],
-    "multipleOf.json" => [ignore: ["always invalid, but naive implementations may raise an overflow error"]],
-    "not.json" => [],
-    "oneOf.json" => [],
-    "pattern.json" => [
-      ignore: [
-        # Invalid regex for elixir
-        "pattern with Unicode property escape requires unicode mode"
-      ]
-    ],
-    "patternProperties.json" => [
-      ignore: [
-        # Invalid regex for elixir
-        "patternProperties with Unicode property escape"
-      ]
-    ],
-    "properties.json" => [],
-    "propertyNames.json" => [],
-    "ref.json" => [],
-    "refRemote.json" => [],
-    "required.json" => [],
-    "type.json" => [],
-    "uniqueItems.json" => [decimal_ignore: true],
+  defp enabled_common do
+    %{
+      "additionalProperties.json" => [
+        atom_ignore: [
+          # Those tests use regexes in pattern properties. We do not want to
+          # render those as atoms as it will be confusing.
+          "additionalProperties being false does not allow other properties",
+          "non-ASCII pattern with additionalProperties"
+        ]
+      ],
+      "allOf.json" => [],
+      "anyOf.json" => [],
+      "boolean_schema.json" => [],
+      "const.json" => [decimal_ignore: true],
+      "contains.json" => [],
+      "default.json" => [],
+      "enum.json" => [decimal_ignore: true],
+      "exclusiveMaximum.json" => [],
+      "exclusiveMinimum.json" => [],
+      "format.json" => [],
+      "if-then-else.json" => [],
+      "infinite-loop-detection.json" => [],
+      "items.json" => [],
+      "maximum.json" => [],
+      "maxItems.json" => [],
+      "maxLength.json" => [],
+      "maxProperties.json" => [],
+      "minimum.json" => [],
+      "minItems.json" => [],
+      "minLength.json" => [],
+      "minProperties.json" => [],
+      "multipleOf.json" => [ignore: ["always invalid, but naive implementations may raise an overflow error"]],
+      "not.json" => [],
+      "oneOf.json" => [],
+      "pattern.json" => [
+        ignore: [
+          # Invalid regex for elixir
+          "pattern with Unicode property escape requires unicode mode"
+        ]
+      ],
+      "patternProperties.json" => [
+        ignore: [
+          # Invalid regex for elixir
+          "patternProperties with Unicode property escape"
+        ]
+      ],
+      "properties.json" => [],
+      "propertyNames.json" => [],
+      "ref.json" => [],
+      "refRemote.json" => [],
+      "required.json" => [],
+      "type.json" => [],
+      "uniqueItems.json" => [decimal_ignore: true],
 
-    # Optional
+      # Optional
 
-    "optional/bignum.json" => [],
-    "optional/id.json" => [],
+      "optional/bignum.json" => [],
+      "optional/id.json" => [],
 
-    # Formats
+      # Formats
 
-    "optional/format/date.json" => [schema_build_opts: [formats: true]],
-    "optional/format/email.json" => [schema_build_opts: [formats: true]],
-    "optional/format/hostname.json" => [
-      schema_build_opts: [formats: true],
-      ignore: [
-        "exceeds maximum label length",
-        "a host name with a component too long"
-      ]
-    ],
-    "optional/format/ipv4.json" => [schema_build_opts: [formats: true]],
-    "optional/format/ipv6.json" => [schema_build_opts: [formats: true]],
-    "optional/format/iri-reference.json" => [schema_build_opts: [formats: true]],
-    "optional/format/iri.json" => [schema_build_opts: [formats: true]],
-    "optional/format/json-pointer.json" => [schema_build_opts: [formats: true]],
-    "optional/format/regex.json" => [schema_build_opts: [formats: true]],
-    "optional/format/relative-json-pointer.json" => [schema_build_opts: [formats: true]],
-    "optional/format/unknown.json" => [schema_build_opts: [formats: true]],
-    "optional/format/uri-reference.json" => [schema_build_opts: [formats: true]],
-    "optional/format/uri-template.json" => [schema_build_opts: [formats: true]],
-    "optional/format/uri.json" => [
-      schema_build_opts: [formats: true],
-      ignore: [
-        # LDAP URL with IPv6 and ?-separated query fields – valid URI but rejected by Erlang's uri_string
-        "a valid URL"
-      ]
-    ],
-    "optional/format/time.json" => [
-      schema_build_opts: [formats: true],
-      ignore: [
-        # Elixir built-in calendar does not support leap seconds
-        "valid leap second, large positive time-offset",
-        "valid leap second, positive time-offset",
-        "valid leap second, zero time-offset",
-        "valid leap second, large negative time-offset",
-        "a valid time string with leap second, Zulu",
-        "valid leap second, negative time-offset",
+      "optional/format/date.json" => [schema_build_opts: [formats: true]],
+      "optional/format/email.json" => [schema_build_opts: [formats: true]],
+      "optional/format/hostname.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          "exceeds maximum label length",
+          "a host name with a component too long"
+        ]
+      ],
+      "optional/format/ipv4.json" => [schema_build_opts: [formats: true]],
+      "optional/format/ipv6.json" => [schema_build_opts: [formats: true]],
+      "optional/format/iri-reference.json" => [schema_build_opts: [formats: true]],
+      "optional/format/iri.json" => [schema_build_opts: [formats: true]],
+      "optional/format/json-pointer.json" => [schema_build_opts: [formats: true]],
+      "optional/format/regex.json" => [schema_build_opts: [formats: true]],
+      "optional/format/relative-json-pointer.json" => [schema_build_opts: [formats: true]],
+      "optional/format/unknown.json" => [schema_build_opts: [formats: true]],
+      "optional/format/uri-reference.json" => [schema_build_opts: [formats: true]],
+      "optional/format/uri-template.json" => [schema_build_opts: [formats: true]],
+      "optional/format/uri.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          # LDAP URL with IPv6 and ?-separated query fields, valid but rejected by Erlang's uri_string.
+          # Test name "a valid URL" is too generic so we ignore by data
+          fn
+            %{"data" => d} -> d == "ldap://[2001:db8::7]/c=GB?objectClass?one"
+            _ -> false
+          end
+        ]
+      ],
+      "optional/format/time.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          # Elixir built-in calendar does not support leap seconds
+          "valid leap second, large positive time-offset",
+          "valid leap second, positive time-offset",
+          "valid leap second, zero time-offset",
+          "valid leap second, large negative time-offset",
+          "a valid time string with leap second, Zulu",
+          "valid leap second, negative time-offset",
 
-        # Elixir does not require a time offset to be set
-        "no time offset",
-        "no time offset with second fraction",
+          # Elixir does not require a time offset to be set
+          "no time offset",
+          "no time offset with second fraction",
 
-        # Elixir supports more formats that RFC3339
-        "only RFC3339 not all of ISO 8601 are valid",
+          # Elixir supports more formats that RFC3339
+          "only RFC3339 not all of ISO 8601 are valid",
 
-        # Elixir does not support RFC 3339 §4.3 "-00:00" unknown local offset
-        "time with unknown local offset is valid"
-      ]
-    ],
-    "optional/format/date-time.json" => [
-      schema_build_opts: [formats: true],
-      ignore: [
-        "case-insensitive T and Z",
-        "a valid date-time with a leap second, UTC",
-        "a valid date-time with a leap second, with minus offset"
-      ]
-    ],
+          # Elixir does not support RFC 3339 §4.3 "-00:00" unknown local offset
+          "time with unknown local offset is valid"
+        ]
+      ],
+      "optional/format/date-time.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          "case-insensitive T and Z",
+          "a valid date-time with a leap second, UTC",
+          "a valid date-time with a leap second, with minus offset"
+        ]
+      ],
 
-    # Architecture problems
+      # Architecture problems
 
-    # Uses schema 2019 in tests which we do not support
-    "optional/cross-draft.json" => :unsupported,
+      # Uses schema 2019 in tests which we do not support
+      "optional/cross-draft.json" => :unsupported,
 
-    # We need to make a change so each vocabulary module exports a strict list
-    # of supported keywords, and the resolver schema scanner does not
-    # automatically build schemas under unknown keywords.
-    #
-    # Another problem is that we need to convert the raw schemas to know if it
-    # is a sub schema is a real schema or an object that contains "$id" but is
-    # not under a supported keyword. For that we should traverse the whole
-    # schema and tag the "real" schemas we find, and then when a path points to
-    # a definition with "$id" inside we check if the tag is present, or we
-    # disregard that "$id".
-    "optional/unknownKeyword.json" => :unsupported,
+      # We need to make a change so each vocabulary module exports a strict list
+      # of supported keywords, and the resolver schema scanner does not
+      # automatically build schemas under unknown keywords.
+      #
+      # Another problem is that we need to convert the raw schemas to know if it
+      # is a sub schema is a real schema or an object that contains "$id" but is
+      # not under a supported keyword. For that we should traverse the whole
+      # schema and tag the "real" schemas we find, and then when a path points to
+      # a definition with "$id" inside we check if the tag is present, or we
+      # disregard that "$id".
+      "optional/unknownKeyword.json" => :unsupported,
 
-    # Unsupported
+      # Unsupported
 
-    "optional/format/idn-email.json" => :unsupported,
-    "optional/format/idn-hostname.json" => :unsupported,
-    "optional/ecmascript-regex.json" => :unsupported,
-    "optional/float-overflow.json" => :unsupported,
-    "optional/non-bmp-regex.json" => :unsupported
-  }
+      "optional/format/idn-email.json" => :unsupported,
+      "optional/format/idn-hostname.json" => :unsupported,
+      "optional/ecmascript-regex.json" => :unsupported,
+      "optional/float-overflow.json" => :unsupported,
+      "optional/non-bmp-regex.json" => :unsupported
+    }
+  end
 
-  raise_same_key = fn k, v1, v2 ->
+  defp raise_same_key(k, v1, v2) do
     raise ArgumentError, """
     duplicate definition for test #{inspect(k)}
 
@@ -218,10 +228,12 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     """
   end
 
-  @test_suites %{
-    "draft2020-12" => Map.merge(@enabled_common, @enabled_specific_202012, raise_same_key),
-    "draft7" => Map.merge(@enabled_common, @enabled_specific_7, raise_same_key)
-  }
+  defp test_suites do
+    %{
+      "draft2020-12" => Map.merge(enabled_common(), enabled_specific_202012(), &raise_same_key/3),
+      "draft7" => Map.merge(enabled_common(), enabled_specific_7(), &raise_same_key/3)
+    }
+  end
 
   @command [
     module: __MODULE__,
@@ -253,26 +265,26 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
       Test generated from <%= Path.relative_to_cwd(@path) %>
       \"""
 
-      <%= for tcase <- @test_cases do %>
+      <%= for suite_case <- @test_cases do %>
 
-        <%= if tcase.elixir_version_check do %>
-          if JsonSchemaSuite.version_check(<%= inspect(tcase.elixir_version_check) %>) do
+        <%= if suite_case.elixir_version_check do %>
+          if JsonSchemaSuite.version_check(<%= inspect(suite_case.elixir_version_check) %>) do
         <% end %>
 
-        describe <%= inspect(tcase.description) %> do
+        describe <%= inspect(suite_case.description) %> do
 
           setup do
-            json_schema = <%= render_ordered_schema(tcase.schema, @suite_flavor) %>
+            json_schema = <%= render_ordered_schema(suite_case.schema, @suite_flavor) %>
             schema = JsonSchemaSuite.build_schema(json_schema, <%= inspect(@schema_build_opts, limit: :infinity, pretty: true) %>)
             {:ok, json_schema: json_schema, schema: schema}
           end
 
-          <%= for ttest <- tcase.tests do %>
+          <%= for suite_ut <- suite_case.tests do %>
 
-            <%= if not ttest.skip? do %>
-            test <%= inspect(ttest.description) %>, x do
-              data = <%= render_test_data(ttest.data, @suite_flavor) %>
-              expected_valid = <%= inspect(ttest.valid?) %>
+            <%= if not suite_ut.skip? do %>
+            test <%= inspect(suite_ut.description) %>, x do
+              data = <%= render_test_data(suite_ut.data, @suite_flavor) %>
+              expected_valid = <%= inspect(suite_ut.valid?) %>
               JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
             end
             <% end %>
@@ -281,7 +293,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
           <% end %>
         end
 
-        <%= if tcase.elixir_version_check do %>
+        <%= if suite_case.elixir_version_check do %>
           end
         <% end %>
 
@@ -327,7 +339,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     _ = File.rm_rf!(test_directory)
 
     test_suite =
-      case Map.fetch(@test_suites, suite_name) do
+      case Map.fetch(test_suites(), suite_name) do
         {:ok, map} when is_map(map) -> map
         :error -> raise ArgumentError, "No suite configuration for #{inspect(suite_name)}"
       end
@@ -427,26 +439,26 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     end
   end
 
-  defp do_marshall_file(source_path, suite_flavor, ignore, elixir) do
+  defp do_marshall_file(source_path, suite_flavor, ignored, elixir) do
     source_path
     |> File.read!()
     |> Jason.decode!(floats: :decimals)
-    |> Enum.flat_map(fn tcase ->
-      %{"description" => tc_descr, "schema" => schema, "tests" => tests} = tcase
-      tcase_ignored = tc_descr in ignore
+    |> Enum.flat_map(fn suite_case ->
+      %{"description" => sc_desc, "schema" => schema, "tests" => tests} = suite_case
+      suite_case_ignored? = ignored?(suite_case, ignored)
 
       tests =
-        Enum.map(tests, fn ttest ->
-          %{"description" => tt_descr, "data" => data, "valid" => valid} = ttest
+        Enum.map(tests, fn suite_ut ->
+          %{"description" => tt_descr, "data" => data, "valid" => valid} = suite_ut
 
-          ttest_ignored = tt_descr in ignore
+          suite_ut_ignored? = ignored?(suite_ut, ignored)
 
           %{
             description: tt_descr,
             data: data,
             valid?: valid,
-            skip?: ttest_ignored or tcase_ignored,
-            ignore: ignore
+            skip?: suite_ut_ignored? or suite_case_ignored?,
+            ignore: ignored
           }
         end)
 
@@ -464,9 +476,28 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
       if all_ignored? do
         []
       else
-        [%{description: tc_descr, schema: schema, tests: tests, elixir_version_check: elixir}]
+        [%{description: sc_desc, schema: schema, tests: tests, elixir_version_check: elixir}]
       end
     end)
+  end
+
+  defp ignored?(%{"description" => d} = t, [name | ignored]) when is_binary(name) do
+    if d == name do
+      true
+    else
+      ignored?(t, ignored)
+    end
+  end
+
+  defp ignored?(t, [fun | ignored]) when is_function(fun) do
+    case fun.(t) do
+      true -> true
+      false -> ignored?(t, ignored)
+    end
+  end
+
+  defp ignored?(_, []) do
+    false
   end
 
   defp mark_skip_tests_without_decimal_test_data(tests) do
