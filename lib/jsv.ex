@@ -1267,18 +1267,25 @@ defmodule JSV do
 
     handler_arity = length(args)
 
-    quote generated: true do
-      case unquote(handler_arity) do
+    helper =
+      case handler_arity do
         1 ->
-          def unquote(fun)() do
-            [unquote(mod_str), unquote(tag)]
+          quote do
+            def unquote(fun)() do
+              [unquote(mod_str), unquote(tag)]
+            end
           end
 
         _ ->
-          def unquote(fun)(args) when is_list(args) do
-            [unquote(mod_str), unquote(tag) | args]
+          quote do
+            def unquote(fun)(args) when is_list(args) do
+              [unquote(mod_str), unquote(tag) | args]
+            end
           end
       end
+
+    quote generated: true do
+      unquote(helper)
 
       @doc false
       def __jsv__({:cast, [unquote(tag) | rest_args]}) do
