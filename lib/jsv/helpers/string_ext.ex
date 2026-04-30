@@ -7,7 +7,7 @@ defmodule JSV.Helpers.StringExt do
   @spec safe_string_to_existing_module(String.t()) :: {:ok, atom} | {:error, {:unknown_module, String.t()}}
   def safe_string_to_existing_module(string) do
     module = String.to_existing_atom(string)
-    Code.ensure_loaded!(module)
+    Code.ensure_compiled!(module)
     {:ok, module}
   rescue
     _ in ArgumentError -> {:error, {:unknown_module, string}}

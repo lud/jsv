@@ -111,14 +111,14 @@ defmodule MyApp.Cast do
   defcast :to_integer
   defcast "to_integer_if_string", :to_integer
 
-  defp to_integer(data) when is_binary(data) do
+  def to_integer(data) when is_binary(data) do
     case Integer.parse(data) do
       {int, ""} -> {:ok, int}
       _ -> {:error, "invalid"}
     end
   end
 
-  defp to_integer(_) do
+  def to_integer(_) do
     {:error, "invalid"}
   end
 

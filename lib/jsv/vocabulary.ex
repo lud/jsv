@@ -154,7 +154,7 @@ defmodule JSV.Vocabulary do
           # ...
         end
   """
-  defmacro take_keyword(atom_form, bind_value, bind_acc, bind_builder, bind_raw_schema, [{:do, block}])
+  defmacro take_keyword(atom_form, bind_value, bind_acc, bind_builder, bind_raw_schema, [{:do, _} | _] = blocks)
            when is_atom(atom_form) do
     string_form = Atom.to_string(atom_form)
 
@@ -176,9 +176,8 @@ defmodule JSV.Vocabulary do
               unquote(bind_builder),
               unquote(bind_raw_schema)
             )
-            when unquote(when_clause) do
-          unquote(block)
-        end
+            when unquote(when_clause),
+            unquote(blocks)
       end
 
     quoted

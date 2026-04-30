@@ -1,4 +1,4 @@
-gen-test-suite:
+gen-test-suite: deps
   mix compile
   mix jsv.gen_test_suite draft2020-12
   mix jsv.gen_test_suite draft7

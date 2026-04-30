@@ -126,7 +126,7 @@ defmodule JSV.Schema.HelperCompiler do
     quote do
       if Mix.env() != :test do
         @deprecated "Use `JSV.Schema.Composer.#{unquote(fun)}/#{unquote(arity) + 1}`. " <>
-                      "More information: https://hexdocs.pm/jsv/api-changes-v0-9.html"
+                      "More information: https://hexdocs.pm/jsv/001-api-changes-v0-9.html"
       end
 
       @doc false

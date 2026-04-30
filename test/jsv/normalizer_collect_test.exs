@@ -172,7 +172,7 @@ defmodule JSV.NormalizerCollectTest do
                      "name" => %{"type" => "string"}
                    },
                    "required" => ["name", "age"],
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NoNestedSchema", 0]
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NoNestedSchema"
                  }
                },
                "$ref" => "#/$defs/NoNestedSchema"
@@ -195,7 +195,7 @@ defmodule JSV.NormalizerCollectTest do
                      "name" => %{"type" => "string"}
                    },
                    "required" => ["name", "age"],
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NoNestedSchema", 0]
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NoNestedSchema"
                  }
                },
                "properties" => %{"foo" => %{"$ref" => "#/$defs/NoNestedSchema"}}
@@ -213,7 +213,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "NestedChild" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedChild", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedChild",
                    "properties" => %{
                      "age" => %{"type" => "integer"},
                      "name" => %{"type" => "string"}
@@ -223,7 +223,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "NestedParent" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedParent", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedParent",
                    "properties" => %{
                      "role" => %{"enum" => ["admin", "user"]},
                      "user" => %{"$ref" => "#/$defs/NestedChild"}
@@ -253,7 +253,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "NestedSelf" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedSelf", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedSelf",
                    "properties" => %{
                      "level" => %{"type" => "integer"},
                      "sub" => %{"$ref" => "#/$defs/NestedSelf"}
@@ -283,7 +283,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "NestedMutualA" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedMutualA", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedMutualA",
                    "properties" => %{
                      "a" => %{"type" => "string"},
                      "sub" => %{"$ref" => "#/$defs/NestedMutualB"}
@@ -293,7 +293,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "NestedMutualB" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedMutualB", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedMutualB",
                    "properties" => %{
                      "b" => %{"type" => "string"},
                      "sub" => %{"$ref" => "#/$defs/NestedMutualA"}
@@ -340,7 +340,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "CommonTitlesParent" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.CommonTitlesParent", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.CommonTitlesParent",
                    "properties" => %{
                      "orga" => %{"$ref" => "#/$defs/Common"},
                      "user" => %{"$ref" => "#/$defs/Common_1"}
@@ -350,7 +350,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "Common" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.WithCommonTitleOrga", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.WithCommonTitleOrga",
                    "properties" => %{
                      "size" => %{"type" => "integer"},
                      "url" => %{"type" => "string"}
@@ -360,7 +360,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "Common_1" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.WithCommonTitleUser", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.WithCommonTitleUser",
                    "properties" => %{
                      "age" => %{"type" => "integer"},
                      "name" => %{"type" => "string"}
@@ -392,7 +392,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "ChildWithoutId" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.ChildWithoutId", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.ChildWithoutId",
                    "properties" => %{
                      "grandchild" => %{"$ref" => "#/$defs/GrandChildWithoutId"},
                      "childname" => %{"type" => "string"}
@@ -403,7 +403,7 @@ defmodule JSV.NormalizerCollectTest do
                  },
                  "JSV.NormalizerCollectTest.ParentWithId" => %{
                    "id" => "some://id",
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.ParentWithId", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.ParentWithId",
                    "properties" => %{
                      "child" => %{"$ref" => "#/$defs/ChildWithoutId"},
                      "parentname" => %{"type" => "string"}
@@ -412,7 +412,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "GrandChildWithoutId" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.GrandChildWithoutId", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.GrandChildWithoutId",
                    "properties" => %{"grandchildname" => %{"type" => "string"}},
                    "required" => ["grandchildname"],
                    "title" => "GrandChildWithoutId",
@@ -451,7 +451,7 @@ defmodule JSV.NormalizerCollectTest do
                  "JSV.NormalizerCollectTest.NaiveWithDefs" => %{
                    # pre-existing $defs are not extracted
                    "$defs" => %{"language" => %{"enum" => ["Elixir", "Erlang"]}},
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NaiveWithDefs", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NaiveWithDefs",
                    "properties" => %{
                      "language" => %{"$ref" => "#/language"},
                      "name" => %{"type" => "string"}
@@ -478,7 +478,7 @@ defmodule JSV.NormalizerCollectTest do
                "$defs" => %{
                  "JSV.NormalizerCollectTest.IDWithDefs" => %{
                    "$defs" => %{"language" => %{"enum" => ["Elixir", "Erlang"]}},
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.IDWithDefs", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.IDWithDefs",
                    "properties" => %{
                      "language" => %{"$ref" => "test://idwithrefs#/$defs/language"},
                      "name" => %{"type" => "string"}
@@ -512,7 +512,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "NestedChild" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedChild", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedChild",
                    "properties" => %{
                      "age" => %{"type" => "integer"},
                      "name" => %{"type" => "string"}
@@ -522,7 +522,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "NestedParent" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedParent", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedParent",
                    "properties" => %{
                      "role" => %{"enum" => ["admin", "user"]},
                      "user" => %{"$ref" => "#/$defs/NestedChild"}
@@ -532,7 +532,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "ListNesting" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.ListNesting", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.ListNesting",
                    "properties" => %{
                      "foo" => %{"type" => "string"},
                      "subs" => %{
@@ -547,7 +547,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "NestedMutualA" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedMutualA", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedMutualA",
                    "properties" => %{
                      "a" => %{"type" => "string"},
                      "sub" => %{"$ref" => "#/$defs/NestedMutualB"}
@@ -557,7 +557,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "NestedMutualB" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedMutualB", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedMutualB",
                    "properties" => %{
                      "b" => %{"type" => "string"},
                      "sub" => %{"$ref" => "#/$defs/NestedMutualA"}
@@ -633,7 +633,7 @@ defmodule JSV.NormalizerCollectTest do
                      "name" => %{"type" => "string"}
                    },
                    "required" => ["name", "age"],
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NoNestedSchema", 0]
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NoNestedSchema"
                  }
                },
                "properties" => %{"foo" => %{"$ref" => "#/$defs/NoNestedSchema"}}
@@ -657,7 +657,7 @@ defmodule JSV.NormalizerCollectTest do
                  "name" => %{"type" => "string"}
                },
                "required" => ["name", "age"],
-               "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NoNestedSchema", 0]
+               "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NoNestedSchema"
              } == schema
 
       root = JSV.build!(schema)
@@ -673,10 +673,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "NestedChild" => %{
-                   "jsv-cast" => [
-                     "Elixir.JSV.NormalizerCollectTest.NestedChild",
-                     0
-                   ],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedChild",
                    "properties" => %{
                      "age" => %{"type" => "integer"},
                      "name" => %{"type" => "string"}
@@ -690,7 +687,7 @@ defmodule JSV.NormalizerCollectTest do
                  "role" => %{"enum" => ["admin", "user"]},
                  "user" => %{"$ref" => "#/$defs/NestedChild"}
                },
-               "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedParent", 0],
+               "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedParent",
                "required" => ["user", "role"],
                "title" => "NestedParent",
                "type" => "object"
@@ -713,7 +710,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "NestedSelf" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedSelf", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedSelf",
                    "properties" => %{
                      "level" => %{"type" => "integer"},
                      "sub" => %{"$ref" => "#/$defs/NestedSelf"}
@@ -723,7 +720,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  }
                },
-               "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedSelf", 0],
+               "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedSelf",
                "properties" => %{
                  "level" => %{"type" => "integer"},
                  "sub" => %{"$ref" => "#/$defs/NestedSelf"}
@@ -752,7 +749,7 @@ defmodule JSV.NormalizerCollectTest do
       assert %{
                "$defs" => %{
                  "NestedMutualA" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedMutualA", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedMutualA",
                    "properties" => %{
                      "a" => %{"type" => "string"},
                      "sub" => %{"$ref" => "#/$defs/NestedMutualB"}
@@ -762,7 +759,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  },
                  "NestedMutualB" => %{
-                   "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedMutualB", 0],
+                   "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedMutualB",
                    "properties" => %{
                      "b" => %{"type" => "string"},
                      "sub" => %{"$ref" => "#/$defs/NestedMutualA"}
@@ -772,7 +769,7 @@ defmodule JSV.NormalizerCollectTest do
                    "type" => "object"
                  }
                },
-               "jsv-cast" => ["Elixir.JSV.NormalizerCollectTest.NestedMutualA", 0],
+               "x-jsv-cast" => "Elixir.JSV.NormalizerCollectTest.NestedMutualA",
                "properties" => %{
                  "a" => %{"type" => "string"},
                  "sub" => %{"$ref" => "#/$defs/NestedMutualB"}
