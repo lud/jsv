@@ -169,8 +169,9 @@ defmodule JSV.Schema do
     :uniqueItems,
     :writeOnly,
 
-    # Internal keys
-    :"jsv-cast"
+    # Internal keys.
+    :"jsv-cast",
+    :"x-jsv-cast"
   ]
 
   @derive {Inspect, optional: @all_keys}
@@ -181,6 +182,22 @@ defmodule JSV.Schema do
   @type schema_data :: %{optional(binary) => schema_data} | [schema_data] | number | binary | boolean | nil
   @type merge_base :: attributes | [{atom | binary, term}] | struct | nil
   @type schema :: true | false | map
+
+  @typedoc """
+  A single caster definition. Either a module name as a string or atom, or a
+  list where the first element is the module name (string or atom) and
+  subsequent elements are arbitrary JSON-compatible arguments passed to the cast
+  handler.
+  """
+  @type caster :: String.t() | atom() | [schema_data]
+
+  @typedoc """
+  The value of the `x-jsv-cast` schema keyword. When there is a single caster
+  and that caster is a plain string (module name only, no extra arguments), it
+  is stored directly as a string without wrapping in a list. Otherwise it is a
+  list of casters.
+  """
+  @type caster_group :: String.t() | [caster]
 
   @doc """
   Use this module to define module-based schemas or schemas with the helpers
@@ -324,6 +341,9 @@ defmodule JSV.Schema do
   end
 
   @doc """
+  This is a legacy function using the custom `jsv-cast` schema keyword. It will
+  be deprecated in the next release. Use `xcast/12`.
+
   Includes the cast function in a schema. The cast function must be given as a
   list with two items:
 
@@ -350,7 +370,7 @@ defmodule JSV.Schema do
   end
 
   @doc false
-  @deprecated "Use `with_cast/2` instead."
+  @deprecated "Use `xcast/2` instead."
   @spec cast(merge_base(), [atom | binary | integer, ...]) :: schema()
   def cast(merge_base \\ nil, mod_tag) do
     with_cast(merge_base, mod_tag)
@@ -362,6 +382,108 @@ defmodule JSV.Schema do
 
   defp to_string_if_atom(value) do
     value
+  end
+
+  @doc """
+  Appends the caster to a schema passed as the `x-jsv-cast` schema extension
+  keyword.
+
+  A cast function is either a resolvable Elixir module as string, or a list with
+  a resolvable Elixir module as string and additional arguments.
+
+  Given arguments will be normalized to JSON-decoded form.
+
+  ### Examples for `xcast/1` and `xcast/2`
+
+      iex> JSV.Schema.xcast([MyApp.Cast, :a_cast_function])
+      %{"x-jsv-cast": [["Elixir.MyApp.Cast", "a_cast_function"]]}
+
+      iex> JSV.Schema.xcast([:some_erlang_module, "custom_tag"])
+      %{"x-jsv-cast": [["some_erlang_module", "custom_tag"]]}
+
+  If the given cast is a single atom or string, the cast is added (as a string)
+  directly without a wrapping list, this is a bandwidth optimization.
+
+      iex> JSV.Schema.xcast(MyApp.Cast)
+      %{"x-jsv-cast": "Elixir.MyApp.Cast"}
+
+  The function will automatically convert to a list when needed.
+
+      iex> %{} |> JSV.Schema.xcast(MyApp.Foo) |> JSV.Schema.xcast(MyApp.Cast)
+      %{"x-jsv-cast": ["Elixir.MyApp.Foo", "Elixir.MyApp.Cast"]}
+
+      iex> %{} |> JSV.Schema.xcast(MyApp.Foo) |> JSV.Schema.xcast([MyApp.Cast, "some_function", %{123 => :foo}])
+      %{"x-jsv-cast": ["Elixir.MyApp.Foo", ["Elixir.MyApp.Cast", "some_function", %{"123" => "foo"}]]}
+
+  Schemas using binary `"x-jsv-cast"` key will have the key converted to atom
+  form.
+
+      iex> %{"x-jsv-cast" => "Elixir.MyApp.Foo"} |> JSV.Schema.xcast(MyApp.Cast)
+      %{"x-jsv-cast": ["Elixir.MyApp.Foo", "Elixir.MyApp.Cast"]}
+  """
+
+  @spec xcast(schema, String.t() | atom | [schema_data]) :: %{:"x-jsv-cast" => caster_group}
+  def xcast(%{} = schema, caster)
+      when is_binary(caster)
+      when is_atom(caster)
+      when is_binary(hd(caster))
+      when is_atom(hd(caster)) do
+    normal = JSV.Schema.normalize(caster)
+
+    case schema do
+      %{:"x-jsv-cast" => _, "x-jsv-cast" => _} ->
+        raise ArgumentError,
+              "JSV.SChema.xcast/2 base mixing " <>
+                "#{inspect(:"x-jsv-cast")} and #{inspect("x-jsv-cast")} " <>
+                "keys: #{inspect(schema)}"
+
+      %{"x-jsv-cast": cast_base} ->
+        %{schema | "x-jsv-cast": append_xcast(cast_base, normal)}
+
+      %{"x-jsv-cast" => cast_base} ->
+        schema
+        |> Map.delete("x-jsv-cast")
+        |> Map.put(:"x-jsv-cast", append_xcast(cast_base, normal))
+
+      %{} when is_binary(normal) ->
+        Map.put(schema, :"x-jsv-cast", normal)
+
+      %{} when is_list(normal) ->
+        Map.put(schema, :"x-jsv-cast", [normal])
+    end
+  end
+
+  defp append_xcast(base, normal) when is_binary(base) do
+    [base, normal]
+  end
+
+  defp append_xcast(base, normal) when is_list(base) do
+    base ++ [normal]
+  end
+
+  defp append_xcast(nil, normal) do
+    normal
+  end
+
+  defp append_xcast(base, _normal) do
+    raise ArgumentError,
+          "invalid x-jsv-cast in base schema given to JSV.Schema.xcast/2, " <>
+            "expected string or list, got: #{inspect(base)}"
+  end
+
+  @doc """
+  Returns a schema with the given caster as the `x-jsv-cast` schema extension
+  keyword.
+
+  See `xcast/2` for more information and examples.
+  """
+  @spec xcast(String.t() | atom | [schema_data]) :: %{:"x-jsv-cast" => caster_group}
+  def xcast(caster)
+      when is_binary(caster)
+      when is_atom(caster)
+      when is_binary(hd(caster))
+      when is_atom(hd(caster)) do
+    xcast(%{}, caster)
   end
 
   @doc """

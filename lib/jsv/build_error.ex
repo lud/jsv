@@ -21,23 +21,20 @@ defmodule JSV.BuildError do
 
   @impl true
   def message(%{action: {m, f, a}} = e) when is_atom(m) and is_atom(f) and (is_list(a) or is_integer(a)) do
-    """
-    could not build JSON schema at #{e.build_path}
-
-    REASON
-    #{format_reason(e.reason, {m, f, a})}
-
-    CONTEXT
-    #{Exception.format_mfa(m, f, a)}
-    """
+    "could not build JSON schema at #{e.build_path} " <>
+      "with #{Exception.format_mfa(m, f, a)}, " <> "#{format_reason(e.reason, {m, f, a})}"
   end
 
   def message(e) do
-    "could not build JSON schema at #{e.build_path}, got error: #{inspect(e.reason, limit: @inspect_limit)} for #{inspect(e.action, limit: @inspect_limit)}"
+    "could not build JSON schema at #{e.build_path}, " <> "#{format_reason(e.reason, e.action)}"
   end
 
   defp format_reason({:invalid_ns_merge, ns, relative}, {JSV.Ref, _, _}) when is_binary(relative) do
     "cannot resolve the relative reference #{inspect(relative)} against base #{inspect(ns)}"
+  end
+
+  defp format_reason(:mixed_casts, _) do
+    "using both jsv-cast and x-jsv-cast on the same schema is not supported"
   end
 
   defp format_reason(reason, _action) do

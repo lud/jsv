@@ -95,7 +95,10 @@ defmodule JSV.MixProject do
       extras: doc_extras(),
       groups_for_extras: groups_for_extras(),
       groups_for_modules: groups_for_modules(),
-      nest_modules_by_prefix: [JSV.Vocabulary]
+      nest_modules_by_prefix: [JSV.Vocabulary],
+      redirects: %{
+        "api-changes-v0-9" => "001-api-changes-v0-9"
+      }
     ]
   end
 
@@ -115,7 +118,8 @@ defmodule JSV.MixProject do
       "guides/validation/validation-basics.md",
       "guides/validation/decimal-support.md",
       # Dev Log
-      "guides/dev-log/api-changes-v0.9.md"
+      "guides/dev-log/001.api-changes-v0.9.md",
+      "guides/dev-log/002.api-changes-v0.19.md"
     ]
 
     case existing_guides -- defined_guides do

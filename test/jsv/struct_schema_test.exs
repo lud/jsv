@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.Specs
 defmodule JSV.StructSchemaTest do
   alias JSV.Schema
   use JSV.Schema
@@ -179,6 +180,20 @@ defmodule JSV.StructSchemaTest do
   defschema OptionalSkip999,
     name: Schema.string(),
     age: optional(integer(), nskip: 999)
+
+  defmodule OptionalSkipPlainNil do
+    use JSV.Schema
+
+    defschema name: Schema.string(),
+              age: optional(integer(), nskip: nil)
+  end
+
+  defmodule OptionalSkipPlain999 do
+    use JSV.Schema
+
+    defschema name: Schema.string(),
+              age: optional(integer(), nskip: 999)
+  end
 
   #
 
@@ -618,7 +633,7 @@ defmodule JSV.StructSchemaTest do
                JSV.validate(%{"name" => "Alice", "age" => 456}, root)
     end
 
-    test "optional normalization with Jason" do
+    test "optional normalization with Jason - defschema/3" do
       value = %OptionalSkipNil{name: "Alice", age: 123}
       assert %{"age" => 123, "name" => "Alice"} == encode_decode(Jason, value)
 
@@ -637,7 +652,29 @@ defmodule JSV.StructSchemaTest do
       assert %{"name" => "Alice"} == encode_decode(Jason, value)
     end
 
-    test "optional normalization with JSON" do
+    # TODO serialization skips is not supported for plain defschema modules
+    # since we do not have automatic JSON encoder defimpl
+    #
+    # test "optional normalization with Jason - defschema/1" do value =
+    #   %OptionalSkipPlainNil{name: "Alice", age: 123} assert %{"age" => 123,
+    #   "name" => "Alice"} == encode_decode(Jason, value)
+
+    #   # Nil will be skipped
+
+    #   value = %OptionalSkipPlainNil{name: "Alice", age: nil}
+    #   assert %{"name" => "Alice"} == encode_decode(Jason, value)
+
+    #   # It works with any specified value. Here we use a module that skips if
+    #   # the value is 999
+
+    #   value = %OptionalSkipPlain999{name: "Alice", age: nil}
+    #   assert %{"name" => "Alice", "age" => nil} == encode_decode(Jason, value)
+
+    #   value = %OptionalSkipPlain999{name: "Alice", age: 999}
+    #   assert %{"name" => "Alice"} == encode_decode(Jason, value)
+    # end
+
+    test "optional normalization with JSON - defschema/3" do
       value = %OptionalSkipNil{name: "Alice", age: 123}
       assert %{"age" => 123, "name" => "Alice"} == encode_decode(JSON, value)
 
@@ -650,6 +687,23 @@ defmodule JSV.StructSchemaTest do
       value = %OptionalSkip999{name: "Alice", age: 999}
       assert %{"name" => "Alice"} == encode_decode(JSON, value)
     end
+
+    # TODO serialization skips is not supported for plain defschema modules
+    # since we do not have automatic JSON encoder defimpl
+    #
+    # test "optional normalization with JSON - defschema/1" do
+    #   value = %OptionalSkipPlainNil{name: "Alice", age: 123}
+    #   assert %{"age" => 123, "name" => "Alice"} == encode_decode(JSON, value)
+
+    #   value = %OptionalSkipPlainNil{name: "Alice", age: nil}
+    #   assert %{"name" => "Alice"} == encode_decode(JSON, value)
+
+    #   value = %OptionalSkipPlain999{name: "Alice", age: nil}
+    #   assert %{"name" => "Alice", "age" => nil} == encode_decode(JSON, value)
+
+    #   value = %OptionalSkipPlain999{name: "Alice", age: 999}
+    #   assert %{"name" => "Alice"} == encode_decode(JSON, value)
+    # end
   end
 
   describe "deserializing into another module with defschema_for" do
@@ -746,7 +800,7 @@ defmodule JSV.StructSchemaTest do
                  bar: %{type: :string, default: "hello"}
                },
                required: [:foo],
-               "jsv-cast": [to_string(WithKW), 0]
+               "x-jsv-cast": to_string(WithKW)
              } == WithKW.json_schema()
     end
 
@@ -767,7 +821,7 @@ defmodule JSV.StructSchemaTest do
                  age: %{type: :integer}
                },
                required: [:name, :age],
-               "jsv-cast": [to_string(WithKWAllRequired), 0]
+               "x-jsv-cast": to_string(WithKWAllRequired)
              } == WithKWAllRequired.json_schema()
 
       assert_raise ArgumentError, ~r/the following keys.+\[:age\]/, fn ->
@@ -791,7 +845,7 @@ defmodule JSV.StructSchemaTest do
                  active: %{type: :boolean, default: true}
                },
                required: [:id],
-               "jsv-cast": [to_string(WithKWMixed), 0]
+               "x-jsv-cast": to_string(WithKWMixed)
              } == WithKWMixed.json_schema()
 
       %WithKWMixed{} = struct!(WithKWMixed, id: 1)
@@ -821,7 +875,7 @@ defmodule JSV.StructSchemaTest do
                type: :object,
                properties: %{},
                required: [],
-               "jsv-cast": [to_string(EmptyStruct), 0]
+               "x-jsv-cast": to_string(EmptyStruct)
              } == EmptyStruct.json_schema()
 
       assert {:ok, root} = JSV.build(EmptyStruct)
@@ -855,7 +909,7 @@ defmodule JSV.StructSchemaTest do
                  name: %{type: :string},
                  sub_b: JSV.StructSchemaTest.RecursiveBKW
                },
-               "jsv-cast": ["Elixir.JSV.StructSchemaTest.RecursiveAKW", 0]
+               "x-jsv-cast": "Elixir.JSV.StructSchemaTest.RecursiveAKW"
              } ==
                RecursiveAKW.json_schema()
 
@@ -867,7 +921,7 @@ defmodule JSV.StructSchemaTest do
                  name: %{type: :string},
                  sub_a: JSV.StructSchemaTest.RecursiveAKW
                },
-               "jsv-cast": ["Elixir.JSV.StructSchemaTest.RecursiveBKW", 0]
+               "x-jsv-cast": "Elixir.JSV.StructSchemaTest.RecursiveBKW"
              } ==
                RecursiveBKW.json_schema()
     end
@@ -1038,7 +1092,7 @@ defmodule JSV.StructSchemaTest do
                  name: %{type: :string},
                  sub_b: RecursiveSubB
                },
-               "jsv-cast": [to_string(RecursiveSubA), 0]
+               "x-jsv-cast": to_string(RecursiveSubA)
              } == RecursiveSubA.json_schema()
 
       assert %{
@@ -1050,7 +1104,7 @@ defmodule JSV.StructSchemaTest do
                  name: %{type: :string},
                  sub_a: RecursiveSubA
                },
-               "jsv-cast": [to_string(RecursiveSubB), 0]
+               "x-jsv-cast": to_string(RecursiveSubB)
              } == RecursiveSubB.json_schema()
 
       # Test validation
@@ -1115,7 +1169,7 @@ defmodule JSV.StructSchemaTest do
                  name: %{type: :string},
                  sub_self: SelfRecursiveSub
                },
-               "jsv-cast": [to_string(SelfRecursiveSub), 0]
+               "x-jsv-cast": to_string(SelfRecursiveSub)
              } == SelfRecursiveSub.json_schema()
 
       # Test validation
@@ -1231,7 +1285,7 @@ defmodule JSV.StructSchemaTest do
                },
                additionalProperties: false,
                required: [:id, :email],
-               "jsv-cast": ["Elixir.JSV.StructSchemaTest.FullSchemaUser", 0]
+               "x-jsv-cast": "Elixir.JSV.StructSchemaTest.FullSchemaUser"
              } == FullSchemaUser.json_schema()
 
       valid_data = %{"id" => 123, "email" => "user@example.com"}
@@ -1324,7 +1378,7 @@ defmodule JSV.StructSchemaTest do
         name: string(),
         some_const: const("foo")
 
-      # @skip_keys and @additional_properties were consumed above — defschema/1 does not get them
+      # @skip_keys and @additional_properties were consumed above, defschema/1 does not get them
       defschema name: string(), some_const: const("foo")
     end
 
@@ -1569,6 +1623,160 @@ defmodule JSV.StructSchemaTest do
                  ]
                }
              } = JSV.validate(%{"name" => "alice", "some_const" => "not_foo"}, root)
+    end
+  end
+
+  describe "legacy jsv-cast support" do
+    test "foreign schema with atom key jsv-cast casts to struct" do
+      schema = %{
+        title: "WithKW",
+        type: :object,
+        properties: %{
+          foo: %{type: :integer},
+          bar: %{type: :string, default: "hello"}
+        },
+        required: [:foo],
+        "jsv-cast": [to_string(WithKW), 0]
+      }
+
+      root = JSV.build!(schema)
+      assert %JSV.StructSchemaTest.WithKW{foo: 123, bar: "hello"} = JSV.validate!(%{"foo" => 123}, root)
+    end
+
+    test "foreign schema with legacy jsv-cast casts to struct" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{
+          "foo" => %{"type" => "integer"},
+          "bar" => %{"type" => "string", "default" => "hello"}
+        },
+        "required" => ["foo"],
+        "jsv-cast" => [to_string(WithKW), 0]
+      }
+
+      root = JSV.build!(schema)
+      assert %JSV.StructSchemaTest.WithKW{foo: 123, bar: "hello"} = JSV.validate!(%{"foo" => 123}, root)
+    end
+  end
+
+  describe "defschema with user-defined x-jsv-cast preserved before struct cast" do
+    defmodule PreCaster do
+      def __jsv__({:cast, _args}) do
+        {__MODULE__, :cast, 3}
+      end
+
+      def cast(data, ["add_default_role" | _], _vctx) when is_map(data) do
+        {:ok, Map.put_new(data, "role", "user")}
+      end
+
+      def cast(data, ["normalize_name" | _], _vctx) when is_map(data) do
+        case data do
+          %{"name" => name} -> {:ok, %{data | "name" => String.downcase(name)}}
+          _ -> {:ok, data}
+        end
+      end
+    end
+
+    defmodule WithOneCast do
+      use JSV.Schema
+
+      defschema %{
+        type: :object,
+        properties: %{
+          name: %{type: :string},
+          role: %{type: :string}
+        },
+        required: [:name],
+        "x-jsv-cast": [[to_string(PreCaster), "add_default_role"]]
+      }
+    end
+
+    defmodule WithTwoCasts do
+      use JSV.Schema
+
+      defschema %{
+        type: :object,
+        properties: %{
+          name: %{type: :string},
+          role: %{type: :string}
+        },
+        required: [:name],
+        "x-jsv-cast": [
+          [to_string(PreCaster), "normalize_name"],
+          [to_string(PreCaster), "add_default_role"]
+        ]
+      }
+    end
+
+    defmodule WithDefcast do
+      use JSV.Schema
+
+      defschema %{
+        type: :object,
+        properties: %{
+          name: %{type: :string},
+          role: %{type: :string}
+        },
+        required: [:name],
+        "x-jsv-cast": [[to_string(__MODULE__), "append", "-some-suffix"]]
+      }
+
+      # used to see if warnings appear for __jsv__ callbacks from defschema and
+      # defcast not being colocated
+      def dummy_fun do
+        :foo
+      end
+
+      defcast append(%{"name" => name} = data, [suffix], _vctx) do
+        {:ok, Map.put(data, "name", name <> suffix)}
+      end
+    end
+
+    test "single user cast runs before struct cast" do
+      assert %{
+               "x-jsv-cast": [
+                 ["Elixir.JSV.StructSchemaTest.PreCaster", "add_default_role"],
+                 "Elixir.JSV.StructSchemaTest.WithOneCast"
+               ]
+             } = WithOneCast.json_schema()
+
+      root = JSV.build!(WithOneCast)
+
+      # The user cast adds "role" => "user" to the map, then the struct cast
+      # converts to struct. The struct default for role is "guest" but the user
+      # cast should have set it to "user" before struct creation.
+      assert {:ok, %WithOneCast{name: "Alice", role: "user"}} =
+               JSV.validate(%{"name" => "Alice"}, root)
+    end
+
+    test "two user casts run in order before struct cast" do
+      assert %{
+               "x-jsv-cast": [
+                 ["Elixir.JSV.StructSchemaTest.PreCaster", "normalize_name"],
+                 ["Elixir.JSV.StructSchemaTest.PreCaster", "add_default_role"],
+                 "Elixir.JSV.StructSchemaTest.WithTwoCasts"
+               ]
+             } = WithTwoCasts.json_schema()
+
+      root = JSV.build!(WithTwoCasts)
+
+      # First cast normalizes name to lowercase, second adds default role,
+      # then struct cast converts to struct.
+      assert {:ok, %WithTwoCasts{name: "alice", role: "user"}} =
+               JSV.validate(%{"name" => "ALICE"}, root)
+    end
+
+    test "local defcast after two casts" do
+      assert %{
+               #
+             } = WithDefcast.json_schema()
+
+      root = JSV.build!(WithDefcast)
+
+      # First cast normalizes name to lowercase, second adds default role,
+      # then struct cast converts to struct.
+      assert {:ok, %WithDefcast{name: "alice-some-suffix", role: nil}} =
+               JSV.validate(%{"name" => "alice"}, root)
     end
   end
 end

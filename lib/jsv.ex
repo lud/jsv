@@ -649,53 +649,23 @@ defmodule JSV do
   @doc group: @doc_group
   defmacro defschema(schema_or_properties) do
     quote bind_quoted: [schema_or_properties: schema_or_properties] do
-      schema =
-        if is_list(schema_or_properties) do
-          JSV.StructSupport.props_to_schema(schema_or_properties, %{title: List.last(Module.split(__MODULE__))})
-        else
-          schema_or_properties
-        end
-
-      :ok = JSV.StructSupport.validate!(schema)
+      # TODO serialization skips is not supported for plain defschema modules
+      # since we do not have automatic JSON encoder defimpl.
+      {schema, _serialization_skips} = JSV.__defschema__(:to_schema, {schema_or_properties, __MODULE__, nil})
 
       skip_keys_set = Map.new(Module.get_attribute(__MODULE__, :skip_keys, []), &{&1, true})
 
-      @jsv_keycast Map.filter(JSV.StructSupport.keycast_pairs(schema), fn {_bin, k} ->
-                     not is_map_key(skip_keys_set, k)
-                   end)
-      # @jsv_keycast JSV.StructSupport.keycast_pairs(schema)
-      {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
+      @additional_properties_key JSV.__defschema__(
+                                   :validate_additional_properties,
+                                   Module.get_attribute(__MODULE__, :additional_properties, nil)
+                                 )
 
-      @additional_properties_key Module.get_attribute(__MODULE__, :additional_properties, nil)
+      @jsv_keycast JSV.__defschema__(:keycast, {schema, skip_keys_set})
+      @enforce_keys JSV.__defschema__(:required, {schema, skip_keys_set})
+      @legacy_jsv_tag 0
+      @jsv_schema JSV.Schema.xcast(schema, Atom.to_string(__MODULE__))
 
-      default_pairs =
-        case @additional_properties_key do
-          nil ->
-            default_pairs
-
-          k when is_atom(k) ->
-            [{k, %{}} | default_pairs]
-
-          other ->
-            raise "invalid @additional_properties key, atom expected, got: #{inspect(other)}"
-        end
-
-      required = schema |> JSV.StructSupport.list_required() |> Enum.reject(&is_map_key(skip_keys_set, &1))
-
-      @jsv_tag 0
-
-      @jsv_schema Map.put(schema, :"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
-
-      @enforce_keys required
-
-      all_keys =
-        Enum.filter(keys_no_defaults ++ default_pairs, fn
-          {k, _} when is_map_key(skip_keys_set, k) -> false
-          k when is_map_key(skip_keys_set, k) -> false
-          _ -> true
-        end)
-
-      defstruct all_keys
+      defstruct JSV.__defschema__(:struct_keys, {schema, skip_keys_set, @additional_properties_key})
 
       @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
       @doc false
@@ -713,14 +683,23 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__(@jsv_tag, data) do
-        pairs = JSV.StructSupport.take_keycast(data, @jsv_keycast, @additional_properties_key)
-        {:ok, struct!(__MODULE__, pairs)}
+      def __jsv__({:cast, []}) do
+        {__MODULE__, :__jsv_struct__, 1}
+      end
+
+      def __jsv__({:cast, [@legacy_jsv_tag]}) do
+        {__MODULE__, :__jsv_struct__, 1}
       end
 
       @doc false
       def __jsv__(:required) do
         @enforce_keys
+      end
+
+      @doc false
+      def __jsv_struct__(data) do
+        pairs = JSV.StructSupport.take_keycast(data, @jsv_keycast, @additional_properties_key)
+        {:ok, struct!(__MODULE__, pairs)}
       end
 
       defoverridable schema: 0
@@ -873,21 +852,7 @@ defmodule JSV do
           @moduledoc description
 
           {schema, serialization_skips} =
-            if is_list(schema_or_properties) do
-              props = schema_or_properties
-
-              overrides =
-                case description do
-                  nil -> %{title: unquote(module_name)}
-                  d when is_binary(d) -> %{title: unquote(module_name), description: d}
-                end
-
-              schema = JSV.StructSupport.props_to_schema(props, overrides)
-              serialization_skips = JSV.StructSupport.serialization_skips(props)
-              {schema, serialization_skips}
-            else
-              {schema_or_properties, _serialization_skips = nil}
-            end
+            JSV.__defschema__(:to_schema, {schema_or_properties, unquote(module_name), description})
 
           unquote(json_encoder)
           unquote(jason_encoder)
@@ -948,18 +913,6 @@ defmodule JSV do
   end
 
   @doc false
-  @spec __json_norm_skip__(struct(), map()) :: map()
-  def __json_norm_skip__(struct, serialization_skips) do
-    struct
-    |> Map.from_struct()
-    |> Enum.flat_map(fn
-      {k, v} when :erlang.map_get(k, serialization_skips) == v -> []
-      {k, v} -> [{k, v}]
-    end)
-    |> Map.new()
-  end
-
-  @doc false
   defmacro defschema_for(target, schema) do
     quote bind_quoted: binding() do
       :ok = JSV.StructSupport.validate!(schema)
@@ -968,10 +921,10 @@ defmodule JSV do
       {_keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
       @default_pairs default_pairs
 
-      @jsv_tag 1
+      @legacy_jsv_tag 1
 
       @jsv_schema schema
-                  |> Map.put(:"jsv-cast", [Atom.to_string(__MODULE__), @jsv_tag])
+                  |> Map.put(:"x-jsv-cast", Atom.to_string(__MODULE__))
                   |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
 
       @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
@@ -990,15 +943,100 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__(@jsv_tag, data) do
+      def __jsv__({:cast, []}) do
+        {__MODULE__, :__jsv_struct__, 1}
+      end
+
+      def __jsv__({:cast, [@legacy_jsv_tag]}) do
+        {__MODULE__, :__jsv_struct__, 1}
+      end
+
+      def __jsv_struct__(data) do
         pairs = JSV.StructSupport.take_keycast(data, @jsv_keycast)
         pairs = Keyword.merge(@default_pairs, pairs)
 
         {:ok, struct!(@target, pairs)}
       end
 
-      defoverridable schema: 0
+      defoverridable json_schema: 0, schema: 0
     end
+  end
+
+  @doc false
+  @spec __defschema__(atom, tuple) :: term
+  def __defschema__(:to_schema, {schema_or_properties, module_or_name, description}) do
+    {schema, serialization_skips} =
+      if is_list(schema_or_properties) do
+        props = schema_or_properties
+
+        title =
+          case module_or_name do
+            mod when is_atom(mod) -> List.last(Module.split(mod))
+            bin when is_binary(bin) -> bin
+          end
+
+        overrides =
+          case description do
+            nil -> %{title: title}
+            d when is_binary(d) -> %{title: title, description: d}
+          end
+
+        schema = JSV.StructSupport.props_to_schema(props, overrides)
+        serialization_skips = JSV.StructSupport.serialization_skips(props)
+        {schema, serialization_skips}
+      else
+        {schema_or_properties, _serialization_skips = nil}
+      end
+
+    :ok = JSV.StructSupport.validate!(schema)
+    {schema, serialization_skips}
+  end
+
+  def __defschema__(:struct_keys, {schema, skip_keys_set, additional_properties_key}) do
+    {keys_no_defaults, default_pairs} = JSV.StructSupport.data_pairs_partition(schema)
+
+    default_pairs =
+      case additional_properties_key do
+        nil -> default_pairs
+        k when is_atom(k) -> [{k, %{}} | default_pairs]
+      end
+
+    Enum.filter(keys_no_defaults ++ default_pairs, fn
+      {k, _} -> not is_map_key(skip_keys_set, k)
+      k -> not is_map_key(skip_keys_set, k)
+    end)
+  end
+
+  def __defschema__(:keycast, {schema, skip_keys_set}) do
+    Map.filter(JSV.StructSupport.keycast_pairs(schema), fn {_bin, k} ->
+      not is_map_key(skip_keys_set, k)
+    end)
+  end
+
+  def __defschema__(:required, {schema, skip_keys_set}) do
+    schema
+    |> JSV.StructSupport.list_required()
+    |> Enum.reject(&is_map_key(skip_keys_set, &1))
+  end
+
+  def __defschema__(:validate_additional_properties, key) do
+    case key do
+      nil -> nil
+      k when is_atom(k) -> k
+      other -> raise "invalid @additional_properties key, atom expected, got: #{inspect(other)}"
+    end
+  end
+
+  @doc false
+  @spec __json_norm_skip__(struct(), map()) :: map()
+  def __json_norm_skip__(struct, serialization_skips) do
+    struct
+    |> Map.from_struct()
+    |> Enum.flat_map(fn
+      {k, v} when :erlang.map_get(k, serialization_skips) == v -> []
+      {k, v} -> [{k, v}]
+    end)
+    |> Map.new()
   end
 
   @doc false
@@ -1016,14 +1054,14 @@ defmodule JSV do
 
     defcast :to_integer
 
-    defp to_integer(data) when is_binary(data) do
+    def to_integer(data) when is_binary(data) do
       case Integer.parse(data) do
         {int, ""} -> {:ok, int}
         _ -> {:error, "invalid"}
       end
     end
 
-    defp to_integer(_) do
+    def to_integer(_) do
       {:error, "invalid"}
     end
   end
@@ -1112,10 +1150,6 @@ defmodule JSV do
     rescue
       ArgumentError -> {:error, "bad atom"}
     end
-
-    def accepts_anything(data) do
-      {:ok, data}
-    end
   end
   ```
 
@@ -1167,15 +1201,42 @@ defmodule JSV do
   function from the schema definition. A cast function MUST be enabled by
   `defcast/1`, `defcast/2` or `defcast/3`.
 
-  The `MyApp.Cast` example module above defines a `accepts_anything/1` function,
-  but the following schema will fail:
+  If the `MyApp.Cast` example module defines a `non_cast_function/1` function
+  like so:
+
+  ```elixir
+  defmodule MyApp.Cast do
+    use JSV.Schema
+
+    defcast to_existing_atom(data) do
+      {:ok, String.to_existing_atom(data)}
+    rescue
+      ArgumentError -> {:error, "bad atom"}
+    end
+
+    def non_cast_function(data) do
+      {:ok, data}
+    end
+  end
+  ```
+
+  The following schema will fail to build:
 
       iex> schema = %{
       ...>   "type" => "string",
-      ...>   "jsv-cast" => ["Elixir.MyApp.Cast", "accepts_anything"]
+      ...>   "jsv-cast" => ["Elixir.MyApp.Cast", "non_cast_function"]
       ...> }
-      iex> root = JSV.build!(schema)
-      iex> {:error, %JSV.ValidationError{errors: [%JSV.Validator.Error{kind: :"bad-cast"}]}} = JSV.validate("anything", root)
+      iex> {:error, _} = JSV.build(schema)
+
+  Using unknown module will fail too:
+
+      iex> schema = %{
+      ...>   "type" => "string",
+      ...>   "jsv-cast" => ["Elixir.SomeUnknownModule", "some_fun"]
+      ...> }
+      iex> {:error, build_error} = JSV.build(schema)
+      iex> build_error.reason
+      {:unknown_module, "Elixir.SomeUnknownModule"}
 
   Finally, you can customize the name present in the `jsv-cast` property by
   using a custom tag:
@@ -1200,50 +1261,71 @@ defmodule JSV do
   end
 
   defp defcast_block(env, tag, call, [{:do, _} | _] = blocks) do
-    {fun, arg} =
-      case Macro.decompose_call(call) do
-        {:when, [{err_tag, _, _} | _]} ->
-          raise ArgumentError, """
-          defcast does not support guards
-
-          You may delegate to a local function like so:
-
-            defcast #{inspect(Atom.to_string(err_tag))} :my_custom_cast_fun
-
-            defp #{Macro.to_string(call)} do
-              # ...
-            end
-          """
-
-        {fun, [arg]} ->
-          {fun, arg}
-
-        _ ->
-          raise ArgumentError, "invalid defcast signature: #{Macro.to_string(call)}"
-      end
-
     mod_str = Atom.to_string(env.module)
 
-    quote do
-      def unquote(fun)() do
-        [unquote(mod_str), unquote(tag)]
+    {fun, args} = defcast_decompose(call)
+
+    handler_arity = length(args)
+
+    quote generated: true do
+      case unquote(handler_arity) do
+        1 ->
+          []
+
+          def unquote(fun)() do
+            [unquote(mod_str), unquote(tag)]
+          end
+
+        _ ->
+          def unquote(fun)(args) when is_list(args) do
+            [unquote(mod_str), unquote(tag) | args]
+          end
       end
 
       @doc false
-      def __jsv__(unquote(tag), data) do
-        unquote(fun)(data)
+      def __jsv__({:cast, [unquote(tag) | rest_args]}) do
+        {__MODULE__, unquote(fun), unquote(handler_arity), rest_args}
       end
 
       @doc false
-      def(unquote(fun)(unquote(arg)), unquote(blocks))
+      def(unquote(fun)(unquote_splicing(args)), unquote(blocks))
+    end
+  end
+
+  defp defcast_decompose(call) do
+    case Macro.decompose_call(call) do
+      {:when, [{err_tag, _, _} | _]} ->
+        raise ArgumentError, """
+        defcast does not support guards
+
+        You may delegate to a local function like so:
+
+          defcast #{inspect(Atom.to_string(err_tag))} :my_custom_cast_fun
+
+          defp #{Macro.to_string(call)} do
+            # ...
+          end
+        """
+
+      {fun, [_data] = args} ->
+        {fun, args}
+
+      {fun, [_data, _args] = args} ->
+        {fun, args}
+
+      {fun, [_data, _args, _vctx] = args} ->
+        {fun, args}
+
+      _ ->
+        raise ArgumentError, "invalid defcast signature: #{Macro.to_string(call)}"
     end
   end
 
   defp defcast_local(_env, tag, local_fun) do
     quote do
       @doc false
-      def __jsv__(unquote(tag), xdata) do
-        unquote(local_fun)(xdata)
+      def __jsv__({:cast, [unquote(tag) | rest_args]}) do
+        {__MODULE__, unquote(local_fun), nil, rest_args}
       end
     end
   end

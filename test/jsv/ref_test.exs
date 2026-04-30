@@ -244,7 +244,7 @@ defmodule JSV.RefTest do
   end
 
   # Expected outcomes verified against python-jsonschema 4.26 (and Ajv for
-  # cases 1-4 — Ajv diverges from the spec on cases 5 & 6).
+  # cases 1-4 - Ajv diverges from the spec on cases 5 & 6).
   describe "draft-07 $id and $ref edge cases" do
     defmodule RemoteRefResolver do
       def resolve("http://example.com/remote.json", _) do
