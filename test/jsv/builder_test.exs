@@ -398,6 +398,44 @@ defmodule JSV.BuilderTest do
     end
   end
 
+  describe "build_key error handling" do
+    test "build_key with a raw fragment string fails (use Ref.parse!/2 instead)" do
+      document = %{
+        "schema_int" => %{"type" => "integer"},
+        "schema_str" => %{"type" => "string"}
+      }
+
+      assert {:ok, ctx} = JSV.build_init([])
+      assert {:ok, :root, _, ctx} = JSV.build_add(ctx, document)
+
+      # A raw fragment string like "#/schema_int" is treated as a namespace URL,
+      # not a JSON pointer. The resolver cannot fetch it as an external URL.
+      # Use Ref.parse!("#/schema_int", :root) to create a proper ref instead.
+      assert {:error, %JSV.BuildError{reason: {:resolver_error, _}}} =
+               JSV.build_key(ctx, "#/schema_int")
+    end
+
+    test "build_key with a non-existent pointer ref returns an error" do
+      schema = %{"type" => "integer"}
+
+      assert {:ok, ctx} = JSV.build_init([])
+      assert {:ok, :root, _, ctx} = JSV.build_add(ctx, schema)
+
+      assert {:error, %JSV.BuildError{reason: {:invalid_docpath, ["nonexistent", "path"], _, _}}} =
+               JSV.build_key(ctx, Ref.parse!("#/nonexistent/path", :root))
+    end
+
+    test "build_key with an unknown schema ID string returns an error" do
+      schema = %{"type" => "integer"}
+
+      assert {:ok, ctx} = JSV.build_init([])
+      assert {:ok, :root, _, ctx} = JSV.build_add(ctx, schema)
+
+      assert {:error, %JSV.BuildError{reason: {:resolver_error, _}}} =
+               JSV.build_key(ctx, "https://unknown.example.com/schema")
+    end
+  end
+
   describe "building schema arrays with empty lists" do
     test "cannot build with oneOf: []" do
       assert {:error, %JSV.BuildError{reason: :empty_schema_array, action: :oneOf}} =

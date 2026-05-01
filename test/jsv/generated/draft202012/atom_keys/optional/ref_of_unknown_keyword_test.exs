@@ -90,7 +90,6 @@ defmodule JSV.Generated.Draft202012.AtomKeys.Optional.RefOfUnknownKeywordTest do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "/base",
         "$ref": "#/examples/0",
         examples: [%JSV.Schema{type: "string"}]
       }

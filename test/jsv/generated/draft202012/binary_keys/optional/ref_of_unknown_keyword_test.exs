@@ -90,7 +90,6 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Optional.RefOfUnknownKeywordTest 
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "$id" => "/base",
         "$ref" => "#/examples/0",
         "examples" => [%{"type" => "string"}]
       }

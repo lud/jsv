@@ -99,6 +99,23 @@ defmodule JSV.RefTest do
     end
   end
 
+  describe "parse_dynamic!/2" do
+    test "parses a dynamic reference" do
+      assert %Ref{
+               ns: :root,
+               kind: :anchor,
+               arg: "foo",
+               dynamic?: true
+             } = Ref.parse_dynamic!("#foo", :root)
+    end
+
+    test "raises if the dynamic reference is invalid" do
+      assert_raise ArgumentError, ~r/could not parse \$dynamicRef/, fn ->
+        Ref.parse_dynamic!("foo.json", :root)
+      end
+    end
+  end
+
   describe "forced creation of pointer" do
     test "creates a pointer reference from string segments" do
       assert %Ref{

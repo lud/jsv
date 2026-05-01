@@ -131,11 +131,11 @@ defmodule JSV.Debanger do
   @spec __wrap__(term) :: tuple
   def __wrap__(value) do
     case value do
+      v when not is_tuple(v) -> {:ok, v}
       {a, b} -> {:ok, a, b}
       {a, b, c} -> {:ok, a, b, c}
       {a, b, c, d} -> {:ok, a, b, c, d}
       {a, b, c, d, e} -> {:ok, a, b, c, d, e}
-      v when not is_tuple(v) -> {:ok, v}
     end
   end
 end

@@ -286,6 +286,42 @@ defmodule JSV.ResolverTest do
     end
   end
 
+  describe "anchor duplicate detection" do
+    test ~s(same subschema with both $id => "#foo" and $anchor => "foo" fails with a duplicate) do
+      # Both $id => "#foo" (converted to anchor "foo") and $anchor => "foo"
+      # register the same {:anchor, :root, "foo"} key, causing a duplicate.
+      #
+      # This test fixes the behaviour as undesirable schema structure, though
+      # technically the duplicates resolve to the same thing and would be parsed
+      # the same (an :anchor tuple).
+
+      document = %{
+        "$defs" => %{
+          "myschema" => %{"$id" => "#foo", "$anchor" => "foo", "type" => "integer"}
+        },
+        "type" => "object"
+      }
+
+      assert {:error, %JSV.BuildError{reason: {:duplicate_resolution, {:anchor, :root, "foo"}}}} =
+               JSV.build(document)
+    end
+
+    test "two subschemas registering the same anchor name fail with a duplicate" do
+      # One uses $id => "#foo" (converted to anchor "foo"), the other $anchor => "foo".
+      # Both land on {:anchor, :root, "foo"} with different raw schemas.
+      document = %{
+        "$defs" => %{
+          "with_id" => %{"$id" => "#foo", "type" => "integer"},
+          "with_anchor" => %{"$anchor" => "foo", "type" => "string"}
+        },
+        "type" => "object"
+      }
+
+      assert {:error, %JSV.BuildError{reason: {:duplicate_resolution, {:anchor, :root, "foo"}}}} =
+               JSV.build(document)
+    end
+  end
+
   describe "numeric string keys in JSON pointer paths" do
     test "resolves numeric string key in $defs map" do
       schema = %{"$ref" => "#/$defs/1", "$defs" => %{"1" => %{"type" => "object"}}}

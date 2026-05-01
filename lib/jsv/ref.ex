@@ -42,6 +42,17 @@ defmodule JSV.Ref do
   end
 
   @doc """
+  Raising version of the `parse_dynamic/2` function.
+  """
+  @spec parse_dynamic!(binary, ns) :: t
+  def parse_dynamic!(url, current_ns) do
+    case parse_dynamic(url, current_ns) do
+      {:ok, ref} -> ref
+      {:error, reason} -> raise ArgumentError, "could not parse $dynamicRef: #{inspect(url)}, got: #{inspect(reason)}"
+    end
+  end
+
+  @doc """
   Creates a new pointer reference from a list of path segments.
 
   The segments can be strings or integers, representing the path components
@@ -132,5 +143,88 @@ defmodule JSV.Ref do
     str
     |> IO.iodata_to_binary()
     |> escape_json_pointer()
+  end
+end
+
+defimpl Inspect, for: JSV.Ref do
+  alias JSV.Ref
+
+  # credo:disable-for-next-line Credo.Check.Readability.Specs
+  def inspect(ref, opts) do
+    do_inspect(ref, opts)
+  end
+
+  defp do_inspect(%Ref{dynamic?: true, kind: :anchor, ns: ns, arg: anchor}, _) do
+    "JSV.Ref.parse_dynamic!(#{inspect("##{anchor}")}, #{inspect(ns)})"
+  end
+
+  defp do_inspect(%Ref{kind: :top, ns: ns}, _) do
+    "JSV.Ref.parse!(\"\", #{inspect(ns)})"
+  end
+
+  defp do_inspect(%Ref{kind: :anchor, ns: ns, arg: anchor}, _) do
+    "JSV.Ref.parse!(#{inspect("##{anchor}")}, #{inspect(ns)})"
+  end
+
+  defp do_inspect(%Ref{kind: :pointer, ns: ns, arg: path}, _) do
+    "JSV.Ref.parse!(#{inspect(pointer_url(path))}, #{inspect(ns)})"
+  end
+
+  defp pointer_url(path) do
+    IO.iodata_to_binary(["#/", Enum.map_intersperse(path, "/", &to_pointer_segment/1)])
+  end
+
+  defp to_pointer_segment(segment) when is_integer(segment) do
+    segment
+    |> Integer.to_string()
+    |> to_pointer_segment()
+  end
+
+  defp to_pointer_segment(segment) when is_binary(segment) do
+    segment
+    |> Ref.escape_json_pointer()
+    |> URI.encode(&URI.char_unreserved?/1)
+  end
+end
+
+defimpl String.Chars, for: JSV.Ref do
+  alias JSV.Ref
+
+  # credo:disable-for-next-line Credo.Check.Readability.Specs
+  def to_string(ref) do
+    %Ref{ns: ns, kind: kind, arg: arg} = ref
+    IO.iodata_to_binary([ns_to_prefix(ns), fragment_to_ref_suffix(kind, arg)])
+  end
+
+  defp ns_to_prefix(:root) do
+    ""
+  end
+
+  defp ns_to_prefix(ns) when is_binary(ns) do
+    ns
+  end
+
+  defp fragment_to_ref_suffix(:top, _) do
+    ""
+  end
+
+  defp fragment_to_ref_suffix(:anchor, anchor) when is_binary(anchor) do
+    ["#", anchor]
+  end
+
+  defp fragment_to_ref_suffix(:pointer, path) when is_list(path) do
+    ["#/", Enum.map_intersperse(path, "/", &to_pointer_segment/1)]
+  end
+
+  defp to_pointer_segment(segment) when is_integer(segment) do
+    segment
+    |> Integer.to_string()
+    |> to_pointer_segment()
+  end
+
+  defp to_pointer_segment(segment) when is_binary(segment) do
+    segment
+    |> Ref.escape_json_pointer()
+    |> URI.encode(&URI.char_unreserved?/1)
   end
 end

@@ -1380,6 +1380,25 @@ defmodule JSV do
 
   Returns the build context as well as a key, which is a pointer to the built
   schema.
+
+  The `ref_or_ns` argument can be:
+
+  - `:root` - the root schema added by `build_add/2` when it had no `$id`.
+  - A `JSV.Ref` struct - as returned by `Ref.parse!/2`.
+  - A binary string - a schema namespace (the value of a top-level `$id`), such
+    as `"https://example.com/my-schema"`. This does **not** accept fragment
+    strings like `"#/some/path"` or `"#anchor"`.
+
+  To target a subschema by JSON pointer or anchor, parse the string first:
+
+        # JSON pointer relative to :root
+        Ref.parse!("#/some/path", :root)
+
+        # anchor relative to :root
+        Ref.parse!("#myanchor", :root)
+
+        # anchor under a URI namespace
+        Ref.parse!("#myanchor", "https://example.com/schema")
   """
   @doc group: @doc_group
   @spec build_key!(build_context(), Ref.ns() | Ref.t()) :: {Key.t(), build_context()}
