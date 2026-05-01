@@ -326,7 +326,7 @@ defmodule JSV.Resolver do
       {k, v}, acc when k in @generic_map_keywords and is_map(v) ->
         scan_generic_map(v, parent_id, nss, meta, [k | path], acc)
 
-      {ignored, _}, acc when ignored in ["enum", "const"] ->
+      {ignored, _}, acc when ignored in ["enum", "const", "examples"] ->
         {:ok, acc}
 
       {k, v}, acc ->
