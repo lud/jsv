@@ -142,9 +142,11 @@ defmodule JSV.Schema.Helpers do
 
   > #### Does not support `nil` {: .warning}
   >
+  > See `string_enum_to_atom_or_nil/2` for `nil` support.
+  >
   > This function sets the `string` type on the schema. If `nil` is given in the
   > enum, the corresponding valid JSON value will be the `"nil"` string rather
-  > than `null`. See `string_enum_to_atom_or_nil/2`.
+  > than `null`.
   """
   defpreset :string_enum_to_atom,
             [
@@ -158,15 +160,13 @@ defmodule JSV.Schema.Helpers do
             when is_list(enum)
 
   @doc """
-  Like `string_enum_to_atom/2` but also accepts the `null` JSON value as part of the
-  enum.
+  Like `string_enum_to_atom/2` but also validates `null` JSON values. The `nil`
+  atom should not be given in the atom list, except if you want to accept the
+  `"nil"` JSON string and cast it to `nil`.
   """
   defpreset :string_enum_to_atom_or_nil,
             [
               type: [:string, :null],
-              # We need to cast atoms to string, otherwise if `nil` is provided
-              # it will be JSON-encoded as `nil` instead of `"null". But this
-              # caster only accepts strings.
               enum: [nil | Enum.map(enum, &Atom.to_string/1)] <- enum :: [atom],
               "jsv-cast": JSV.Cast.string_to_atom_or_nil()
             ]
@@ -309,6 +309,7 @@ defmodule JSV.Schema.Helpers do
 
   def nullable(schema) when is_map(schema) do
     Map.new(schema, fn
+      {:enum, enum} when is_list(enum) -> {:enum, [nil | enum -- [nil]]}
       {:type, t} -> {:type, nullable_type(t)}
       {:anyOf, schemas} -> {:anyOf, nullable_list(schemas)}
       {:oneOf, schemas} -> {:oneOf, nullable_list(schemas)}

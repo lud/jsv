@@ -325,6 +325,8 @@ defmodule JSV.Schema do
   list or a map.
   """
   @spec combine(attributes, attributes) :: schema
+  def combine(base, overrides)
+
   def combine(map, attributes) when is_map(map) do
     Enum.into(attributes, map)
   end

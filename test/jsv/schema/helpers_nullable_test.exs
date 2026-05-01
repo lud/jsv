@@ -176,5 +176,11 @@ defmodule JSV.Schema.HelpersNullableTest do
 
       assert %{anyOf: [%{type: :null}, Position]} = schema
     end
+
+    test "nullable with an enum" do
+      schema = Helpers.nullable(%{enum: ["foo", "bar", "baz"]})
+      root = JSV.build!(schema)
+      assert nil == JSV.validate!(nil, root)
+    end
   end
 end
