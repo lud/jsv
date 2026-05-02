@@ -206,6 +206,8 @@ defmodule JSV.Schema do
   * Imports struct and cast definitions from `JSV`.
   * Imports the `JSV.Schema.Helpers` module with the `string`, `integer`,
     `enum`, _etc._ helpers.
+  * Imports the `JSV.Schema` transformers `JSV.Schema.xcast/1` and
+    `JSV.Schema.xcast/2`.
 
   ### Example
 
@@ -216,7 +218,7 @@ defmodule JSV.Schema do
           type: :object,
           properties: %{
             foo: string(description: "Some foo!"),
-            bar: integer(minimum: 100) |> with_cast(__MODULE__,:hashid),
+            bar: integer(minimum: 100) |> xcast([__MODULE__,:hashid]),
             sub: props(sub_foo: string(), sub_bar: integer()) pp
           }
         }
@@ -230,6 +232,7 @@ defmodule JSV.Schema do
     quote do
       import JSV, only: :macros
       import JSV.Schema.Helpers
+      import JSV.Schema, only: [xcast: 1, xcast: 2]
     end
   end
 
@@ -463,8 +466,12 @@ defmodule JSV.Schema do
     base ++ [normal]
   end
 
-  defp append_xcast(nil, normal) do
+  defp append_xcast(nil, normal) when is_binary(normal) do
     normal
+  end
+
+  defp append_xcast(nil, normal) when is_list(normal) do
+    [normal]
   end
 
   defp append_xcast(base, _normal) do

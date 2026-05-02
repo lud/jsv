@@ -452,4 +452,16 @@ defmodule JSV.BuilderTest do
                JSV.build(%{"anyOf" => []})
     end
   end
+
+  describe "build warnings" do
+    test "string_enum_to_atom emits a warning" do
+      schema = %{
+        properties: %{
+          some_enum: Schema.Helpers.string_enum_to_atom([:foo, :bar, :baz])
+        }
+      }
+
+      JSV.build!(schema)
+    end
+  end
 end

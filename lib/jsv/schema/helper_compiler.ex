@@ -24,6 +24,10 @@ defmodule JSV.Schema.HelperCompiler do
     end)
   end
 
+  defp expand_expression(:__xcast__, caster) do
+    {:__xcast__, caster}
+  end
+
   defp expand_expression(prop, value) do
     case value do
       {:<-, _, [expr, value]} ->
@@ -32,6 +36,9 @@ defmodule JSV.Schema.HelperCompiler do
 
       {{:., _, _}, _, _} = remote_call ->
         {:call, prop, remote_call}
+
+      [{{:., _, _}, _, _}] = list_wrapped_cast_remote_call ->
+        {:call, prop, list_wrapped_cast_remote_call}
 
       value ->
         {bind, typespec} = extract_typespec(value)
@@ -48,10 +55,11 @@ defmodule JSV.Schema.HelperCompiler do
 
   defp prepare_fun(args) do
     schema_props =
-      Enum.map(args, fn
-        {:const, prop, const} -> {prop, const}
-        {:var, prop, _bind, _typespec, expr} -> {prop, expr}
-        {:call, prop, call} -> {prop, call}
+      Enum.flat_map(args, fn
+        {:const, prop, const} -> [{prop, const}]
+        {:var, prop, _bind, _typespec, expr} -> [{prop, expr}]
+        {:call, prop, call} -> [{prop, call}]
+        {:__xcast__, _} -> []
       end)
 
     bindings =
@@ -59,6 +67,7 @@ defmodule JSV.Schema.HelperCompiler do
         {:const, _prop, _const} -> []
         {:var, _prop, bind, _typespec, _expr} -> [bind]
         {:call, _, _} -> []
+        {:__xcast__, _} -> []
       end)
 
     typespecs =
@@ -66,57 +75,68 @@ defmodule JSV.Schema.HelperCompiler do
         {:const, _prop, _const} -> []
         {:var, _prop, _bind, typespec, _expr} -> [typespec]
         {:call, _, _} -> []
+        {:__xcast__, _} -> []
       end)
 
     doc_bindings =
       Enum.map(args, fn
-        {:const, prop, const} -> {prop, inspect(const)}
+        {:const, prop, const} -> {:prop, {prop, inspect(const)}}
         {:var, prop, bind, _typespec, _expr} -> {:var, {prop, Macro.to_string(bind)}}
-        {:call, prop, call} -> {prop, Macro.to_string(call)}
+        {:call, prop, call} -> {:prop, {prop, Macro.to_string(call)}}
+        {:__xcast__, caster} -> {:__xcast__, Macro.to_string(caster)}
       end)
 
-    {schema_props, bindings, typespecs, doc_bindings}
+    caster =
+      Enum.flat_map(args, fn
+        {:__xcast__, caster} -> [caster]
+        _ -> []
+      end)
+
+    # only supports one caster for now
+    caster =
+      case caster do
+        [single] -> single
+        [] -> nil
+      end
+
+    {schema_props, bindings, typespecs, doc_bindings, caster}
   end
 
   defmacro defcompose(fun, args_or_guarded) do
     {guard, args} = extract_guard(args_or_guarded)
 
     args = expand_args(args, __CALLER__)
-    {schema_props, bindings, typespecs, doc_bindings} = prepare_fun(args)
+    {schema_props, bindings, typespecs, doc_bindings, _caster} = prepare_fun(args)
 
-    # Start of quote
+    docs =
+      quote do
+        alias JSV.Schema.HelperCompiler
 
-    quote location: :keep do
-      doc_custom =
-        case Module.get_attribute(__MODULE__, :doc) do
-          {_, text} when is_binary(text) -> ["\n\n", text]
-          _ -> ""
-        end
+        doc_custom =
+          case Module.get_attribute(__MODULE__, :doc) do
+            {_, text} when is_binary(text) -> ["\n\n", text]
+            _ -> ""
+          end
 
-      doc_schema_props =
-        unquote(doc_bindings)
-        |> Enum.map(fn
-          {:var, {prop, varname}} -> "`#{prop}: #{varname}`"
-          {prop, value_or_call} -> "`#{prop}: #{value_or_call}`"
-        end)
-        |> :lists.reverse()
-        |> case do
-          [last | [_ | _] = prev] ->
-            prev
-            |> Enum.intersperse(", ")
-            |> :lists.reverse([" and ", last])
+        doc_schema_props =
+          HelperCompiler.__preset_docs__(unquote(doc_bindings))
 
-          [single] ->
-            [single]
-        end
-
-      @doc """
-      Defines or merges onto a JSON Schema with #{doc_schema_props}.#{doc_custom}
-      """
-      @spec unquote(fun)(Schema.merge_base(), unquote_splicing(typespecs)) :: Schema.schema()
-      def unquote(fun)(merge_base \\ nil, unquote_splicing(bindings)) when unquote(guard) do
-        Schema.merge(merge_base, unquote(schema_props))
+        @doc """
+        Defines or merges onto a JSON Schema with #{doc_schema_props}.#{doc_custom}
+        """
+        @spec unquote(fun)(Schema.merge_base(), unquote_splicing(typespecs)) :: Schema.schema()
       end
+
+    call =
+      quote do
+        def unquote(fun)(merge_base \\ nil, unquote_splicing(bindings)) when unquote(guard) do
+          Schema.merge(merge_base, unquote(schema_props))
+        end
+      end
+
+    quote do
+      unquote(docs)
+      unquote(call)
     end
   end
 
@@ -140,45 +160,78 @@ defmodule JSV.Schema.HelperCompiler do
     {guard, args} = extract_guard(args_or_guarded)
 
     args = expand_args(args, __CALLER__)
-    {schema_props, bindings, typespecs, doc_bindings} = prepare_fun(args)
+    {schema_props, bindings, typespecs, doc_bindings, caster} = prepare_fun(args)
 
-    # Start of quote
+    docs =
+      quote do
+        alias JSV.Schema.HelperCompiler
 
-    quote location: :keep do
-      doc_custom =
-        case Module.get_attribute(__MODULE__, :doc) do
-          {_, text} when is_binary(text) -> ["\n\n", text]
-          _ -> ""
-        end
+        doc_custom =
+          case Module.get_attribute(__MODULE__, :doc) do
+            {_, text} when is_binary(text) -> ["\n\n", text]
+            _ -> ""
+          end
 
-      doc_schema_props =
-        unquote(doc_bindings)
-        |> Enum.map(fn
-          {:var, {prop, varname}} -> "`#{prop}: #{varname}`"
-          {prop, value_or_call} -> "`#{prop}: #{value_or_call}`"
-        end)
-        |> :lists.reverse()
-        |> case do
-          [last | [_ | _] = prev] ->
-            prev
-            |> Enum.intersperse(", ")
-            |> :lists.reverse([" and ", last])
+        doc_schema_props =
+          HelperCompiler.__preset_docs__(unquote(doc_bindings))
 
-          [single] ->
-            [single]
-        end
+        @doc """
+        Returns a JSON Schema with #{doc_schema_props}.#{doc_custom}
+        """
+        @doc group: "Schema Presets"
+        @spec unquote(fun)(unquote_splicing(typespecs), Schema.attributes() | nil) :: Schema.schema()
+      end
 
-      @doc """
-      Returns a JSON Schema with #{doc_schema_props}.#{doc_custom}
-      """
-      @doc group: "Schema Presets"
-      @spec unquote(fun)(unquote_splicing(typespecs), Schema.attributes() | nil) :: Schema.schema()
+    call = define_helper(fun, guard, schema_props, bindings, caster)
+
+    quote do
+      unquote(docs)
+      unquote(call)
+    end
+  end
+
+  defp define_helper(fun, guard, schema_props, bindings, nil = _caster) do
+    quote do
       def unquote(fun)(unquote_splicing(bindings), extra \\ nil) when unquote(guard) do
         case extra do
           nil -> Map.new(unquote(schema_props))
           _ -> Schema.combine(extra, unquote(schema_props))
         end
       end
+    end
+  end
+
+  defp define_helper(fun, guard, schema_props, bindings, caster) do
+    quote do
+      def unquote(fun)(unquote_splicing(bindings), extra \\ nil) when unquote(guard) do
+        schema_to_wrap =
+          case extra do
+            nil -> Map.new(unquote(schema_props))
+            _ -> Schema.combine(extra, unquote(schema_props))
+          end
+
+        JSV.Schema.xcast(schema_to_wrap, unquote(caster))
+      end
+    end
+  end
+
+  @doc false
+  @spec __preset_docs__(Macro.t()) :: [iodata]
+  def __preset_docs__(doc_bindings) do
+    Enum.map(doc_bindings, fn
+      {:var, {prop, varname}} -> "`#{prop}: #{varname}`"
+      {:prop, {prop, value_or_call}} -> "`#{prop}: #{value_or_call}`"
+      {:__xcast__, call} -> "casts with `#{call}`"
+    end)
+    |> :lists.reverse()
+    |> case do
+      [last | [_ | _] = prev] ->
+        prev
+        |> Enum.intersperse(", ")
+        |> :lists.reverse([" and ", last])
+
+      [single] ->
+        [single]
     end
   end
 end

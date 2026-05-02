@@ -16,14 +16,15 @@ defmodule JSV.Builder do
 
   @derive {Inspect, Application.compile_env(:jsv, :builder_inspect_derive, only: [:ns, :current_rev_path, :resolver])}
   @enforce_keys [:resolver]
-  defstruct resolver: nil,
+  defstruct current_rev_path: [],
+            ns: nil,
+            opts: [],
+            parent_ns: nil,
+            resolver: nil,
             staged: [],
             vocabularies: nil,
             vocabulary_impls: %{},
-            ns: nil,
-            parent_ns: nil,
-            opts: [],
-            current_rev_path: []
+            warnings: []
 
   @type t :: %__MODULE__{resolver: term, staged: [term], vocabularies: term, ns: term, parent_ns: term, opts: term}
   @type resolvable :: Resolver.resolvable()

@@ -27,7 +27,7 @@ offering a seamless, Elixir-native developer experience.
 - **Advanced Casting & Transformation**:
   - Built-in support for casting to `Date`, `DateTime`, `Duration`, and
     `Decimal`.
-  - Extensible casting system using the `jsv-cast` keyword and `defcast` macros.
+  - Extensible casting system using the `x-jsv-cast` keyword and `defcast` macros.
 - **Extensible Resolution**: Fetch remote schemas via HTTP or resolve them from
   local files and directories using custom or built-in resolvers.
 - **Flexible Workflows**: Supports schemas as atoms or binaries, from Elixir

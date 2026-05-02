@@ -497,7 +497,7 @@ defmodule JSV.SchemaTest do
       assert %Schema{type: :object, "x-jsv-cast": "Elixir.MyApp.Cast"} = result
 
       result = Schema.xcast(base, [MyApp.Cast, "foo"])
-      assert %Schema{type: :object, "x-jsv-cast": ["Elixir.MyApp.Cast", "foo"]} = result
+      assert %Schema{type: :object, "x-jsv-cast": [["Elixir.MyApp.Cast", "foo"]]} = result
     end
 
     test "works with JSV.Schema struct as base - multiple casters" do

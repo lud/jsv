@@ -188,7 +188,7 @@ defmodule JSV do
                             doc: """
                             Enables calling generic cast functions on validation.
 
-                            This is based on the `jsv-cast` JSON Schema custom keyword
+                            This is based on the `x-jsv-cast` JSON Schema custom keyword
                             and is typically used by `defschema/1`.
 
                             While it is on by default, some specific casting features are enabled
@@ -1067,7 +1067,7 @@ defmodule JSV do
   end
   ```
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.with_cast(["Elixir.MyApp.Cast", "to_integer"])
+      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(["Elixir.MyApp.Cast", "to_integer"])
       iex> root = JSV.build!(schema)
       iex> JSV.validate("1234", root)
       {:ok, 1234}
@@ -1107,7 +1107,7 @@ defmodule JSV do
   end
   ```
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.with_cast(["Elixir.MyApp.Cast", "to_integer_if_string"])
+      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(["Elixir.MyApp.Cast", "to_integer_if_string"])
       iex> root = JSV.build!(schema)
       iex> JSV.validate("1234", root)
       {:ok, 1234}
@@ -1154,7 +1154,7 @@ defmodule JSV do
   ```
 
   This macro will define the `to_existing_atom/1` function in the calling
-  module, and enable it to be referenced in the `jsv-cast` schema custom
+  module, and enable it to be referenced in the `x-jsv-cast` schema custom
   keyword.
 
       iex> MyApp.Cast.to_existing_atom("erlang")
@@ -1169,20 +1169,20 @@ defmodule JSV do
       iex> MyApp.Cast.to_existing_atom()
       ["Elixir.MyApp.Cast", "to_existing_atom"]
 
-  This is accepted by `JSV.Schema.with_cast/2`:
+  This is accepted by `JSV.Schema.xcast/2` to include in the cast list:
 
-      iex> JSV.Schema.with_cast(MyApp.Cast.to_existing_atom())
-      %JSV.Schema{"jsv-cast": ["Elixir.MyApp.Cast", "to_existing_atom"]}
+      iex> JSV.Schema.xcast(MyApp.Cast.to_existing_atom())
+      %{"x-jsv-cast": [["Elixir.MyApp.Cast", "to_existing_atom"]]}
 
-  With a `jsv-cast` property defined in a schema, data will be cast when the
+  With a `x-jsv-cast` property defined in a schema, data will be cast when the
   schema is validated:
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.with_cast(MyApp.Cast.to_existing_atom())
+      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(MyApp.Cast.to_existing_atom())
       iex> root = JSV.build!(schema)
       iex> JSV.validate("noreply", root)
       {:ok, :noreply}
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.with_cast(MyApp.Cast.to_existing_atom())
+      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(MyApp.Cast.to_existing_atom())
       iex> root = JSV.build!(schema)
       iex> {:error, %JSV.ValidationError{}} = JSV.validate(["Elixir.NonExisting"], root)
 
@@ -1191,7 +1191,7 @@ defmodule JSV do
 
       iex> schema = %{
       ...>   "type" => "string",
-      ...>   "jsv-cast" => ["Elixir.MyApp.Cast", "to_existing_atom"]
+      ...>   "x-jsv-cast" => [["Elixir.MyApp.Cast", "to_existing_atom"]]
       ...> }
       iex> root = JSV.build!(schema)
       iex> JSV.validate("noreply", root)
@@ -1224,7 +1224,7 @@ defmodule JSV do
 
       iex> schema = %{
       ...>   "type" => "string",
-      ...>   "jsv-cast" => ["Elixir.MyApp.Cast", "non_cast_function"]
+      ...>   "x-jsv-cast" => [["Elixir.MyApp.Cast", "non_cast_function"]]
       ...> }
       iex> {:error, _} = JSV.build(schema)
 
@@ -1232,13 +1232,13 @@ defmodule JSV do
 
       iex> schema = %{
       ...>   "type" => "string",
-      ...>   "jsv-cast" => ["Elixir.SomeUnknownModule", "some_fun"]
+      ...>   "x-jsv-cast" => [["Elixir.SomeUnknownModule", "some_fun"]]
       ...> }
       iex> {:error, build_error} = JSV.build(schema)
       iex> build_error.reason
       {:unknown_module, "Elixir.SomeUnknownModule"}
 
-  Finally, you can customize the name present in the `jsv-cast` property by
+  Finally, you can customize the name present in the `x-jsv-cast` property by
   using a custom tag:
 
   ```elixir
