@@ -68,21 +68,21 @@ function name that JSV would call blindly. Otherwise, if your app is processing
 third-party schemas, a `["Elixir.System", "stop"]` or worse would be very bad.
 
 For that reason, cast functions need to be enabled by developers by defining the
-`__jsv__/1` callback.
+`__jsv__/2` callback.
 
 This is an internal callback, not documented by a behaviour, but security is
-important and it is worth explaining the mechanism here. The `__jsv__/1`
+important and it is worth explaining the mechanism here. The `__jsv__/2`
 callback is generated automatically when you use the `defcast` macro.
 
 When evaluating `["Elixir.System", "stop"]`, JSV will call `System.__jsv__({:cast,
-["stop"]})` at schema build time. This function does not exist and JSV will catch that
+["stop"]}, builder)` at schema build time. This function does not exist and JSV will catch that
 error, refusing to build the schema.
 
 The only way for that function to exist is if you define it in your own code.
-While you could compile a custom Elixir version with a `__jsv__/1` function in
+While you could compile a custom Elixir version with a `__jsv__/2` function in
 the `System` module, there are only so many reasons to do that.
 
-But that applies to your modules as well. Only you can define the `__jsv__/1`
+But that applies to your modules as well. Only you can define the `__jsv__/2`
 function in your modules.
 
 Unresolved casts fail at build time, before any data is ever validated.
@@ -98,7 +98,7 @@ Cast functions are functions that return a generic result tuple:
 - `{:error, reason}` when the transformation fails.
 
 As described in the security section above, JSV needs the target module to
-export a `__jsv__/1` callback that resolves the cast at build time. JSV supports
+export a `__jsv__/2` callback that resolves the cast at build time. JSV supports
 strings and integers as tag arguments.
 
 To define cast functions, use the `defcast` macro (available via `use JSV.Schema`
@@ -136,7 +136,7 @@ MyApp.Schemas.Cast.to_uppercase()
 # => ["Elixir.MyApp.Schemas.Cast", "to_uppercase"]
 ```
 
-And finally, it will define the appropriate `__jsv__/1` callback so JSV can
+And finally, it will define the appropriate `__jsv__/2` callback so JSV can
 resolve the cast at build time.
 
 Use `JSV.Schema.xcast/2` to add the cast to a schema:

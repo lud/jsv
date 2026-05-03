@@ -16,7 +16,7 @@ defmodule JSV.Schema.HelperCompiler do
     Enum.map(args, fn {prop, value} ->
       value = Macro.expand(value, env)
 
-      if Macro.quoted_literal?(value) do
+      if Macro.quoted_literal?(value) && prop != :__xcast__ do
         {:const, prop, value}
       else
         expand_expression(prop, value)
@@ -53,7 +53,7 @@ defmodule JSV.Schema.HelperCompiler do
     end
   end
 
-  defp prepare_fun(args) do
+  defp prepare_fun(_fun, args) do
     schema_props =
       Enum.flat_map(args, fn
         {:const, prop, const} -> [{prop, const}]
@@ -106,7 +106,7 @@ defmodule JSV.Schema.HelperCompiler do
     {guard, args} = extract_guard(args_or_guarded)
 
     args = expand_args(args, __CALLER__)
-    {schema_props, bindings, typespecs, doc_bindings, _caster} = prepare_fun(args)
+    {schema_props, bindings, typespecs, doc_bindings, _caster} = prepare_fun(fun, args)
 
     docs =
       quote do
@@ -160,7 +160,7 @@ defmodule JSV.Schema.HelperCompiler do
     {guard, args} = extract_guard(args_or_guarded)
 
     args = expand_args(args, __CALLER__)
-    {schema_props, bindings, typespecs, doc_bindings, caster} = prepare_fun(args)
+    {schema_props, bindings, typespecs, doc_bindings, caster} = prepare_fun(fun, args)
 
     docs =
       quote do

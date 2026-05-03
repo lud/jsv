@@ -1,7 +1,9 @@
 defmodule JSV.Cast do
-  import JSV, only: [defcast: 2]
+  import JSV, only: [defcast: 2, defcast_module: 1]
 
   @moduledoc false
+
+  defcast_module("jsv")
 
   defcast string_to_integer(data) do
     with true <- is_binary(data),
@@ -77,5 +79,45 @@ defmodule JSV.Cast do
   @spec format_error(term, term, term) :: binary
   def format_error(_, message, _) do
     message
+  end
+
+  defoverridable __jsv__: 2
+
+  @doc false
+  def __jsv__({:cast, ["string_to_atom" | _]}, builder) do
+    case check_atoms_opt(builder) do
+      {true, builder} -> {{__MODULE__, :string_to_atom, 1}, builder}
+      {false, builder} -> {:nocast, builder}
+    end
+  end
+
+  def __jsv__({:cast, ["string_to_atom_or_nil" | _]}, builder) do
+    case check_atoms_opt(builder) do
+      {true, builder} -> {{__MODULE__, :string_to_atom_or_nil, 1}, builder}
+      {false, builder} -> {:nocast, builder}
+    end
+  end
+
+  @spec __jsv__(tuple, JSV.Builder.t()) :: {tuple, JSV.Builder.t()}
+  def __jsv__({:cast, _} = cast, builder) do
+    super(cast, builder)
+  end
+
+  @unsafe_atoms_warning "The :atoms option was not defined on JSV schema build options. " <>
+                          "This option defaults to `true` for backwards compatibility reasons, " <>
+                          "but it is now required to pass it explicitely: " <>
+                          "`JSV.build(schema, atoms: true)`\n\n" <>
+                          "This option is safe to use for schemas that are trusted " <>
+                          "(files from the codebase, first party remote sources, etc.). " <>
+                          "Prefer setting `false` for schemas built dynamically at runtime."
+
+  # TODO(v2): Default building atoms to false
+  @default_atoms_build true
+
+  defp check_atoms_opt(builder) do
+    case builder.opts[:atoms] do
+      nil -> {@default_atoms_build, JSV.Builder.warn(builder, :unsafe_atoms, @unsafe_atoms_warning)}
+      bool -> {bool, builder}
+    end
   end
 end

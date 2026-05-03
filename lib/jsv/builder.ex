@@ -26,10 +26,49 @@ defmodule JSV.Builder do
             vocabulary_impls: %{},
             warnings: []
 
-  @type t :: %__MODULE__{resolver: term, staged: [term], vocabularies: term, ns: term, parent_ns: term, opts: term}
+  @type t :: %__MODULE__{
+          resolver: term,
+          staged: [term],
+          vocabularies: term,
+          ns: term,
+          parent_ns: term,
+          opts: term,
+          warnings: [term]
+        }
   @type resolvable :: Resolver.resolvable()
   @type buildable :: {:resolved, resolvable} | resolvable
   @type path_segment :: binary | non_neg_integer | atom | {atom, term}
+
+  @doc """
+  Appends a warning to the builder. The warnings are accumulated in the order
+  they are added and made available on the built `JSV.Root`.
+  """
+  @spec warn(t, key :: atom, message :: String.t()) :: t
+  def warn(%__MODULE__{warnings: warnings} = builder, key, message) when is_atom(key) and is_binary(message) do
+    warning = %{key: key, message: message, rev_path: builder.current_rev_path}
+
+    :ok =
+      case builder.opts[:warnings] do
+        :emit -> emit_warning(warning)
+        :silent -> :ok
+      end
+
+    %{builder | warnings: [warning | warnings]}
+  end
+
+  defp emit_warning(warning) do
+    %{key: _key, message: message, rev_path: rev_path} = warning
+
+    path = JSV.ErrorFormatter.format_schema_path(rev_path)
+
+    IO.warn("""
+    #{message}
+
+    Warning emitted at #{path}.
+
+    Use `JSV.build(schema, warnings: :silent)` to silent all warnings.
+    """)
+  end
 
   @doc false
   defmacro unwrap_ok(call) do

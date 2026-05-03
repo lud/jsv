@@ -1,8 +1,11 @@
+# credo:disable-for-this-file Credo.Check.Readability.Specs
 defmodule JSV.BuilderTest do
   alias JSV.Ref
   alias JSV.Schema
+  alias JSV.Schema.Helpers
   require JSV
   use ExUnit.Case, async: true
+  use Patch
 
   describe "resolving base meta schemas" do
     test "the default resolver can resolve draft 7" do
@@ -454,14 +457,131 @@ defmodule JSV.BuilderTest do
   end
 
   describe "build warnings" do
-    test "string_enum_to_atom emits a warning" do
+    defmodule WarningCaster do
+      def __jsv__({:cast, ["warn" | _rest]}, builder) do
+        builder = JSV.Builder.warn(builder, :first_warning, "hello")
+        {{__MODULE__, :identity, 1}, builder}
+      end
+
+      def __jsv__({:cast, ["warn2" | _rest]}, builder) do
+        builder = JSV.Builder.warn(builder, :second_warning, "hello")
+        {{__MODULE__, :identity, 1}, builder}
+      end
+
+      def __jsv__({:cast, ["plain" | _rest]}, builder) do
+        {{__MODULE__, :identity, 1}, builder}
+      end
+
+      def identity(data) do
+        {:ok, data}
+      end
+    end
+
+    test "warning emitted by a cast is exposed on the built Root" do
       schema = %{
-        properties: %{
-          some_enum: Schema.Helpers.string_enum_to_atom([:foo, :bar, :baz])
+        type: :string,
+        "x-jsv-cast": [[to_string(WarningCaster), "warn"]]
+      }
+
+      root = JSV.build!(schema, warnings: :silent)
+      assert [%{key: :first_warning, message: "hello", rev_path: [:root]}] = root.warnings
+    end
+
+    test "builder is threaded across multiple x-jsv-cast entries so warnings are preserved" do
+      schema = %{
+        type: :string,
+        "x-jsv-cast": [
+          [to_string(WarningCaster), "warn"],
+          [to_string(WarningCaster), "plain"],
+          [to_string(WarningCaster), "warn2"]
+        ]
+      }
+
+      root = JSV.build!(schema, warnings: :silent)
+
+      assert [
+               %{key: :first_warning, message: "hello", rev_path: [:root]},
+               %{key: :second_warning, message: "hello", rev_path: [:root]}
+             ] = root.warnings
+    end
+
+    test "jsv cast string_to_atom emits a warning when the :atoms option is not set" do
+      schema = Helpers.string_to_atom()
+      root = JSV.build!(schema, warnings: :silent)
+
+      assert [
+               %{
+                 key: :unsafe_atoms,
+                 message: "The :atoms option was not defined" <> _,
+                 rev_path: [:root]
+               }
+             ] = root.warnings
+    end
+
+    test "jsv cast string_enum_to_atom emits a warning when the :atoms option is not set" do
+      schema = Helpers.string_enum_to_atom([:foo, :bar])
+      root = JSV.build!(schema, warnings: :silent)
+
+      assert [
+               %{
+                 key: :unsafe_atoms,
+                 message: "The :atoms option was not defined" <> _,
+                 rev_path: [:root]
+               }
+             ] = root.warnings
+    end
+
+    test "jsv cast string_enum_to_atom_or_nil emits a warning when the :atoms option is not set" do
+      schema = Helpers.string_enum_to_atom_or_nil([:foo, :bar])
+      root = JSV.build!(schema, warnings: :silent)
+
+      assert [
+               %{
+                 key: :unsafe_atoms,
+                 message: "The :atoms option was not defined" <> _,
+                 rev_path: [:root]
+               }
+             ] = root.warnings
+    end
+
+    test "warnings are located" do
+      schema_remote = %{
+        "properties" => %{
+          "bar" => %{
+            "type" => "array",
+            "items" => %{
+              "type" => "string",
+              "x-jsv-cast" => [["jsv", "string_to_atom"]]
+            }
+          }
         }
       }
 
-      JSV.build!(schema)
+      schema_local = %{
+        "properties" => %{
+          "foo" => %{"$ref" => "https://bar.com/schema"},
+          "top" => %{"type" => "string", "x-jsv-cast" => [["jsv", "string_to_atom"]]}
+        }
+      }
+
+      patch(JSV.Resolver.Httpc, :allow_and_fetch, fn _uri, _opts -> {:normal, schema_remote} end)
+
+      root = JSV.build!(schema_local, warnings: :silent, resolver: JSV.Resolver.Httpc)
+
+      assert [
+               %{
+                 key: :unsafe_atoms,
+                 message: "The :atoms option was not defined" <> _,
+                 # Path (in reverse) gives the location of the problem
+                 rev_path: [{:properties, "top"}, :root]
+               },
+               %{
+                 key: :unsafe_atoms,
+                 message: "The :atoms option was not defined" <> _,
+                 # Path (in reverse) gives the location of the problem
+                 rev_path: [:items, {:properties, "bar"}, "https://bar.com/schema"]
+               }
+             ] = root.warnings
     end
   end
 end
