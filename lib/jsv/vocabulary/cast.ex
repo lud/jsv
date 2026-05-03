@@ -96,7 +96,7 @@ defmodule JSV.Vocabulary.Cast do
       raise CastHandlerLocationError,
         module: module,
         function: fun,
-        message: "could not find cast handler #{inspect(module)}.#{fun}/{1..3}"
+        message: "could not find cast handler #{inspect(module)}.#{fun}/#{arity}"
     end
   end
 

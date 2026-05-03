@@ -75,6 +75,18 @@ defmodule JSV.Cast do
     end
   end
 
+  @spec atom_property_keys :: [binary]
+  def atom_property_keys do
+    [@jsv_defcast_module, "aprops"]
+  end
+
+  @spec atom_property_keys(map, [{binary, %{binary => atom}}]) :: {:ok, map}
+  def atom_property_keys(data, [{keys, mapping} | _]) when is_map(data) do
+    {map_raw, map_keep} = Map.split(data, keys)
+    map_atoms = Map.new(map_raw, fn {k, v} -> {Map.fetch!(mapping, k), v} end)
+    {:ok, Map.merge(map_keep, map_atoms)}
+  end
+
   @doc false
   @spec format_error(term, term, term) :: binary
   def format_error(_, message, _) do
@@ -83,6 +95,7 @@ defmodule JSV.Cast do
 
   defoverridable __jsv__: 2
 
+  @spec __jsv__(tuple, JSV.Builder.t()) :: {tuple, JSV.Builder.t()}
   @doc false
   def __jsv__({:cast, ["string_to_atom" | _], _raw_schema}, builder) do
     case check_atoms_opt(builder) do
@@ -98,9 +111,34 @@ defmodule JSV.Cast do
     end
   end
 
-  @spec __jsv__(tuple, JSV.Builder.t()) :: {tuple, JSV.Builder.t()}
+  def __jsv__({:cast, ["aprops" | _], raw_schema}, builder) do
+    case check_atoms_opt(builder) do
+      {false, builder} ->
+        {:nocast, builder}
+
+      {true, builder} ->
+        mapping =
+          case raw_schema do
+            %{properties: properties} when is_map(properties) -> atom_mapping(properties)
+            %{"properties" => properties} when is_map(properties) -> atom_mapping(properties)
+            _ -> nil
+          end
+
+        case mapping do
+          nil -> {:nocast, builder}
+          _ -> {{__MODULE__, :atom_property_keys, 2, [mapping]}, builder}
+        end
+    end
+  end
+
   def __jsv__({:cast, _, _} = cast, builder) do
     super(cast, builder)
+  end
+
+  defp atom_mapping(properties) do
+    Enum.map_reduce(properties, %{}, fn
+      {k, _}, acc when is_binary(k) -> {k, Map.put(acc, k, String.to_atom(k))}
+    end)
   end
 
   @unsafe_atoms_warning "The :atoms option was not defined on JSV schema build options. " <>

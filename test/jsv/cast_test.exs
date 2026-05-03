@@ -1019,6 +1019,19 @@ defmodule JSV.CastTest do
       assert nil == JSV.validate!(nil, JSV.build!(schema, atoms: true))
       assert nil == JSV.validate!(nil, JSV.build!(schema, atoms: false))
     end
+
+    test "aprops is disabled with atoms: false" do
+      schema = %{
+        "x-jsv-cast" => [["jsv", "aprops"]],
+        "properties" => %{"foo" => string(), "bar" => integer(), "nil" => %{}}
+      }
+
+      assert %{bar: 123, foo: "hello", nil: nil} =
+               JSV.validate!(%{"foo" => "hello", "bar" => 123, "nil" => nil}, JSV.build!(schema, atoms: true))
+
+      assert %{"bar" => 123, "foo" => "hello", "nil" => nil} =
+               JSV.validate!(%{"foo" => "hello", "bar" => 123, "nil" => nil}, JSV.build!(schema, atoms: false))
+    end
   end
 
   describe "raw schema is passed to __jsv__/2" do

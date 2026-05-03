@@ -1,5 +1,6 @@
 defmodule JSV.Schema.Helpers do
   alias JSV.Schema
+  import JSV.Schema, only: [combine: 2, xcast: 2]
   import JSV.Schema.HelperCompiler
 
   @moduledoc """
@@ -34,6 +35,8 @@ defmodule JSV.Schema.Helpers do
 
   @type property_key :: atom | binary
   @type properties :: [{property_key, Schema.schema()}] | %{optional(property_key) => Schema.schema()}
+  @type schema :: Schema.schema()
+  @type extra :: Schema.attributes() | nil
 
   @doc """
   The Schema Description sigil.
@@ -180,6 +183,8 @@ defmodule JSV.Schema.Helpers do
   @doc """
   Does **not** set the `type: :object` on the schema. Use `props/2` for a
   shortcut.
+
+  Note that any preexisting schema properties are replaced.
   """
   defpreset :properties,
             [
@@ -188,6 +193,9 @@ defmodule JSV.Schema.Helpers do
             when is_list(properties)
             when is_map(properties)
 
+  @doc """
+  Note that any preexisting schema properties are replaced.
+  """
   defpreset :props,
             [
               type: :object,
@@ -195,6 +203,65 @@ defmodule JSV.Schema.Helpers do
             ]
             when is_list(properties)
             when is_map(properties)
+
+  @doc """
+  Object properties with atom keys.
+
+  Like `props/2`, but on validation the defined properties are returned with
+  atom keys instead of string keys. Additional properties (not listed in the
+  schema) keep their string keys.
+
+  Note that any preexisting schema properties are replaced.
+
+  ### Example
+
+      iex> schema = aprops(name: string(), age: integer())
+      iex> root = JSV.build!(schema, atoms: true)
+      iex> JSV.validate!(%{"name" => "Alice", "age" => 123}, root)
+      %{name: "Alice", age: 123}
+
+  """
+  defpreset :aprops,
+            [
+              type: :object,
+              properties: Map.new(properties) <- properties :: properties,
+              __xcast__: JSV.Cast.atom_property_keys()
+            ]
+            when is_list(properties)
+            when is_map(properties)
+
+  @doc """
+  Required object properties with atom keys.
+
+  Like `props/2`, but on validation the defined properties are returned with
+  atom keys instead of string keys. Additional properties (not listed in the
+  schema) keep their string keys.
+
+  Note that any preexisting schema properties are replaced.
+
+  ### Example
+
+      iex> schema = aprops(name: string(), age: integer())
+      iex> root = JSV.build!(schema, atoms: true)
+      iex> JSV.validate!(%{"name" => "Alice", "age" => 123}, root)
+      %{name: "Alice", age: 123}
+
+  """
+  @spec arprops(properties, extra) :: schema
+  def arprops(properties, extra \\ nil)
+      when is_list(properties)
+      when is_map(properties) do
+    required =
+      case properties do
+        %{} -> Map.keys(properties)
+        [_ | _] -> Enum.map(properties, fn {k, _} -> k end)
+        [] -> []
+      end
+
+    extra
+    |> combine(%{properties: Map.new(properties), required: required})
+    |> xcast(JSV.Cast.atom_property_keys())
+  end
 
   @doc """
   Returns a schema referencing the given `ref`.

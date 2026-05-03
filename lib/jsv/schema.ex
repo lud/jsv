@@ -327,8 +327,12 @@ defmodule JSV.Schema do
   Merges two sets of attributes into a single map. Attributes can be a keyword
   list or a map.
   """
-  @spec combine(attributes, attributes) :: schema
+  @spec combine(attributes | nil, attributes) :: schema
   def combine(base, overrides)
+
+  def combine(nil, overrides) do
+    Map.new(overrides)
+  end
 
   def combine(map, attributes) when is_map(map) do
     Enum.into(attributes, map)
