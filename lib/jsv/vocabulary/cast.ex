@@ -26,9 +26,13 @@ defmodule JSV.Vocabulary.Cast do
                vds,
                builder,
                _ do
-    cast = build_cast([module_str | rest_args], builder)
+    case build_cast([module_str | rest_args], builder) do
+      {:nocast, builder} ->
+        {vds, builder}
 
-    {put_vd(vds, :"jsv-cast", cast, builder), builder}
+      {cast, builder} ->
+        {put_vd(vds, :"jsv-cast", cast, builder), builder}
+    end
   end
 
   defmodule CastHandlerLocationError do
@@ -79,8 +83,19 @@ defmodule JSV.Vocabulary.Cast do
 
   take_keyword :"x-jsv-cast", casts, vds, builder, _ do
     casts = unwrap_ok(normalize_casts(casts, []))
-    casts = Enum.map(casts, &build_cast(&1, builder))
-    {put_vd(vds, :"x-jsv-cast", casts, builder), builder}
+
+    {casts, builder} =
+      Enum.flat_map_reduce(casts, builder, fn cast, builder ->
+        case build_cast(cast, builder) do
+          {:nocast, builder} -> {[], builder}
+          {cast, builder} -> {[cast], builder}
+        end
+      end)
+
+    case casts do
+      [] -> {vds, builder}
+      _ -> {put_vd(vds, :"x-jsv-cast", casts, builder), builder}
+    end
   end
 
   ignore_any_keyword()
@@ -106,28 +121,17 @@ defmodule JSV.Vocabulary.Cast do
   end
 
   defp build_cast([module_str | args], builder) do
-    module = unwrap_ok(StringExt.safe_string_to_existing_module(module_str))
+    module = unwrap_ok(resolve_module(module_str))
 
     try do
-      {fun, arity, cast_args} =
-        case module.__jsv__({:cast, args}) do
-          {^module, fun, nil = _unknown_arity, cast_args} -> {fun, find_arity!(module, fun), cast_args}
-          {^module, fun, arity, cast_args} -> {fun, verify_arity!(module, fun, arity), cast_args}
-          {^module, fun, arity} when arity in 1..3 -> {fun, verify_arity!(module, fun, arity), args}
-          {^module, fun} -> {fun, find_arity!(module, fun), args}
-        end
-
-      _cast = %__MODULE__{
-        capture: Function.capture(module, fun, arity),
-        module: module,
-        function: fun,
-        arity: arity,
-        cast_args: cast_args,
-        all_args: args
-      }
+      case module.__jsv__({:cast, args}, builder) do
+        {:nocast, %Builder{} = builder} -> {:nocast, builder}
+        {result, %Builder{} = builder} -> do_build_cast(module, args, result, builder)
+      end
     rescue
-      [CastHandlerLocationError] ->
-        Builder.fail(builder, {:invalid_cast, [module_str | args], module}, :"jsv-cast")
+      e in CastHandlerLocationError ->
+        # log_test_error(e, __STACKTRACE__)
+        Builder.fail(builder, {:invalid_cast, [module_str | args], e}, :"jsv-cast")
 
       e in [UndefinedFunctionError, FunctionClauseError] ->
         stack = __STACKTRACE__
@@ -142,6 +146,35 @@ defmodule JSV.Vocabulary.Cast do
             reraise e, stack
         end
     end
+  end
+
+  defp do_build_cast(module, args, result, builder) do
+    {fun, arity, cast_args} =
+      case result do
+        {^module, fun, nil = _unknown_arity, cast_args} -> {fun, find_arity!(module, fun), cast_args}
+        {^module, fun, arity, cast_args} -> {fun, verify_arity!(module, fun, arity), cast_args}
+        {^module, fun, arity} when arity in 1..3 -> {fun, verify_arity!(module, fun, arity), args}
+        {^module, fun} -> {fun, find_arity!(module, fun), args}
+      end
+
+    cast = %__MODULE__{
+      capture: Function.capture(module, fun, arity),
+      module: module,
+      function: fun,
+      arity: arity,
+      cast_args: cast_args,
+      all_args: args
+    }
+
+    {cast, builder}
+  end
+
+  defp resolve_module("jsv") do
+    {:ok, JSV.Cast}
+  end
+
+  defp resolve_module(module_str) do
+    StringExt.safe_string_to_existing_module(module_str)
   end
 
   defp put_vd(vds, k, v, _builder) when map_size(vds) == 0 do
@@ -252,7 +285,10 @@ defmodule JSV.Vocabulary.Cast do
     fun.(data, args, vctx)
   end
 
-  # public because unused
+  # Manually uncommented from the rescue clauses above during debugging
+  # sessions to inspect cast resolution failures. Exported (rather than
+  # private) so the function does not trigger an unused-function warning
+  # while the call sites stay commented out in the committed code.
   @doc false
   @spec log_test_error(Exception.t(), Exception.stacktrace()) :: :ok
   if Mix.env() == :test do
@@ -287,24 +323,24 @@ defmodule JSV.Vocabulary.Cast do
   def format_error(:"bad-cast-return", _meta, _data) do
     %{kind: :cast, message: "bad cast return value"}
   end
+end
 
-  defimpl Inspect do
-    import Inspect.Algebra
+defimpl Inspect, for: JSV.Vocabulary.Cast do
+  import Inspect.Algebra
 
-    Code.ensure_loaded!(Inspect.Algebra)
+  Code.ensure_loaded!(Inspect.Algebra)
 
-    if function_exported?(Inspect.Algebra, :to_doc_with_opts, 2) do
-      @spec inspect(JSV.Vocabulary.Cast.t(), Inspect.Opts.t()) :: {Inspect.Algebra.t(), Inspect.Opts.t()}
-      def inspect(%{capture: capture, cast_args: args}, opts) do
-        {doc, opts} = to_doc_with_opts([capture | args], opts)
-        {concat(["#JSV.Vocabulary.Cast<", doc, ">"]), opts}
-      end
-    else
-      @spec inspect(JSV.Vocabulary.Cast.t(), Inspect.Opts.t()) :: Inspect.Algebra.t()
-      def inspect(%{capture: capture, cast_args: args}, opts) do
-        doc = to_doc([capture | args], opts)
-        concat(["#JSV.Vocabulary.Cast<", doc, ">"])
-      end
+  if function_exported?(Inspect.Algebra, :to_doc_with_opts, 2) do
+    @spec inspect(JSV.Vocabulary.Cast.t(), Inspect.Opts.t()) :: {Inspect.Algebra.t(), Inspect.Opts.t()}
+    def inspect(%{capture: capture, cast_args: args}, opts) do
+      {doc, opts} = to_doc_with_opts([capture | args], opts)
+      {concat(["#JSV.Vocabulary.Cast<", doc, ">"]), opts}
+    end
+  else
+    @spec inspect(JSV.Vocabulary.Cast.t(), Inspect.Opts.t()) :: Inspect.Algebra.t()
+    def inspect(%{capture: capture, cast_args: args}, opts) do
+      doc = to_doc([capture | args], opts)
+      concat(["#JSV.Vocabulary.Cast<", doc, ">"])
     end
   end
 end

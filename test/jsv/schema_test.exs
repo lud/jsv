@@ -222,7 +222,7 @@ defmodule JSV.SchemaTest do
             base -> apply(Schema, fun, [base | args])
           end
 
-        root = JSV.build!(schema, formats: true)
+        root = JSV.build!(schema, formats: true, atoms: true)
 
         Enum.each(valids, fn valid ->
           case JSV.validate(valid, root, cast_formats: true) do

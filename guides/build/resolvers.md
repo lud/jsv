@@ -26,7 +26,7 @@ need to be explicitly declared in the `:resolver` option of `JSV.build/2` or
 `JSV.build!/2`:
 
 ```elixir
-resolver = {JSV.Resolvers.Httpc, allowed_prefixes: ["https://example.com/schemas/"]}
+resolver = {JSV.Resolver.Httpc, allowed_prefixes: ["https://example.com/schemas/"]}
 root = JSV.build!(schema, resolver: resolver)
 ```
 

@@ -136,7 +136,7 @@ defmodule JSV.Schema.Helpers do
   codebase, such as Oban job statuses or other Ecto enum types.
 
       iex> schema = props(status: string_enum_to_atom([:executing, :pending]))
-      iex> root = JSV.build!(schema)
+      iex> root = JSV.build!(schema, atoms: true)
       iex> JSV.validate(%{"status" => "pending"}, root)
       {:ok, %{"status" => :pending}}
 

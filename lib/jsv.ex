@@ -178,6 +178,39 @@ defmodule JSV do
                              }
                          """,
                          default: %{}
+                       ],
+                       atoms: [
+                         type: :boolean,
+                         doc: """
+                         Whether to allow casts that create atoms. This enables the following helpers:
+
+                         - `JSV.Schema.Helpers.string_enum_to_atom/2`
+                         - `JSV.Schema.Helpers.string_enum_to_atom_or_nil/2`
+                         - `JSV.Schema.Helpers.string_to_atom/1`
+
+                         When set to `false`, these casters are silently dropped at build time. Schemas that
+                         relied on them will validate strings as strings (no atom conversion happens at
+                         runtime), so plan accordingly when toggling this option on existing data flows.
+
+                         It is safe to set to `true` for trusted schemas. Use `false` if you are building
+                         untrusted schemas at runtime to avoid third parties to define unwanted `x-jsv-cast`
+                         casts with atom casting.
+
+                         The current default value is `true` for compatibility reasons. In future releases, this
+                         option will default to false.
+                         """
+                       ],
+                       warnings: [
+                         type: {:in, [:emit, :silent]},
+                         default: :emit,
+                         doc: """
+                         Controls schema build warnings.
+
+                         - `:emit` - Warnings will be emitted when a schema is built with `IO.warn/2`.
+                         - `:silent` - Warnings will not be emitted.
+
+                         Warnings are always returned in the built root.
+                         """
                        ]
                      )
 
@@ -274,9 +307,14 @@ defmodule JSV do
   def build!(raw_schema, opts) when is_map(raw_schema) when is_atom(raw_schema) do
     ctx = build_init!(opts)
     {root_key, normal_schema, ctx} = build_add!(ctx, raw_schema)
-    {^root_key, build_ctx(validators: validators)} = build_key!(ctx, root_key)
+    {^root_key, build_ctx(builder: builder, validators: validators)} = build_key!(ctx, root_key)
 
-    %Root{raw: normal_schema, validators: validators, root_key: root_key}
+    %Root{
+      raw: normal_schema,
+      validators: validators,
+      root_key: root_key,
+      warnings: :lists.reverse(builder.warnings)
+    }
   end
 
   @doc """
@@ -683,12 +721,12 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__({:cast, []}) do
-        {__MODULE__, :__jsv_struct__, 1}
+      def __jsv__({:cast, []}, builder) do
+        {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
-      def __jsv__({:cast, [@legacy_jsv_tag]}) do
-        {__MODULE__, :__jsv_struct__, 1}
+      def __jsv__({:cast, [@legacy_jsv_tag]}, builder) do
+        {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
       @doc false
@@ -943,12 +981,12 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__({:cast, []}) do
-        {__MODULE__, :__jsv_struct__, 1}
+      def __jsv__({:cast, []}, builder) do
+        {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
-      def __jsv__({:cast, [@legacy_jsv_tag]}) do
-        {__MODULE__, :__jsv_struct__, 1}
+      def __jsv__({:cast, [@legacy_jsv_tag]}, builder) do
+        {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
       def __jsv_struct__(data) do
@@ -1260,8 +1298,18 @@ defmodule JSV do
     bad_cast()
   end
 
+  @doc false
+  defmacro defcast_module(mod_str) when is_binary(mod_str) do
+    Module.put_attribute(__CALLER__.module, :jsv_defcast_module, mod_str)
+    :ok
+  end
+
   defp defcast_block(env, tag, call, [{:do, _} | _] = blocks) do
-    mod_str = Atom.to_string(env.module)
+    mod_str =
+      case Module.get_attribute(env.module, :jsv_defcast_module) do
+        nil -> Atom.to_string(env.module)
+        mod_alias when is_binary(mod_alias) -> mod_alias
+      end
 
     {fun, args} = defcast_decompose(call)
 
@@ -1288,8 +1336,8 @@ defmodule JSV do
       unquote(helper)
 
       @doc false
-      def __jsv__({:cast, [unquote(tag) | rest_args]}) do
-        {__MODULE__, unquote(fun), unquote(handler_arity), rest_args}
+      def __jsv__({:cast, [unquote(tag) | rest_args]}, builder) do
+        {{__MODULE__, unquote(fun), unquote(handler_arity), rest_args}, builder}
       end
 
       @doc false
@@ -1329,8 +1377,8 @@ defmodule JSV do
   defp defcast_local(_env, tag, local_fun) do
     quote do
       @doc false
-      def __jsv__({:cast, [unquote(tag) | rest_args]}) do
-        {__MODULE__, unquote(local_fun), nil, rest_args}
+      def __jsv__({:cast, [unquote(tag) | rest_args]}, builder) do
+        {{__MODULE__, unquote(local_fun), nil, rest_args}, builder}
       end
     end
   end
@@ -1423,8 +1471,13 @@ defmodule JSV do
   @spec to_root!(build_context, Key.t()) :: Root.t()
   debang def to_root!(build_ctx, root_key)
 
-  def to_root!(build_ctx(validators: vds), root_key) do
-    %Root{raw: nil, validators: vds, root_key: root_key}
+  def to_root!(build_ctx(builder: builder, validators: vds), root_key) do
+    %Root{
+      raw: nil,
+      validators: vds,
+      root_key: root_key,
+      warnings: :lists.reverse(builder.warnings)
+    }
   end
 
   defp ensure_map_schema(map) when is_map(map) do

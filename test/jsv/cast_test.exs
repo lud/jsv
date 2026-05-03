@@ -1,14 +1,15 @@
 # credo:disable-for-this-file Credo.Check.Readability.Specs
 defmodule JSV.CastTest do
   alias JSV.Resolver.Internal
+  alias JSV.Schema.Helpers
   use JSV.Schema
   use ExUnit.Case, async: true
 
   describe "legacy jsv-cast support" do
     test "cast is not called when data is invalid" do
       defmodule LegacyNotCalled do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :will_not_be_called, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :will_not_be_called, 1}, builder}
         end
 
         def will_not_be_called(_) do
@@ -27,8 +28,8 @@ defmodule JSV.CastTest do
 
     test "cast returns an ok tuple" do
       defmodule LegacyOk do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :do_cast, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :do_cast, 1}, builder}
         end
 
         def do_cast("hello") do
@@ -47,8 +48,8 @@ defmodule JSV.CastTest do
 
     test "cast returns an error tuple" do
       defmodule LegacyError do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :returns_error, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :returns_error, 1}, builder}
         end
 
         def returns_error("hello") do
@@ -81,8 +82,8 @@ defmodule JSV.CastTest do
 
     test "cast raises an error" do
       defmodule LegacyRaises do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :boom, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :boom, 1}, builder}
         end
 
         def boom(_data) do
@@ -106,8 +107,8 @@ defmodule JSV.CastTest do
   describe "using x-jsv-cast with a manual __jsv__ callback" do
     test "can cast raw data to arbitrary data" do
       defmodule ExpectsString do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :do_cast, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :do_cast, 1}, builder}
         end
 
         def do_cast("hello") do
@@ -126,8 +127,8 @@ defmodule JSV.CastTest do
 
     test "not called when data is invalid" do
       defmodule XExpectsInteger do
-        def __jsv__({:cast, _args}) do
-          {__MODULE__, :will_not_be_called, 1}
+        def __jsv__({:cast, _args}, builder) do
+          {{__MODULE__, :will_not_be_called, 1}, builder}
         end
 
         def will_not_be_called(_) do
@@ -146,8 +147,8 @@ defmodule JSV.CastTest do
 
     test "can return an error" do
       defmodule XReturnsError do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :do_cast, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :do_cast, 1}, builder}
         end
 
         def do_cast("hello") do
@@ -182,8 +183,8 @@ defmodule JSV.CastTest do
 
     test "does not crash when __jsv__ has no matching clause" do
       defmodule XDoesNotKnowTag do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :whatever, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :whatever, 1}, builder}
         end
 
         def whatever(_) do
@@ -210,7 +211,7 @@ defmodule JSV.CastTest do
 
     test "errors from nested calls within __jsv__ propagate at build time" do
       defmodule XNestedUnexportedFunction do
-        def __jsv__({:cast, ["some_tag" | _]}) do
+        def __jsv__({:cast, ["some_tag" | _]}, _builder) do
           UnknownModule.a_function()
         end
       end
@@ -227,8 +228,8 @@ defmodule JSV.CastTest do
 
     test "function clause errors within the caster propagate at validation time" do
       defmodule XNestedFunctionClauseError do
-        def __jsv__({:cast, ["some_tag" | _]}) do
-          {__MODULE__, :do_cast, 1}
+        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+          {{__MODULE__, :do_cast, 1}, builder}
         end
 
         def do_cast("hello") do
@@ -586,8 +587,8 @@ defmodule JSV.CastTest do
   describe "cast handler arity dispatch" do
     test "legacy jsv-cast dispatches to arity 2 handler" do
       defmodule LegacyArity2Handler do
-        def __jsv__({:cast, ["tag" | _]}) do
-          {__MODULE__, :do_cast, 2}
+        def __jsv__({:cast, ["tag" | _]}, builder) do
+          {{__MODULE__, :do_cast, 2}, builder}
         end
 
         def do_cast(data, ["tag"]) do
@@ -602,8 +603,8 @@ defmodule JSV.CastTest do
 
     test "legacy jsv-cast dispatches to arity 3 handler" do
       defmodule LegacyArity3Handler do
-        def __jsv__({:cast, ["tag" | _]}) do
-          {__MODULE__, :do_cast, 3}
+        def __jsv__({:cast, ["tag" | _]}, builder) do
+          {{__MODULE__, :do_cast, 3}, builder}
         end
 
         def do_cast(data, ["tag"], _vctx) do
@@ -632,8 +633,8 @@ defmodule JSV.CastTest do
   describe "build errors for invalid cast handlers" do
     test "returns build error when handler function does not exist at any arity" do
       defmodule NoSuchFunction do
-        def __jsv__({:cast, _}) do
-          {__MODULE__, :this_function_does_not_exist}
+        def __jsv__({:cast, _}, builder) do
+          {{__MODULE__, :this_function_does_not_exist}, builder}
         end
       end
 
@@ -641,15 +642,20 @@ defmodule JSV.CastTest do
 
       assert {:error,
               %JSV.BuildError{
-                reason: {:invalid_cast, ["Elixir.JSV.CastTest.NoSuchFunction", "tag"], JSV.CastTest.NoSuchFunction}
+                reason:
+                  {:invalid_cast, ["Elixir.JSV.CastTest.NoSuchFunction", "tag"],
+                   %JSV.Vocabulary.Cast.CastHandlerLocationError{
+                     function: :this_function_does_not_exist,
+                     module: JSV.CastTest.NoSuchFunction
+                   }}
               }} = JSV.build(schema)
     end
 
     test "returns build error when handler function only exists at arity 4" do
       defmodule OnlyArity4 do
         # __jsv__ returns a 2-tuple, triggering arity discovery
-        def __jsv__({:cast, _}) do
-          {__MODULE__, :do_cast}
+        def __jsv__({:cast, _}, builder) do
+          {{__MODULE__, :do_cast}, builder}
         end
 
         # only exported at arity 4, which is outside the valid 1..3 range
@@ -662,15 +668,21 @@ defmodule JSV.CastTest do
 
       assert {:error,
               %JSV.BuildError{
-                reason: {:invalid_cast, ["Elixir.JSV.CastTest.OnlyArity4", "tag"], JSV.CastTest.OnlyArity4}
+                reason:
+                  {:invalid_cast, ["Elixir.JSV.CastTest.OnlyArity4", "tag"],
+                   %JSV.Vocabulary.Cast.CastHandlerLocationError{
+                     __exception__: true,
+                     function: :do_cast,
+                     module: JSV.CastTest.OnlyArity4
+                   }}
               }} = JSV.build(schema)
     end
   end
 
   describe "x-jsv-cast multicasting" do
     defmodule MultiCaster do
-      def __jsv__({:cast, _args}) do
-        {__MODULE__, :cast, 3}
+      def __jsv__({:cast, _args}, builder) do
+        {{__MODULE__, :cast, 3}, builder}
       end
 
       def cast(data, ["upcase"], _vctx) when is_binary(data) do
@@ -793,8 +805,8 @@ defmodule JSV.CastTest do
 
     test "cast returning a non-result value produces a bad cast return value error" do
       defmodule BadReturnCaster do
-        def __jsv__({:cast, _}) do
-          {__MODULE__, :do_cast, 1}
+        def __jsv__({:cast, _}, builder) do
+          {{__MODULE__, :do_cast, 1}, builder}
         end
 
         def do_cast(_data) do
@@ -826,8 +838,8 @@ defmodule JSV.CastTest do
   describe "jsv-cast and x-jsv-cast mutual exclusivity" do
     test "schema with both keywords is a build error" do
       defmodule BothKeywordsMod do
-        def __jsv__({:cast, ["tag" | _]}) do
-          {__MODULE__, :do_cast, 1}
+        def __jsv__({:cast, ["tag" | _]}, builder) do
+          {{__MODULE__, :do_cast, 1}, builder}
         end
 
         def do_cast(data) do
@@ -960,6 +972,52 @@ defmodule JSV.CastTest do
       root = JSV.build!(schema)
       data = %{"foo" => "hello", "bar" => 1, "baz" => "goodbye"}
       assert %Child{} = JSV.validate!(data, root)
+    end
+  end
+
+  describe "casters can disable themselves" do
+    defmodule DisabledCast do
+      def __jsv__({:cast, ["disabled" | _]}, builder) do
+        {:nocast, builder}
+      end
+    end
+
+    test "disabled cast function" do
+      schema = xcast(string(), [DisabledCast, "disabled"])
+      root = JSV.build!(schema)
+      assert "foo" = JSV.validate!("foo", root)
+    end
+
+    test "disabled cast function between real casts" do
+      schema =
+        string()
+        |> xcast(ArityDefcastMod.append_suffix(["-first"]))
+        |> xcast([DisabledCast, "disabled"])
+        |> xcast(ArityDefcastMod.append_suffix(["-last"]))
+
+      root = JSV.build!(schema)
+      assert "foo-first-last" = JSV.validate!("foo", root)
+    end
+
+    test "string_to_atom is disabled with atoms: false" do
+      schema = Helpers.string_to_atom()
+      assert :foo = JSV.validate!("foo", JSV.build!(schema, atoms: true))
+      assert "foo" = JSV.validate!("foo", JSV.build!(schema, atoms: false))
+    end
+
+    test "string_enum_to_atom is disabled with atoms: false" do
+      schema = Helpers.string_enum_to_atom([:foo, :bar])
+      assert :foo = JSV.validate!("foo", JSV.build!(schema, atoms: true))
+      assert "foo" = JSV.validate!("foo", JSV.build!(schema, atoms: false))
+    end
+
+    test "string_enum_to_atom_or_nil disabled with atoms: false" do
+      schema = Helpers.string_enum_to_atom_or_nil([:foo, :bar])
+      assert :foo = JSV.validate!("foo", JSV.build!(schema, atoms: true))
+      assert "foo" = JSV.validate!("foo", JSV.build!(schema, atoms: false))
+
+      assert nil == JSV.validate!(nil, JSV.build!(schema, atoms: true))
+      assert nil == JSV.validate!(nil, JSV.build!(schema, atoms: false))
     end
   end
 end

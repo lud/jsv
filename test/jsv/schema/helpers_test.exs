@@ -182,7 +182,8 @@ defmodule JSV.Schema.HelpersTest do
       },
       string_to_atom: %{
         valids: ["true", "false", "nil", "any_string#{:erlang.unique_integer()}", "hello world"],
-        invalids: [123, true, false, :some_atom, nil]
+        invalids: [123, true, false, :some_unexisting_atom, nil],
+        post: &__MODULE__.assert_is_atom/1
       },
       const: %{
         args: [1],
@@ -208,6 +209,11 @@ defmodule JSV.Schema.HelpersTest do
       }
     ]
 
+    @spec assert_is_atom(term) :: boolean
+    def assert_is_atom(value) do
+      assert is_atom(value)
+    end
+
     Enum.each(fun_cases, fn {fun, spec} ->
       test "#{fun} utility" do
         spec = unquote(Macro.escape(spec))
@@ -216,6 +222,7 @@ defmodule JSV.Schema.HelpersTest do
 
         %{valids: valids, invalids: invalids} = spec
         args = Map.get(spec, :args, [])
+        post_check = Map.get(spec, :post, & &1)
 
         # If no mergeable base schema is set we call the arity-1 function
         # version to ensure that the merge is properly handled on top of a nil
@@ -229,11 +236,12 @@ defmodule JSV.Schema.HelpersTest do
         assert is_map(schema)
         refute is_struct(schema)
 
-        root = JSV.build!(schema, formats: true)
+        root = JSV.build!(schema, formats: true, atoms: true)
 
         Enum.each(valids, fn valid ->
           case JSV.validate(valid, root, cast_formats: true) do
-            {:ok, _} ->
+            {:ok, v} ->
+              post_check.(v)
               :ok
 
             {:error, err} ->
