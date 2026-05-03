@@ -105,7 +105,7 @@ defmodule JSV.Cast do
 
   @unsafe_atoms_warning "The :atoms option was not defined on JSV schema build options. " <>
                           "This option defaults to `true` for backwards compatibility reasons, " <>
-                          "but it is now required to pass it explicitely: " <>
+                          "but it is now required to pass it explicitly: " <>
                           "`JSV.build(schema, atoms: true)`\n\n" <>
                           "This option is safe to use for schemas that are trusted " <>
                           "(files from the codebase, first party remote sources, etc.). " <>

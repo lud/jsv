@@ -66,7 +66,7 @@ defmodule JSV.Builder do
 
     Warning emitted at #{path}.
 
-    Use `JSV.build(schema, warnings: :silent)` to silent all warnings.
+    Use `JSV.build(schema, warnings: :silent)` to silence all warnings.
     """)
   end
 

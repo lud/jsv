@@ -285,7 +285,10 @@ defmodule JSV.Vocabulary.Cast do
     fun.(data, args, vctx)
   end
 
-  # public because unused
+  # Manually uncommented from the rescue clauses above during debugging
+  # sessions to inspect cast resolution failures. Exported (rather than
+  # private) so the function does not trigger an unused-function warning
+  # while the call sites stay commented out in the committed code.
   @doc false
   @spec log_test_error(Exception.t(), Exception.stacktrace()) :: :ok
   if Mix.env() == :test do

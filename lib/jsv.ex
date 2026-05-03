@@ -188,7 +188,7 @@ defmodule JSV do
                          - `JSV.Schema.Helpers.string_enum_to_atom_or_nil/2`
                          - `JSV.Schema.Helpers.string_to_atom/1`
 
-                         When set to `false`, this casters will be disabled.
+                         When set to `false`, these casters will be disabled.
 
                          It is safe to set to `true` for trusted schemas. Use `false` if you are building
                          untrusted schemas at runtime to avoid third parties to define unwanted `x-jsv-cast`
@@ -1298,7 +1298,7 @@ defmodule JSV do
 
   @doc false
   defmacro defcast_module(mod_str) when is_binary(mod_str) do
-    Module.put_attribute(__CALLER__.module, :jsv_defcast_module, "jsv")
+    Module.put_attribute(__CALLER__.module, :jsv_defcast_module, mod_str)
     :ok
   end
 
