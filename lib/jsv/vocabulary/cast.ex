@@ -11,30 +11,6 @@ defmodule JSV.Vocabulary.Cast do
 
   @moduledoc false
 
-  @impl true
-  def init_validators([]) do
-    %{}
-  end
-
-  @enforce_keys [:capture, :module, :function, :arity, :cast_args, :all_args]
-  defstruct @enforce_keys
-
-  @type t :: %__MODULE__{}
-
-  take_keyword :"jsv-cast",
-               [module_str | [tag | _] = rest_args] when is_binary(tag) when is_integer(tag),
-               vds,
-               builder,
-               _ do
-    case build_cast([module_str | rest_args], builder) do
-      {:nocast, builder} ->
-        {vds, builder}
-
-      {cast, builder} ->
-        {put_vd(vds, :"jsv-cast", cast, builder), builder}
-    end
-  end
-
   defmodule CastHandlerLocationError do
     defexception [:module, :function, :message]
   end
@@ -52,6 +28,49 @@ defmodule JSV.Vocabulary.Cast do
         ", expected result tuple, got: #{inspect(value)}"
     end
   end
+
+  @impl true
+  def init_validators([]) do
+    %{}
+  end
+
+  @enforce_keys [:capture, :module, :function, :arity, :cast_args, :all_args]
+  defstruct @enforce_keys
+
+  @type t :: %__MODULE__{}
+
+  take_keyword :"jsv-cast",
+               [module_str | [tag | _] = rest_args] when is_binary(tag) when is_integer(tag),
+               vds,
+               builder,
+               raw_schema do
+    case build_cast([module_str | rest_args], builder, raw_schema) do
+      {:nocast, builder} ->
+        {vds, builder}
+
+      {cast, builder} ->
+        {put_vd(vds, :"jsv-cast", cast, builder), builder}
+    end
+  end
+
+  take_keyword :"x-jsv-cast", casts, vds, builder, raw_schema do
+    casts = unwrap_ok(normalize_casts(casts, []))
+
+    {casts, builder} =
+      Enum.flat_map_reduce(casts, builder, fn cast, builder ->
+        case build_cast(cast, builder, raw_schema) do
+          {:nocast, builder} -> {[], builder}
+          {cast, builder} -> {[cast], builder}
+        end
+      end)
+
+    case casts do
+      [] -> {vds, builder}
+      _ -> {put_vd(vds, :"x-jsv-cast", casts, builder), builder}
+    end
+  end
+
+  ignore_any_keyword()
 
   defp find_arity!(module, fun) do
     # module should already be loaded from safe_string_to_existing_module
@@ -81,25 +100,6 @@ defmodule JSV.Vocabulary.Cast do
     end
   end
 
-  take_keyword :"x-jsv-cast", casts, vds, builder, _ do
-    casts = unwrap_ok(normalize_casts(casts, []))
-
-    {casts, builder} =
-      Enum.flat_map_reduce(casts, builder, fn cast, builder ->
-        case build_cast(cast, builder) do
-          {:nocast, builder} -> {[], builder}
-          {cast, builder} -> {[cast], builder}
-        end
-      end)
-
-    case casts do
-      [] -> {vds, builder}
-      _ -> {put_vd(vds, :"x-jsv-cast", casts, builder), builder}
-    end
-  end
-
-  ignore_any_keyword()
-
   defp normalize_casts(string, []) when is_binary(string) do
     {:ok, [[string]]}
   end
@@ -120,11 +120,11 @@ defmodule JSV.Vocabulary.Cast do
     {:ok, :lists.reverse(acc)}
   end
 
-  defp build_cast([module_str | args], builder) do
+  defp build_cast([module_str | args], builder, raw_schema) do
     module = unwrap_ok(resolve_module(module_str))
 
     try do
-      case module.__jsv__({:cast, args}, builder) do
+      case module.__jsv__({:cast, args, raw_schema}, builder) do
         {:nocast, %Builder{} = builder} -> {:nocast, builder}
         {result, %Builder{} = builder} -> do_build_cast(module, args, result, builder)
       end

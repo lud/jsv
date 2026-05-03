@@ -461,17 +461,17 @@ defmodule JSV.BuilderTest do
 
   describe "build warnings" do
     defmodule WarningCaster do
-      def __jsv__({:cast, ["warn" | _rest]}, builder) do
+      def __jsv__({:cast, ["warn" | _rest], _raw_schema}, builder) do
         builder = JSV.Builder.warn(builder, :first_warning, "hello")
         {{__MODULE__, :identity, 1}, builder}
       end
 
-      def __jsv__({:cast, ["warn2" | _rest]}, builder) do
+      def __jsv__({:cast, ["warn2" | _rest], _raw_schema}, builder) do
         builder = JSV.Builder.warn(builder, :second_warning, "hello")
         {{__MODULE__, :identity, 1}, builder}
       end
 
-      def __jsv__({:cast, ["plain" | _rest]}, builder) do
+      def __jsv__({:cast, ["plain" | _rest], _raw_schema}, builder) do
         {{__MODULE__, :identity, 1}, builder}
       end
 
@@ -563,7 +563,7 @@ defmodule JSV.BuilderTest do
       schema_local = %{
         "properties" => %{
           "foo" => %{"$ref" => "https://bar.com/schema"},
-          "top" => %{"type" => "string", "x-jsv-cast" => [["jsv", "string_to_atom"]]}
+          "top" => %{"type" => "string", "x-jsv-cast" => [["jsv", "string_to_atom_or_nil"]]}
         }
       }
 

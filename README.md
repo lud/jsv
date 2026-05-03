@@ -173,7 +173,7 @@ data = %{
   "role" => "admin"
 }
 
-root = JSV.build!(MyApp.Data.User, formats: true)
+root = JSV.build!(MyApp.Data.User, formats: true, atoms: true)
 JSV.validate!(data, root, cast_formats: true)
 ```
 <!-- rdmx /:section -->

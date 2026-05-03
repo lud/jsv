@@ -8,7 +8,7 @@ defmodule JSV.CastTest do
   describe "legacy jsv-cast support" do
     test "cast is not called when data is invalid" do
       defmodule LegacyNotCalled do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :will_not_be_called, 1}, builder}
         end
 
@@ -28,7 +28,7 @@ defmodule JSV.CastTest do
 
     test "cast returns an ok tuple" do
       defmodule LegacyOk do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 1}, builder}
         end
 
@@ -48,7 +48,7 @@ defmodule JSV.CastTest do
 
     test "cast returns an error tuple" do
       defmodule LegacyError do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :returns_error, 1}, builder}
         end
 
@@ -82,7 +82,7 @@ defmodule JSV.CastTest do
 
     test "cast raises an error" do
       defmodule LegacyRaises do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :boom, 1}, builder}
         end
 
@@ -107,7 +107,7 @@ defmodule JSV.CastTest do
   describe "using x-jsv-cast with a manual __jsv__ callback" do
     test "can cast raw data to arbitrary data" do
       defmodule ExpectsString do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 1}, builder}
         end
 
@@ -127,7 +127,7 @@ defmodule JSV.CastTest do
 
     test "not called when data is invalid" do
       defmodule XExpectsInteger do
-        def __jsv__({:cast, _args}, builder) do
+        def __jsv__({:cast, _args, _raw_schema}, builder) do
           {{__MODULE__, :will_not_be_called, 1}, builder}
         end
 
@@ -147,7 +147,7 @@ defmodule JSV.CastTest do
 
     test "can return an error" do
       defmodule XReturnsError do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 1}, builder}
         end
 
@@ -183,7 +183,7 @@ defmodule JSV.CastTest do
 
     test "does not crash when __jsv__ has no matching clause" do
       defmodule XDoesNotKnowTag do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :whatever, 1}, builder}
         end
 
@@ -211,7 +211,7 @@ defmodule JSV.CastTest do
 
     test "errors from nested calls within __jsv__ propagate at build time" do
       defmodule XNestedUnexportedFunction do
-        def __jsv__({:cast, ["some_tag" | _]}, _builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, _builder) do
           UnknownModule.a_function()
         end
       end
@@ -228,7 +228,7 @@ defmodule JSV.CastTest do
 
     test "function clause errors within the caster propagate at validation time" do
       defmodule XNestedFunctionClauseError do
-        def __jsv__({:cast, ["some_tag" | _]}, builder) do
+        def __jsv__({:cast, ["some_tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 1}, builder}
         end
 
@@ -587,7 +587,7 @@ defmodule JSV.CastTest do
   describe "cast handler arity dispatch" do
     test "legacy jsv-cast dispatches to arity 2 handler" do
       defmodule LegacyArity2Handler do
-        def __jsv__({:cast, ["tag" | _]}, builder) do
+        def __jsv__({:cast, ["tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 2}, builder}
         end
 
@@ -603,7 +603,7 @@ defmodule JSV.CastTest do
 
     test "legacy jsv-cast dispatches to arity 3 handler" do
       defmodule LegacyArity3Handler do
-        def __jsv__({:cast, ["tag" | _]}, builder) do
+        def __jsv__({:cast, ["tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 3}, builder}
         end
 
@@ -633,7 +633,7 @@ defmodule JSV.CastTest do
   describe "build errors for invalid cast handlers" do
     test "returns build error when handler function does not exist at any arity" do
       defmodule NoSuchFunction do
-        def __jsv__({:cast, _}, builder) do
+        def __jsv__({:cast, _, _raw_schema}, builder) do
           {{__MODULE__, :this_function_does_not_exist}, builder}
         end
       end
@@ -654,7 +654,7 @@ defmodule JSV.CastTest do
     test "returns build error when handler function only exists at arity 4" do
       defmodule OnlyArity4 do
         # __jsv__ returns a 2-tuple, triggering arity discovery
-        def __jsv__({:cast, _}, builder) do
+        def __jsv__({:cast, _, _raw_schema}, builder) do
           {{__MODULE__, :do_cast}, builder}
         end
 
@@ -681,7 +681,7 @@ defmodule JSV.CastTest do
 
   describe "x-jsv-cast multicasting" do
     defmodule MultiCaster do
-      def __jsv__({:cast, _args}, builder) do
+      def __jsv__({:cast, _args, _raw_schema}, builder) do
         {{__MODULE__, :cast, 3}, builder}
       end
 
@@ -805,7 +805,7 @@ defmodule JSV.CastTest do
 
     test "cast returning a non-result value produces a bad cast return value error" do
       defmodule BadReturnCaster do
-        def __jsv__({:cast, _}, builder) do
+        def __jsv__({:cast, _, _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 1}, builder}
         end
 
@@ -838,7 +838,7 @@ defmodule JSV.CastTest do
   describe "jsv-cast and x-jsv-cast mutual exclusivity" do
     test "schema with both keywords is a build error" do
       defmodule BothKeywordsMod do
-        def __jsv__({:cast, ["tag" | _]}, builder) do
+        def __jsv__({:cast, ["tag" | _], _raw_schema}, builder) do
           {{__MODULE__, :do_cast, 1}, builder}
         end
 
@@ -977,7 +977,7 @@ defmodule JSV.CastTest do
 
   describe "casters can disable themselves" do
     defmodule DisabledCast do
-      def __jsv__({:cast, ["disabled" | _]}, builder) do
+      def __jsv__({:cast, ["disabled" | _], _raw_schema}, builder) do
         {:nocast, builder}
       end
     end
@@ -1018,6 +1018,103 @@ defmodule JSV.CastTest do
 
       assert nil == JSV.validate!(nil, JSV.build!(schema, atoms: true))
       assert nil == JSV.validate!(nil, JSV.build!(schema, atoms: false))
+    end
+  end
+
+  describe "raw schema is passed to __jsv__/2" do
+    defmodule RawSchemaCapture do
+      # Captures the raw schema received in the __jsv__ callback into the
+      # cast_args, so the cast function can return it as part of the result
+      # for the test to assert on.
+      def __jsv__({:cast, _args, raw_schema}, builder) do
+        {{__MODULE__, :wrap, 2, [raw_schema]}, builder}
+      end
+
+      def wrap(data, [raw_schema]) do
+        {:ok, {data, raw_schema}}
+      end
+    end
+
+    test "x-jsv-cast receives the parent raw schema" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{"name" => %{"type" => "string"}},
+        "x-jsv-cast" => [[to_string(RawSchemaCapture), "capture"]]
+      }
+
+      root = JSV.build!(schema)
+      assert {:ok, {data, raw_schema}} = JSV.validate(%{"name" => "Alice"}, root)
+      assert data == %{"name" => "Alice"}
+      assert raw_schema["type"] == "object"
+      assert raw_schema["properties"] == %{"name" => %{"type" => "string"}}
+      assert raw_schema["x-jsv-cast"] == [[to_string(RawSchemaCapture), "capture"]]
+    end
+
+    test "jsv-cast receives the parent raw schema" do
+      schema = %{
+        "type" => "object",
+        "properties" => %{"name" => %{"type" => "string"}},
+        "jsv-cast" => [to_string(RawSchemaCapture), "capture"]
+      }
+
+      root = JSV.build!(schema)
+      assert {:ok, {data, raw_schema}} = JSV.validate(%{"name" => "Bob"}, root)
+      assert data == %{"name" => "Bob"}
+      assert raw_schema["type"] == "object"
+      assert raw_schema["properties"] == %{"name" => %{"type" => "string"}}
+      assert raw_schema["jsv-cast"] == [to_string(RawSchemaCapture), "capture"]
+    end
+
+    defmodule AtomizeDeclaredProps do
+      # A more realistic example: at build time, capture the declared property
+      # names from the raw schema so the cast can convert only those keys to
+      # atoms at validation time, regardless of additional properties present
+      # in the data.
+      def __jsv__({:cast, _args, raw_schema}, builder) do
+        declared =
+          case raw_schema do
+            %{"properties" => props} when is_map(props) -> Map.keys(props)
+            _ -> []
+          end
+
+        {{__MODULE__, :atomize, 2, [declared]}, builder}
+      end
+
+      def atomize(data, [declared]) when is_map(data) do
+        atomized =
+          Enum.reduce(declared, %{}, fn key, acc ->
+            case Map.fetch(data, key) do
+              {:ok, value} -> Map.put(acc, String.to_existing_atom(key), value)
+              :error -> acc
+            end
+          end)
+
+        extras = Map.drop(data, declared)
+
+        {:ok, Map.merge(extras, atomized)}
+      end
+    end
+
+    test "raw schema can be used at build time to drive the cast behavior" do
+      _ = :name
+      _ = :age
+
+      schema = %{
+        "type" => "object",
+        "properties" => %{
+          "name" => %{"type" => "string"},
+          "age" => %{"type" => "integer"}
+        },
+        "additionalProperties" => true,
+        "x-jsv-cast" => [[to_string(AtomizeDeclaredProps), "atomize"]]
+      }
+
+      root = JSV.build!(schema)
+
+      assert {:ok, result} =
+               JSV.validate(%{"name" => "Alice", "age" => 30, "extra" => "kept-as-string"}, root)
+
+      assert %{"extra" => "kept-as-string", name: "Alice", age: 30} == result
     end
   end
 end

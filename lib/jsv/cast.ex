@@ -84,14 +84,14 @@ defmodule JSV.Cast do
   defoverridable __jsv__: 2
 
   @doc false
-  def __jsv__({:cast, ["string_to_atom" | _]}, builder) do
+  def __jsv__({:cast, ["string_to_atom" | _], _raw_schema}, builder) do
     case check_atoms_opt(builder) do
       {true, builder} -> {{__MODULE__, :string_to_atom, 1}, builder}
       {false, builder} -> {:nocast, builder}
     end
   end
 
-  def __jsv__({:cast, ["string_to_atom_or_nil" | _]}, builder) do
+  def __jsv__({:cast, ["string_to_atom_or_nil" | _], _raw_schema}, builder) do
     case check_atoms_opt(builder) do
       {true, builder} -> {{__MODULE__, :string_to_atom_or_nil, 1}, builder}
       {false, builder} -> {:nocast, builder}
@@ -99,7 +99,7 @@ defmodule JSV.Cast do
   end
 
   @spec __jsv__(tuple, JSV.Builder.t()) :: {tuple, JSV.Builder.t()}
-  def __jsv__({:cast, _} = cast, builder) do
+  def __jsv__({:cast, _, _} = cast, builder) do
     super(cast, builder)
   end
 

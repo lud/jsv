@@ -1622,7 +1622,7 @@ defmodule JSV.StructSchemaTest do
 
   describe "defschema with user-defined x-jsv-cast preserved before struct cast" do
     defmodule PreCaster do
-      def __jsv__({:cast, _args}, builder) do
+      def __jsv__({:cast, _args, _raw_schema}, builder) do
         {{__MODULE__, :cast, 3}, builder}
       end
 

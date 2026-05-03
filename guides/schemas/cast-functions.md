@@ -75,7 +75,7 @@ important and it is worth explaining the mechanism here. The `__jsv__/2`
 callback is generated automatically when you use the `defcast` macro.
 
 When evaluating `["Elixir.System", "stop"]`, JSV will call `System.__jsv__({:cast,
-["stop"]}, builder)` at schema build time. This function does not exist and JSV will catch that
+["stop"], raw_schema}, builder)` at schema build time. This function does not exist and JSV will catch that
 error, refusing to build the schema.
 
 The only way for that function to exist is if you define it in your own code.

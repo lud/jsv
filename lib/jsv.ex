@@ -721,11 +721,11 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__({:cast, []}, builder) do
+      def __jsv__({:cast, [], _raw_schema}, builder) do
         {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
-      def __jsv__({:cast, [@legacy_jsv_tag]}, builder) do
+      def __jsv__({:cast, [@legacy_jsv_tag], _raw_schema}, builder) do
         {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
@@ -981,11 +981,11 @@ defmodule JSV do
       end
 
       @doc false
-      def __jsv__({:cast, []}, builder) do
+      def __jsv__({:cast, [], _raw_schema}, builder) do
         {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
-      def __jsv__({:cast, [@legacy_jsv_tag]}, builder) do
+      def __jsv__({:cast, [@legacy_jsv_tag], _raw_schema}, builder) do
         {{__MODULE__, :__jsv_struct__, 1}, builder}
       end
 
@@ -1336,7 +1336,7 @@ defmodule JSV do
       unquote(helper)
 
       @doc false
-      def __jsv__({:cast, [unquote(tag) | rest_args]}, builder) do
+      def __jsv__({:cast, [unquote(tag) | rest_args], _raw_schema}, builder) do
         {{__MODULE__, unquote(fun), unquote(handler_arity), rest_args}, builder}
       end
 
@@ -1377,7 +1377,7 @@ defmodule JSV do
   defp defcast_local(_env, tag, local_fun) do
     quote do
       @doc false
-      def __jsv__({:cast, [unquote(tag) | rest_args]}, builder) do
+      def __jsv__({:cast, [unquote(tag) | rest_args], _raw_schema}, builder) do
         {{__MODULE__, unquote(local_fun), nil, rest_args}, builder}
       end
     end
