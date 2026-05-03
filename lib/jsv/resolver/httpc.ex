@@ -58,9 +58,7 @@ defmodule JSV.Resolver.Httpc do
     end
   end
 
-  @doc false
-  @spec allow_and_fetch(String.t(), keyword) :: {:normal, map} | {:error, term}
-  def allow_and_fetch(url, opts) do
+  defp allow_and_fetch(url, opts) do
     allowed_prefixes = Keyword.fetch!(opts, :allowed_prefixes)
     cache_dir = Keyword.get_lazy(opts, :cache_dir, &default_cache_dir/0)
 

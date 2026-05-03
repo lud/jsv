@@ -3,9 +3,12 @@ defmodule JSV.BuilderTest do
   alias JSV.Ref
   alias JSV.Schema
   alias JSV.Schema.Helpers
+  import JSV.TestHelpers
+  import Mox
   require JSV
   use ExUnit.Case, async: true
-  use Patch
+
+  setup :verify_on_exit!
 
   describe "resolving base meta schemas" do
     test "the default resolver can resolve draft 7" do
@@ -564,9 +567,15 @@ defmodule JSV.BuilderTest do
         }
       }
 
-      patch(JSV.Resolver.Httpc, :allow_and_fetch, fn _uri, _opts -> {:normal, schema_remote} end)
+      resolver =
+        JSV.Resolver
+        |> mock_for()
+        |> stub(:resolve, fn
+          "https://bar.com/schema", _opts -> {:normal, schema_remote}
+          _other, _opts -> {:error, :not_found}
+        end)
 
-      root = JSV.build!(schema_local, warnings: :silent, resolver: JSV.Resolver.Httpc)
+      root = JSV.build!(schema_local, warnings: :silent, resolver: [resolver, JSV.Resolver.Embedded])
 
       assert [
                %{

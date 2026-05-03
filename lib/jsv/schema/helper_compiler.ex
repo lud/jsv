@@ -16,6 +16,9 @@ defmodule JSV.Schema.HelperCompiler do
     Enum.map(args, fn {prop, value} ->
       value = Macro.expand(value, env)
 
+      # `:__xcast__` is a marker prop used to wrap the generated schema with
+      # `xcast/2`; it must never be folded into a `:const` and emitted as-is
+      # in the schema map, even when its value is a quoted literal.
       if Macro.quoted_literal?(value) && prop != :__xcast__ do
         {:const, prop, value}
       else
@@ -53,7 +56,7 @@ defmodule JSV.Schema.HelperCompiler do
     end
   end
 
-  defp prepare_fun(_fun, args) do
+  defp prepare_fun(args) do
     schema_props =
       Enum.flat_map(args, fn
         {:const, prop, const} -> [{prop, const}]
@@ -106,7 +109,7 @@ defmodule JSV.Schema.HelperCompiler do
     {guard, args} = extract_guard(args_or_guarded)
 
     args = expand_args(args, __CALLER__)
-    {schema_props, bindings, typespecs, doc_bindings, _caster} = prepare_fun(fun, args)
+    {schema_props, bindings, typespecs, doc_bindings, _caster} = prepare_fun(args)
 
     docs =
       quote do
@@ -160,7 +163,7 @@ defmodule JSV.Schema.HelperCompiler do
     {guard, args} = extract_guard(args_or_guarded)
 
     args = expand_args(args, __CALLER__)
-    {schema_props, bindings, typespecs, doc_bindings, caster} = prepare_fun(fun, args)
+    {schema_props, bindings, typespecs, doc_bindings, caster} = prepare_fun(args)
 
     docs =
       quote do

@@ -188,7 +188,9 @@ defmodule JSV do
                          - `JSV.Schema.Helpers.string_enum_to_atom_or_nil/2`
                          - `JSV.Schema.Helpers.string_to_atom/1`
 
-                         When set to `false`, these casters will be disabled.
+                         When set to `false`, these casters are silently dropped at build time. Schemas that
+                         relied on them will validate strings as strings (no atom conversion happens at
+                         runtime), so plan accordingly when toggling this option on existing data flows.
 
                          It is safe to set to `true` for trusted schemas. Use `false` if you are building
                          untrusted schemas at runtime to avoid third parties to define unwanted `x-jsv-cast`
