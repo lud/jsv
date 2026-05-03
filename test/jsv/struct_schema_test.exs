@@ -49,7 +49,7 @@ defmodule JSV.StructSchemaTest do
     defschema(%Schema{
       type: :object,
       properties: %{
-        name: Schema.string(),
+        name: string(),
         sub_b: JSV.StructSchemaTest.RecursiveB
       },
       required: [:sub_b]
@@ -60,7 +60,7 @@ defmodule JSV.StructSchemaTest do
     defschema(%Schema{
       type: :object,
       properties: %{
-        name: Schema.string(),
+        name: string(),
         sub_a: RecursiveA
       },
       # Sub is not required otherwise this is infinite recursion
@@ -72,7 +72,7 @@ defmodule JSV.StructSchemaTest do
     defschema(%Schema{
       type: :object,
       properties: %{
-        name: Schema.string(),
+        name: string(),
         sub_self: __MODULE__
       },
       # Sub is not required otherwise this is infinite recursion
@@ -85,7 +85,7 @@ defmodule JSV.StructSchemaTest do
       "$id": "custom:my-custom-id",
       type: :object,
       properties: %{
-        name: Schema.string(),
+        name: string(),
         sub_self: __MODULE__
       },
       # Sub is not required otherwise this is infinite recursion
@@ -166,7 +166,7 @@ defmodule JSV.StructSchemaTest do
   defmodule RecursiveSelfKW do
     use JSV.Schema
 
-    defschema name: Schema.string(),
+    defschema name: string(),
               sub_self: optional(__MODULE__)
   end
 
@@ -174,24 +174,24 @@ defmodule JSV.StructSchemaTest do
   # macro
 
   defschema OptionalSkipNil,
-    name: Schema.string(),
+    name: string(),
     age: optional(integer(), nskip: nil)
 
   defschema OptionalSkip999,
-    name: Schema.string(),
+    name: string(),
     age: optional(integer(), nskip: 999)
 
   defmodule OptionalSkipPlainNil do
     use JSV.Schema
 
-    defschema name: Schema.string(),
+    defschema name: string(),
               age: optional(integer(), nskip: nil)
   end
 
   defmodule OptionalSkipPlain999 do
     use JSV.Schema
 
-    defschema name: Schema.string(),
+    defschema name: string(),
               age: optional(integer(), nskip: 999)
   end
 

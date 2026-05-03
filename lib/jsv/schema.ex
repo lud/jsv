@@ -1,6 +1,5 @@
 defmodule JSV.Schema do
   alias JSV.Resolver.Internal
-  import JSV.Schema.HelperCompiler
 
   @t_doc "`%#{inspect(__MODULE__)}{}` struct"
 
@@ -778,38 +777,4 @@ defmodule JSV.Schema do
       MapExt.from_struct_no_nils(schema)
     end
   end
-
-  defcompose_deprecated(:boolean, 0)
-  defcompose_deprecated(:date, 0)
-  defcompose_deprecated(:datetime, 0)
-  defcompose_deprecated(:email, 0)
-  defcompose_deprecated(:integer, 0)
-  defcompose_deprecated(:neg_integer, 0)
-  defcompose_deprecated(:non_empty_string, 0)
-  defcompose_deprecated(:non_neg_integer, 0)
-  defcompose_deprecated(:number, 0)
-  defcompose_deprecated(:object, 0)
-  defcompose_deprecated(:pos_integer, 0)
-  defcompose_deprecated(:string_to_atom, 0)
-  defcompose_deprecated(:string_to_boolean, 0)
-  defcompose_deprecated(:string_to_existing_atom, 0)
-  defcompose_deprecated(:string_to_float, 0)
-  defcompose_deprecated(:string_to_integer, 0)
-  defcompose_deprecated(:string_to_number, 0)
-  defcompose_deprecated(:string, 0)
-  defcompose_deprecated(:uri, 0)
-  defcompose_deprecated(:uuid, 0)
-
-  defcompose_deprecated(:all_of, 1)
-  defcompose_deprecated(:any_of, 1)
-  defcompose_deprecated(:array_of, 1)
-  defcompose_deprecated(:format, 1)
-  defcompose_deprecated(:items, 1)
-  defcompose_deprecated(:one_of, 1)
-  defcompose_deprecated(:properties, 1)
-  defcompose_deprecated(:props, 1)
-  defcompose_deprecated(:ref, 1)
-  defcompose_deprecated(:required, 1)
-  defcompose_deprecated(:string_of, 1)
-  defcompose_deprecated(:string_to_atom_enum, 1)
 end

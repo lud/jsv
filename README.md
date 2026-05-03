@@ -198,10 +198,15 @@ way. The code above will cast the data (and the birthdate as well):
 
 Features and changes for v1.0.0 release:
 
+* [x] New cast system with caster arguments, migrate `jsv-cast` to `x-jsv-cast` keyword.
+* [x] Struct-less atom-keyed maps cast.
+
+Future changes:
+
+* [ ] Custom vocabularies appendable to well-known metas like
+  `https://json-schema.org/draft/2020-12/schema`.
 * [ ] Move `defschema` and `defcast` to `JSV.Schema`
-* [ ] New cast system with caster arguments, migrate `jsv-cast` to `x-jsv-cast` keyword.
-* [ ] Custom vocabularies appendable to well-known metas like `https://json-schema.org/draft/2020-12/schema`.
-* [ ] Struct-less atom-keyed maps cast.
+* [ ] Remove support for legacy `jsv-cast` keyword.
 
 ## Contributing
 

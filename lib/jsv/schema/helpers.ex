@@ -93,16 +93,71 @@ defmodule JSV.Schema.Helpers do
   defpreset :non_neg_integer, type: :integer, minimum: 0
   defpreset :neg_integer, type: :integer, maximum: -1
 
-  defpreset :all_of, [allOf: schemas :: [Schema.schema()]] when is_list(schemas)
-  defpreset :any_of, [anyOf: schemas :: [Schema.schema()]] when is_list(schemas)
-  defpreset :one_of, [oneOf: schemas :: [Schema.schema()]] when is_list(schemas)
+  @doc "Returns a JSON Schema with `allOf: schemas`."
+  @doc group: "Schema Presets"
+  @spec all_of([Schema.schema()], extra) :: schema
+  def all_of(schemas, extra \\ nil) when is_list(schemas) do
+    combine(extra, %{allOf: schemas})
+  end
 
-  defpreset :string_to_integer, type: :string, __xcast__: JSV.Cast.string_to_integer()
-  defpreset :string_to_float, type: :string, __xcast__: JSV.Cast.string_to_float()
-  defpreset :string_to_number, type: :string, __xcast__: JSV.Cast.string_to_number()
-  defpreset :string_to_boolean, type: :string, __xcast__: JSV.Cast.string_to_boolean()
-  defpreset :string_to_existing_atom, type: :string, __xcast__: JSV.Cast.string_to_existing_atom()
-  defpreset :string_to_atom, type: :string, __xcast__: JSV.Cast.string_to_atom()
+  @doc "Returns a JSON Schema with `anyOf: schemas`."
+  @doc group: "Schema Presets"
+  @spec any_of([Schema.schema()], extra) :: schema
+  def any_of(schemas, extra \\ nil) when is_list(schemas) do
+    combine(extra, %{anyOf: schemas})
+  end
+
+  @doc "Returns a JSON Schema with `oneOf: schemas`."
+  @doc group: "Schema Presets"
+  @spec one_of([Schema.schema()], extra) :: schema
+  def one_of(schemas, extra \\ nil) when is_list(schemas) do
+    combine(extra, %{oneOf: schemas})
+  end
+
+  @doc "Returns a schema with `type: :string` that casts strings to integers."
+  @doc group: "Schema Presets"
+  @spec string_to_integer(extra) :: schema
+  def string_to_integer(extra \\ nil) do
+    extra |> combine(%{type: :string}) |> xcast(JSV.Cast.string_to_integer())
+  end
+
+  @doc "Returns a schema with `type: :string` that casts strings to floats."
+  @doc group: "Schema Presets"
+  @spec string_to_float(extra) :: schema
+  def string_to_float(extra \\ nil) do
+    extra |> combine(%{type: :string}) |> xcast(JSV.Cast.string_to_float())
+  end
+
+  @doc "Returns a schema with `type: :string` that casts strings to numbers (integers or floats)."
+  @doc group: "Schema Presets"
+  @spec string_to_number(extra) :: schema
+  def string_to_number(extra \\ nil) do
+    extra |> combine(%{type: :string}) |> xcast(JSV.Cast.string_to_number())
+  end
+
+  @doc """
+  Returns a schema with `type: :string` that casts `"true"` and `"false"` to
+  booleans.
+  """
+  @doc group: "Schema Presets"
+  @spec string_to_boolean(extra) :: schema
+  def string_to_boolean(extra \\ nil) do
+    extra |> combine(%{type: :string}) |> xcast(JSV.Cast.string_to_boolean())
+  end
+
+  @doc "Returns a schema with `type: :string` that casts strings to existing atoms."
+  @doc group: "Schema Presets"
+  @spec string_to_existing_atom(extra) :: schema
+  def string_to_existing_atom(extra \\ nil) do
+    extra |> combine(%{type: :string}) |> xcast(JSV.Cast.string_to_existing_atom())
+  end
+
+  @doc "Returns a schema with `type: :string` that casts strings to atoms."
+  @doc group: "Schema Presets"
+  @spec string_to_atom(extra) :: schema
+  def string_to_atom(extra \\ nil) do
+    extra |> combine(%{type: :string}) |> xcast(JSV.Cast.string_to_atom())
+  end
 
   defpreset :string, type: :string
   defpreset :date, type: :string, format: :date
@@ -112,22 +167,46 @@ defmodule JSV.Schema.Helpers do
   defpreset :email, type: :string, format: :email
   defpreset :non_empty_string, type: :string, minLength: 1
 
-  defpreset :array_of, type: :array, items: item_schema :: Schema.schema()
+  @doc "Returns a JSON Schema with `type: :array` and `items: item_schema`."
+  @doc group: "Schema Presets"
+  @spec array_of(Schema.schema(), extra) :: schema
+  def array_of(item_schema, extra \\ nil) do
+    combine(extra, %{type: :array, items: item_schema})
+  end
 
   @doc """
   Does **not** set the `type: :string` on the schema. Use `string_of/2` for a
   shortcut.
   """
-  defpreset :format, [format: format] when is_binary(format) when is_atom(format)
-  defpreset :string_of, [type: :string, format: format] when is_binary(format) when is_atom(format)
+  @doc group: "Schema Presets"
+  @spec format(atom | binary, extra) :: schema
+  def format(format, extra \\ nil) when is_binary(format) when is_atom(format) do
+    combine(extra, %{format: format})
+  end
+
+  @doc "Returns a JSON Schema with `type: :string` and `format: format`."
+  @doc group: "Schema Presets"
+  @spec string_of(atom | binary, extra) :: schema
+  def string_of(format, extra \\ nil) when is_binary(format) when is_atom(format) do
+    combine(extra, %{type: :string, format: format})
+  end
 
   @doc """
   Note that in the JSON Schema specification, if the enum contains `1` then
   `1.0` is a valid value.
   """
-  defpreset :enum, [enum: enum :: list] when is_list(enum)
+  @doc group: "Schema Presets"
+  @spec enum(list, extra) :: schema
+  def enum(enum, extra \\ nil) when is_list(enum) do
+    combine(extra, %{enum: enum})
+  end
 
-  defpreset :const, const: const :: term
+  @doc "Returns a JSON Schema with `const: const`."
+  @doc group: "Schema Presets"
+  @spec const(term, extra) :: schema
+  def const(const, extra \\ nil) do
+    combine(extra, %{const: const})
+  end
 
   @doc """
   Accepts a list of atoms and returns a schema that validates  a string
@@ -151,29 +230,29 @@ defmodule JSV.Schema.Helpers do
   > enum, the corresponding valid JSON value will be the `"nil"` string rather
   > than `null`.
   """
-  defpreset :string_enum_to_atom,
-            [
-              type: :string,
-              # We need to cast atoms to string, otherwise if `nil` is provided
-              # it will be JSON-encoded as `nil` instead of `"null". But this
-              # caster only accepts strings.
-              enum: Enum.map(enum, &Atom.to_string/1) <- enum :: [atom],
-              __xcast__: JSV.Cast.string_to_atom()
-            ]
-            when is_list(enum)
+  @doc group: "Schema Presets"
+  @spec string_enum_to_atom([atom], extra) :: schema
+  def string_enum_to_atom(enum, extra \\ nil) when is_list(enum) do
+    # We need to cast atoms to string, otherwise if `nil` is provided
+    # it will be JSON-encoded as `nil` instead of `"null". But this
+    # caster only accepts strings.
+    extra
+    |> combine(%{type: :string, enum: Enum.map(enum, &Atom.to_string/1)})
+    |> xcast(JSV.Cast.string_to_atom())
+  end
 
   @doc """
   Like `string_enum_to_atom/2` but also validates `null` JSON values. The `nil`
   atom should not be given in the atom list, except if you want to accept the
   `"nil"` JSON string and cast it to `nil`.
   """
-  defpreset :string_enum_to_atom_or_nil,
-            [
-              type: [:string, :null],
-              enum: [nil | Enum.map(enum, &Atom.to_string/1)] <- enum :: [atom],
-              __xcast__: JSV.Cast.string_to_atom_or_nil()
-            ]
-            when is_list(enum)
+  @doc group: "Schema Presets"
+  @spec string_enum_to_atom_or_nil([atom], extra) :: schema
+  def string_enum_to_atom_or_nil(enum, extra \\ nil) when is_list(enum) do
+    extra
+    |> combine(%{type: [:string, :null], enum: [nil | Enum.map(enum, &Atom.to_string/1)]})
+    |> xcast(JSV.Cast.string_to_atom_or_nil())
+  end
 
   @doc """
   See the `props/2` function that accepts properties as a first argument.
@@ -186,23 +265,20 @@ defmodule JSV.Schema.Helpers do
 
   Note that any preexisting schema properties are replaced.
   """
-  defpreset :properties,
-            [
-              properties: Map.new(properties) <- properties :: properties
-            ]
-            when is_list(properties)
-            when is_map(properties)
+  @doc group: "Schema Presets"
+  @spec properties(properties, extra) :: schema
+  def properties(properties, extra \\ nil) when is_list(properties) when is_map(properties) do
+    combine(extra, %{properties: Map.new(properties)})
+  end
 
   @doc """
   Note that any preexisting schema properties are replaced.
   """
-  defpreset :props,
-            [
-              type: :object,
-              properties: Map.new(properties) <- properties :: properties
-            ]
-            when is_list(properties)
-            when is_map(properties)
+  @doc group: "Schema Presets"
+  @spec props(properties, extra) :: schema
+  def props(properties, extra \\ nil) when is_list(properties) when is_map(properties) do
+    combine(extra, %{type: :object, properties: Map.new(properties)})
+  end
 
   @doc """
   Object properties with atom keys.
@@ -221,14 +297,13 @@ defmodule JSV.Schema.Helpers do
       %{name: "Alice", age: 123}
 
   """
-  defpreset :aprops,
-            [
-              type: :object,
-              properties: Map.new(properties) <- properties :: properties,
-              __xcast__: JSV.Cast.atom_property_keys()
-            ]
-            when is_list(properties)
-            when is_map(properties)
+  @doc group: "Schema Presets"
+  @spec aprops(properties, extra) :: schema
+  def aprops(properties, extra \\ nil) when is_list(properties) when is_map(properties) do
+    extra
+    |> combine(%{type: :object, properties: Map.new(properties)})
+    |> xcast(JSV.Cast.atom_property_keys())
+  end
 
   @doc """
   Required object properties with atom keys.
@@ -247,6 +322,7 @@ defmodule JSV.Schema.Helpers do
       %{name: "Alice", age: 123}
 
   """
+  @doc group: "Schema Presets"
   @spec arprops(properties, extra) :: schema
   def arprops(properties, extra \\ nil)
       when is_list(properties)
@@ -282,7 +358,11 @@ defmodule JSV.Schema.Helpers do
   props(user: ref(UserSchema))
   ```
   """
-  defpreset :ref, "$ref": ref :: String.t()
+  @doc group: "Schema Presets"
+  @spec ref(String.t(), extra) :: schema
+  def ref(ref, extra \\ nil) do
+    combine(extra, %{"$ref": ref})
+  end
 
   @doc """
   Marks a schema as optional when using the keyword list syntax with

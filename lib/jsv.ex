@@ -1105,7 +1105,7 @@ defmodule JSV do
   end
   ```
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(["Elixir.MyApp.Cast", "to_integer"])
+      iex> schema = JSV.Schema.Helpers.string() |> JSV.Schema.xcast(["Elixir.MyApp.Cast", "to_integer"])
       iex> root = JSV.build!(schema)
       iex> JSV.validate("1234", root)
       {:ok, 1234}
@@ -1145,7 +1145,7 @@ defmodule JSV do
   end
   ```
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(["Elixir.MyApp.Cast", "to_integer_if_string"])
+      iex> schema = JSV.Schema.Helpers.string() |> JSV.Schema.xcast(["Elixir.MyApp.Cast", "to_integer_if_string"])
       iex> root = JSV.build!(schema)
       iex> JSV.validate("1234", root)
       {:ok, 1234}
@@ -1215,12 +1215,12 @@ defmodule JSV do
   With a `x-jsv-cast` property defined in a schema, data will be cast when the
   schema is validated:
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(MyApp.Cast.to_existing_atom())
+      iex> schema = JSV.Schema.Helpers.string() |> JSV.Schema.xcast(MyApp.Cast.to_existing_atom())
       iex> root = JSV.build!(schema)
       iex> JSV.validate("noreply", root)
       {:ok, :noreply}
 
-      iex> schema = JSV.Schema.string() |> JSV.Schema.xcast(MyApp.Cast.to_existing_atom())
+      iex> schema = JSV.Schema.Helpers.string() |> JSV.Schema.xcast(MyApp.Cast.to_existing_atom())
       iex> root = JSV.build!(schema)
       iex> {:error, %JSV.ValidationError{}} = JSV.validate(["Elixir.NonExisting"], root)
 
