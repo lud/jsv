@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.0] - 2026-05-10
+
+### 🚀 Features
+
+- [**breaking**] New cast system see https://hexdocs.pm/jsv/002-api-changes-v0-19.html (#90)
+- [**breaking**] Converted schema presets to new cast system
+- Added schema build warnings on atom casters (#91)
+- Pass raw schema to casters at build time
+- Added the aprops and arprops helpers to cast properties schemas to atom keys
+- Removed the deprecated schema presets in JSV.Schema
+- [**breaking**] Support Decimal 3.0 and drop support for Poison
+
+### 🐛 Bug Fixes
+
+- MultipleOf with Decimal support
+- Ignore examples keyword when scanning schema
+- Nullable() will now add nil to enums
+
+### 📚 Documentation
+
+- Document build_key usage with refs
+- Reference drop of Poison support in migration guide
+
+### ⚙️ Miscellaneous Tasks
+
+- Added roadmap section to readme
+- Refactor of the JSON Schema test suite generators
+- Simplify built-in casts output syntax
+
 ## [0.18.3] - 2026-04-21
 
 ### 🐛 Bug Fixes
