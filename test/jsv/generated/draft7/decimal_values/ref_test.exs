@@ -46,8 +46,8 @@ defmodule JSV.Generated.Draft7.DecimalValues.RefTest do
             "subtree" => %{
               "meta" => "child",
               "nodes" => [
-                %{"value" => Decimal.new("1.1")},
-                %{"value" => Decimal.new("1.2")}
+                %{"value" => Decimal.new("1.1", JsonSchemaSuite.decimal_opts())},
+                %{"value" => Decimal.new("1.2", JsonSchemaSuite.decimal_opts())}
               ]
             },
             "value" => 1
@@ -56,8 +56,8 @@ defmodule JSV.Generated.Draft7.DecimalValues.RefTest do
             "subtree" => %{
               "meta" => "child",
               "nodes" => [
-                %{"value" => Decimal.new("2.1")},
-                %{"value" => Decimal.new("2.2")}
+                %{"value" => Decimal.new("2.1", JsonSchemaSuite.decimal_opts())},
+                %{"value" => Decimal.new("2.2", JsonSchemaSuite.decimal_opts())}
               ]
             },
             "value" => 2
@@ -78,7 +78,7 @@ defmodule JSV.Generated.Draft7.DecimalValues.RefTest do
               "meta" => "child",
               "nodes" => [
                 %{"value" => "string is invalid"},
-                %{"value" => Decimal.new("1.2")}
+                %{"value" => Decimal.new("1.2", JsonSchemaSuite.decimal_opts())}
               ]
             },
             "value" => 1
@@ -87,8 +87,8 @@ defmodule JSV.Generated.Draft7.DecimalValues.RefTest do
             "subtree" => %{
               "meta" => "child",
               "nodes" => [
-                %{"value" => Decimal.new("2.1")},
-                %{"value" => Decimal.new("2.2")}
+                %{"value" => Decimal.new("2.1", JsonSchemaSuite.decimal_opts())},
+                %{"value" => Decimal.new("2.2", JsonSchemaSuite.decimal_opts())}
               ]
             },
             "value" => 2

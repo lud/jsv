@@ -15,8 +15,6 @@ defmodule JSV.Resolver.Httpc do
     standard library.
   * JSV can use [Jason](https://hex.pm/packages/jason) if listed in your
     dependencies with the  `"~> 1.0"` requirement.
-  * JSV also supports [Poison](https://hex.pm/packages/poison) with the `"~> 6.0
-    or ~> 5.0"` requirement.
 
   Schemas known by the `JSV.Resolver.Embedded` will be fetched from that module
   instead of being fetched from the web. Allowed prefixes are not needed for

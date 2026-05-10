@@ -78,7 +78,7 @@ def deps do
     {:decimal, "~> 2.0"},
 
     # Required for resolving schemas via HTTP on Elixir < 1.18.
-    {:jason, "~> 1.0"}, # OR {:poison, "~> 6.0"}
+    {:jason, "~> 1.0"}
   ]
 end
 ```

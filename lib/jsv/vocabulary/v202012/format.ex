@@ -101,19 +101,10 @@ defmodule JSV.Vocabulary.V202012.Format do
     end
   end
 
-  if Code.ensure_loaded?(Poison.EncodeError) do
-    defp json_encodable_or_inspect(term) do
-      JSV.Codec.encode!(term)
-    rescue
-      _ in Protocol.UndefinedError -> inspect(term)
-      _ in Poison.EncodeError -> inspect(term)
-    end
-  else
-    defp json_encodable_or_inspect(term) do
-      JSV.Codec.encode!(term)
-    rescue
-      _ in Protocol.UndefinedError -> inspect(term)
-    end
+  defp json_encodable_or_inspect(term) do
+    JSV.Codec.encode!(term)
+  rescue
+    _ in Protocol.UndefinedError -> inspect(term)
   end
 
   # ---------------------------------------------------------------------------

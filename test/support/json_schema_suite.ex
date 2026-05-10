@@ -1,5 +1,4 @@
 # credo:disable-for-this-file Credo.Check.Readability.Specs
-
 defmodule JSV.Test.JsonSchemaSuite do
   alias JSV.Schema
   alias JSV.ValidationError
@@ -166,5 +165,9 @@ defmodule JSV.Test.JsonSchemaSuite do
 
   def version_check(elixir_version_req) do
     Version.match?(System.version(), elixir_version_req)
+  end
+
+  def decimal_opts do
+    [max_digits: 99, max_exponent: 6_144]
   end
 end

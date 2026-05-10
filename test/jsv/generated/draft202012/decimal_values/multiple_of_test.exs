@@ -21,13 +21,13 @@ defmodule JSV.Generated.Draft202012.DecimalValues.MultipleOfTest do
     end
 
     test "4.5 is multiple of 1.5", x do
-      data = Decimal.new("4.5")
+      data = Decimal.new("4.5", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "-4.5 is multiple of 1.5", x do
-      data = Decimal.new("-4.5")
+      data = Decimal.new("-4.5", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -45,13 +45,13 @@ defmodule JSV.Generated.Draft202012.DecimalValues.MultipleOfTest do
     end
 
     test "0.0075 is multiple of 0.0001", x do
-      data = Decimal.new("0.0075")
+      data = Decimal.new("0.0075", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "0.00751 is not multiple of 0.0001", x do
-      data = Decimal.new("0.00751")
+      data = Decimal.new("0.00751", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

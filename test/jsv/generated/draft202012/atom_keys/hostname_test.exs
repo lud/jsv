@@ -139,12 +139,6 @@ defmodule JSV.Generated.Draft202012.AtomKeys.HostnameTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "contains \"--\" in the 3rd and 4th position", x do
-      data = "XN--aa---o47jg78q"
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
     test "contains underscore", x do
       data = "host_name"
       expected_valid = false
@@ -407,6 +401,12 @@ defmodule JSV.Generated.Draft202012.AtomKeys.HostnameTest do
     test "ZERO WIDTH NON-JOINER not preceded by Virama but matches regexp", x do
       data = "xn--ngba5hb2804a"
       expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "contains \"--\" in the 3rd and 4th position", x do
+      data = "XN--aa---o47jg78q"
+      expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end

@@ -21,7 +21,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -39,7 +39,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -57,7 +57,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -75,7 +75,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -93,7 +93,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -111,7 +111,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -129,7 +129,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -147,7 +147,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -165,7 +165,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -183,7 +183,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -201,7 +201,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -219,7 +219,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -237,7 +237,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -255,7 +255,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -273,7 +273,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -291,7 +291,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -309,7 +309,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -327,7 +327,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -345,7 +345,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.FormatTest do
     end
 
     test "all string formats ignore floats", x do
-      data = Decimal.new("13.7")
+      data = Decimal.new("13.7", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

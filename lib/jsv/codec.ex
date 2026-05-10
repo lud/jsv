@@ -9,17 +9,13 @@ defmodule JSV.Codec do
             Code.ensure_loaded?(Jason) ->
               JSV.Codec.JasonCodec
 
-            Code.ensure_loaded?(Poison) ->
-              JSV.Codec.PoisonCodec
-
             Code.ensure_loaded?(JSON) ->
               JSV.Codec.NativeCodec
 
             true ->
               raise "could not define JSON codec for #{inspect(__MODULE__)}\n\n" <>
-                      "For Elixir versions lower than 1.18, make sure to declare a JSON parser " <>
-                      ~S|dependency such as {:jason, "~> 1.0"}, {:poison, "~> 5.0"} or | <>
-                      ~S|{:poison, "~> 6.0"}.|
+                      "For Elixir versions lower than 1.18, make sure to include" <>
+                      ~S|Jason dependency: {:jason, "~> 1.0"}|
           end)
 
   @supports_formatting @codec.supports_formatting?()
@@ -76,8 +72,7 @@ defmodule JSV.Codec do
   @doc """
   Equivalent to `JSON.encode!/1` with human readable indentation.
 
-  Requires `Jason` or `Poison` for Elixir versions before 1.18 and OTP before
-  27.0.
+  Requires `Jason` for Elixir versions before 1.18 and OTP before 27.0.
   """
   @spec format!(term) :: binary
   def format!(term) do

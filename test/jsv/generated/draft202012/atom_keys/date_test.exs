@@ -312,5 +312,53 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DateTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "year 0000 is a leap year (0 % 400 == 0)", x do
+      data = "0000-02-29"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "century year 0100 is not a leap year", x do
+      data = "0100-02-29"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "century year 0400 is a leap year", x do
+      data = "0400-02-29"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "century year 2100 is not a leap year", x do
+      data = "2100-02-29"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: leading whitespace is not permitted", x do
+      data = " 2024-01-15"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: trailing whitespace is not permitted", x do
+      data = "2024-01-15 "
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: month 00 is not valid per date-month range 01-12", x do
+      data = "2024-00-15"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: day 00 is not valid per date-mday minimum of 01", x do
+      data = "2024-01-00"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

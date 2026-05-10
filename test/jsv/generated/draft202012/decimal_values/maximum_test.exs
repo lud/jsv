@@ -17,19 +17,19 @@ defmodule JSV.Generated.Draft202012.DecimalValues.MaximumTest do
     end
 
     test "below the maximum is valid", x do
-      data = Decimal.new("2.6")
+      data = Decimal.new("2.6", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "boundary point is valid", x do
-      data = Decimal.new("3.0")
+      data = Decimal.new("3.0", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "above the maximum is invalid", x do
-      data = Decimal.new("3.5")
+      data = Decimal.new("3.5", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -43,19 +43,19 @@ defmodule JSV.Generated.Draft202012.DecimalValues.MaximumTest do
     end
 
     test "below the maximum is valid", x do
-      data = Decimal.new("299.97")
+      data = Decimal.new("299.97", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "boundary point float is valid", x do
-      data = Decimal.new("300.00")
+      data = Decimal.new("300.00", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "above the maximum is invalid", x do
-      data = Decimal.new("300.5")
+      data = Decimal.new("300.5", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

@@ -53,13 +53,21 @@ defmodule JSV.Generated.Draft202012.DecimalValues.DynamicRefTest do
     end
 
     test "number list with number values", x do
-      data = %{"kindOfList" => "numbers", "list" => [Decimal.new("1.1")]}
+      data = %{
+        "kindOfList" => "numbers",
+        "list" => [Decimal.new("1.1", JsonSchemaSuite.decimal_opts())]
+      }
+
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "string list with number values", x do
-      data = %{"kindOfList" => "strings", "list" => [Decimal.new("1.1")]}
+      data = %{
+        "kindOfList" => "strings",
+        "list" => [Decimal.new("1.1", JsonSchemaSuite.decimal_opts())]
+      }
+
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

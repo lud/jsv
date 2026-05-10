@@ -21,13 +21,13 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float with zero fractional part is an integer", x do
-      data = Decimal.new("1.0")
+      data = Decimal.new("1.0", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "a float is not an integer", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -45,13 +45,13 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float with zero fractional part is a number (and an integer)", x do
-      data = Decimal.new("1.0")
+      data = Decimal.new("1.0", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "a float is a number", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -69,7 +69,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float is not a string", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -87,7 +87,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float is not an object", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -105,7 +105,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float is not an array", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -123,7 +123,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float is not a boolean", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -137,7 +137,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float is not null", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -155,7 +155,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.TypeTest do
     end
 
     test "a float is invalid", x do
-      data = Decimal.new("1.1")
+      data = Decimal.new("1.1", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

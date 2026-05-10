@@ -2,7 +2,6 @@ defmodule JSV.CodecTest do
   alias JSV.Codec
   alias JSV.Codec.JasonCodec
   alias JSV.Codec.NativeCodec
-  alias JSV.Codec.PoisonCodec
 
   use ExUnit.Case, async: true
 
@@ -67,12 +66,6 @@ defmodule JSV.CodecTest do
       assert expected_ordered_json() == call_sort_encoder(JSV.Codec.JasonCodec)
     end
 
-    test "with Poison" do
-      assert_raise RuntimeError, ~r/ordered JSON encoding requires Jason/, fn ->
-        call_sort_encoder(JSV.Codec.PoisonCodec)
-      end
-    end
-
     cond do
       Code.ensure_loaded?(JSV.Codec.NativeCodec) && JSV.Codec.NativeCodec.supports_ordered_formatting?() ->
         test "with Native" do
@@ -94,13 +87,6 @@ defmodule JSV.CodecTest do
       test "formatting support from Jason" do
         assert is_boolean(JasonCodec.supports_ordered_formatting?())
         assert is_boolean(JasonCodec.supports_formatting?())
-      end
-    end
-
-    if Code.ensure_loaded?(PoisonCodec) do
-      test "formatting support from Poison" do
-        assert is_boolean(PoisonCodec.supports_ordered_formatting?())
-        assert is_boolean(PoisonCodec.supports_formatting?())
       end
     end
 
@@ -138,18 +124,6 @@ defmodule JSV.CodecTest do
         |> JSV.normalize_error()
         |> Jason.encode!()
         |> Jason.decode!()
-
-      assert expected_decoded == actual
-    end
-
-    test "Poison", ctx do
-      actual = ctx.sample_error |> Poison.encode!() |> Poison.decode!()
-
-      expected_decoded =
-        ctx.sample_error
-        |> JSV.normalize_error()
-        |> Poison.encode!()
-        |> Poison.decode!()
 
       assert expected_decoded == actual
     end

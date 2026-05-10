@@ -17,7 +17,7 @@ defmodule JSV.Generated.Draft7.DecimalValues.PatternTest do
     end
 
     test "ignores floats", x do
-      data = Decimal.new("1.0")
+      data = Decimal.new("1.0", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

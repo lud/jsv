@@ -1268,7 +1268,6 @@ defmodule JSV.StructSchemaTest do
       data = %RecursiveSubA{name: "hello", sub_b: %RecursiveSubB{name: "world"}}
 
       assert is_binary(Jason.encode!(data))
-      assert is_binary(Poison.encode!(data))
     end
 
     if {:module, JSON} == Code.ensure_compiled(JSON) do

@@ -21,7 +21,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.Optional.BignumTest do
     end
 
     test "comparison works for high numbers", x do
-      data = Decimal.new("972783798187987123879878123.188781371")
+      data = Decimal.new("972783798187987123879878123.188781371", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -39,7 +39,7 @@ defmodule JSV.Generated.Draft202012.DecimalValues.Optional.BignumTest do
     end
 
     test "comparison works for very negative numbers", x do
-      data = Decimal.new("-972783798187987123879878123.188781371")
+      data = Decimal.new("-972783798187987123879878123.188781371", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

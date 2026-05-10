@@ -3,7 +3,7 @@ defmodule JSV.MixProject do
 
   @source_url "https://github.com/lud/jsv"
   @version "0.18.3"
-  @jsts_ref "c7257e92580678a086f0b9243a1903ed88bd27f7"
+  @jsts_ref "7ab81c077a6ff1bcf8d3c35b7209e1b402d465de"
 
   def project do
     [
@@ -50,8 +50,7 @@ defmodule JSV.MixProject do
 
       # Optional JSON support
       {:jason, "~> 1.0", optional: true},
-      {:poison, ">= 3.0.0 and < 7.0.0", optional: true},
-      {:decimal, "~> 2.0", optional: true},
+      {:decimal, "~> 2.0 or ~> 3.0", optional: true},
 
       # Optional Formats
       {:abnf_parsec, "~> 2.0"},

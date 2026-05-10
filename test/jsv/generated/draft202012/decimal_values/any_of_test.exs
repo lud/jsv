@@ -21,13 +21,13 @@ defmodule JSV.Generated.Draft202012.DecimalValues.AnyOfTest do
     end
 
     test "second anyOf valid", x do
-      data = Decimal.new("2.5")
+      data = Decimal.new("2.5", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "neither anyOf valid", x do
-      data = Decimal.new("1.5")
+      data = Decimal.new("1.5", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

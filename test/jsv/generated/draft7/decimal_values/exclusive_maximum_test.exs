@@ -17,19 +17,19 @@ defmodule JSV.Generated.Draft7.DecimalValues.ExclusiveMaximumTest do
     end
 
     test "below the exclusiveMaximum is valid", x do
-      data = Decimal.new("2.2")
+      data = Decimal.new("2.2", JsonSchemaSuite.decimal_opts())
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "boundary point is invalid", x do
-      data = Decimal.new("3.0")
+      data = Decimal.new("3.0", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
     test "above the exclusiveMaximum is invalid", x do
-      data = Decimal.new("3.5")
+      data = Decimal.new("3.5", JsonSchemaSuite.decimal_opts())
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

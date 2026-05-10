@@ -442,7 +442,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
   defp do_marshall_file(source_path, suite_flavor, ignored, elixir) do
     source_path
     |> File.read!()
-    |> Jason.decode!(floats: :decimals)
+    |> decode_json()
     |> Enum.flat_map(fn suite_case ->
       %{"description" => sc_desc, "schema" => schema, "tests" => tests} = suite_case
       suite_case_ignored? = ignored?(suite_case, ignored)
@@ -479,6 +479,17 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
         [%{description: sc_desc, schema: schema, tests: tests, elixir_version_check: elixir}]
       end
     end)
+  end
+
+  defp decode_json(json) do
+    {decoded, :ok, ""} =
+      JSON.decode(json, :ok,
+        float: fn float_str ->
+          Decimal.new(float_str, max_digits: 99, max_exponent: 6_144)
+        end
+      )
+
+    decoded
   end
 
   defp ignored?(%{"description" => d} = t, [name | ignored]) when is_binary(name) do
@@ -660,16 +671,10 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     # * For other flavors we will render the data as a a float.
 
     data =
-      case suite_flavor do
-        :decimal_test_data ->
-          data
-
-        _ ->
-          Traverse.postwalk(data, fn
-            {:struct, %Decimal{} = d, _} -> __MODULE__.ValueDumper.wrap(d, suite_flavor)
-            {_, x} -> x
-          end)
-      end
+      Traverse.postwalk(data, fn
+        {:struct, %Decimal{} = d, _} -> __MODULE__.ValueDumper.wrap(d, suite_flavor)
+        {_, x} -> x
+      end)
 
     inspect(data, pretty: true, limit: :infinity, printable_limit: :infinity)
   end
@@ -719,10 +724,8 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
       %__MODULE__{value: value, suite_flavor: suite_flavor}
     end
 
-    def render(%{value: %Decimal{}, suite_flavor: :decimal_test_data}, _) do
-      # For :decimal_test_data flavor the Decimal structs in the test data are
-      # not wrapped.
-      raise "should not happen"
+    def render(%{value: %Decimal{} = d, suite_flavor: :decimal_test_data}, _) do
+      "Decimal.new(#{inspect(Decimal.to_string(d))}, JsonSchemaSuite.decimal_opts())"
     end
 
     # Render normal floats
