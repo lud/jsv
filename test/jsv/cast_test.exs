@@ -1022,7 +1022,7 @@ defmodule JSV.CastTest do
 
     test "aprops is disabled with atoms: false" do
       schema = %{
-        "x-jsv-cast" => [["jsv", "aprops"]],
+        "x-jsv-cast" => "aprops",
         "properties" => %{"foo" => string(), "bar" => integer(), "nil" => %{}}
       }
 

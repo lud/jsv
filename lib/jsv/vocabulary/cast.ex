@@ -120,8 +120,8 @@ defmodule JSV.Vocabulary.Cast do
     {:ok, :lists.reverse(acc)}
   end
 
-  defp build_cast([module_str | args], builder, raw_schema) do
-    module = unwrap_ok(resolve_module(module_str))
+  defp build_cast(mod_args, builder, raw_schema) do
+    {module, args} = unwrap_ok(resolve_cast(mod_args))
 
     try do
       case module.__jsv__({:cast, args, raw_schema}, builder) do
@@ -131,7 +131,7 @@ defmodule JSV.Vocabulary.Cast do
     rescue
       e in CastHandlerLocationError ->
         # log_test_error(e, __STACKTRACE__)
-        Builder.fail(builder, {:invalid_cast, [module_str | args], e}, :"jsv-cast")
+        Builder.fail(builder, {:invalid_cast, mod_args, e}, :"jsv-cast")
 
       e in [UndefinedFunctionError, FunctionClauseError] ->
         stack = __STACKTRACE__
@@ -140,7 +140,7 @@ defmodule JSV.Vocabulary.Cast do
 
         case e do
           %{module: ^module, function: :__jsv__} ->
-            Builder.fail(builder, {:invalid_cast, [module_str | args], e}, :"jsv-cast")
+            Builder.fail(builder, {:invalid_cast, mod_args, e}, :"jsv-cast")
 
           _ ->
             reraise e, stack
@@ -169,12 +169,16 @@ defmodule JSV.Vocabulary.Cast do
     {cast, builder}
   end
 
-  defp resolve_module("jsv") do
-    {:ok, JSV.Cast}
+  for {:keep, tag} <- JSV.Cast.__jsv__(:casts) do
+    defp resolve_cast([unquote(tag) | _] = args) do
+      {:ok, {JSV.Cast, args}}
+    end
   end
 
-  defp resolve_module(module_str) do
-    StringExt.safe_string_to_existing_module(module_str)
+  defp resolve_cast([mod_str | args]) do
+    with {:ok, module} <- StringExt.safe_string_to_existing_module(mod_str) do
+      {:ok, {module, args}}
+    end
   end
 
   defp put_vd(vds, k, v, _builder) when map_size(vds) == 0 do

@@ -1,6 +1,6 @@
 defmodule JSV.Schema.Composer do
   alias JSV.Schema
-  import JSV.Schema.HelperCompiler
+  import JSV.Schema.HelpersCompiler
 
   @moduledoc """
   This module contains a composable API to build schemas in a functionnal way.

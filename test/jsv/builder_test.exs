@@ -554,7 +554,7 @@ defmodule JSV.BuilderTest do
             "type" => "array",
             "items" => %{
               "type" => "string",
-              "x-jsv-cast" => [["jsv", "string_to_atom"]]
+              "x-jsv-cast" => "string_to_atom"
             }
           }
         }
@@ -563,7 +563,7 @@ defmodule JSV.BuilderTest do
       schema_local = %{
         "properties" => %{
           "foo" => %{"$ref" => "https://bar.com/schema"},
-          "top" => %{"type" => "string", "x-jsv-cast" => [["jsv", "string_to_atom_or_nil"]]}
+          "top" => %{"type" => "string", "x-jsv-cast" => "string_to_atom_or_nil"}
         }
       }
 

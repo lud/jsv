@@ -1,4 +1,4 @@
-defmodule JSV.Schema.HelperCompiler do
+defmodule JSV.Schema.HelpersCompiler do
   @moduledoc false
 
   defmacro defpreset(fun, args) do

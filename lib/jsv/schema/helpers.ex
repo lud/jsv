@@ -1,7 +1,7 @@
 defmodule JSV.Schema.Helpers do
   alias JSV.Schema
   import JSV.Schema, only: [combine: 2, xcast: 2]
-  import JSV.Schema.HelperCompiler
+  import JSV.Schema.HelpersCompiler
 
   @moduledoc """
   Helpers to define schemas in plain Elixir code.

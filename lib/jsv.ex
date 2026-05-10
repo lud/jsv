@@ -1299,38 +1299,36 @@ defmodule JSV do
   end
 
   @doc false
-  defmacro defcast_module(mod_str) when is_binary(mod_str) do
-    Module.put_attribute(__CALLER__.module, :jsv_defcast_module, mod_str)
+  defmacro defcast_module(cast_alias) when is_binary(cast_alias) when :skip == cast_alias do
+    Module.register_attribute(__CALLER__.module, :jsv_casts, accumulate: true)
+    Module.put_attribute(__CALLER__.module, :jsv_defcast_module, cast_alias)
     :ok
+
+    quote do
+      @before_compile {unquote(__MODULE__), :publish_casts}
+    end
   end
 
   defp defcast_block(env, tag, call, [{:do, _} | _] = blocks) do
-    mod_str =
+    cast_prefix =
       case Module.get_attribute(env.module, :jsv_defcast_module) do
-        nil -> Atom.to_string(env.module)
-        mod_alias when is_binary(mod_alias) -> mod_alias
+        nil ->
+          Atom.to_string(env.module)
+
+        :skip ->
+          Module.put_attribute(env.module, :jsv_casts, {:keep, tag})
+          :skip
+
+        mod_alias when is_binary(mod_alias) ->
+          Module.put_attribute(env.module, :jsv_casts, {:discard, tag})
+          mod_alias
       end
 
     {fun, args} = defcast_decompose(call)
 
     handler_arity = length(args)
 
-    helper =
-      case handler_arity do
-        1 ->
-          quote do
-            def unquote(fun)() do
-              [unquote(mod_str), unquote(tag)]
-            end
-          end
-
-        _ ->
-          quote do
-            def unquote(fun)(args) when is_list(args) do
-              [unquote(mod_str), unquote(tag) | args]
-            end
-          end
-      end
+    helper = defcast_helper(fun, handler_arity, cast_prefix, tag)
 
     quote generated: true do
       unquote(helper)
@@ -1342,6 +1340,38 @@ defmodule JSV do
 
       @doc false
       def(unquote(fun)(unquote_splicing(args)), unquote(blocks))
+    end
+  end
+
+  defp defcast_helper(fun, handler_arity, cast_prefix, tag) do
+    case {handler_arity, cast_prefix} do
+      {1, :skip} ->
+        quote do
+          def unquote(fun)() do
+            unquote(tag)
+          end
+        end
+
+      {_, :skip} ->
+        quote do
+          def unquote(fun)(args) when is_list(args) do
+            [unquote(tag) | args]
+          end
+        end
+
+      {1, _} ->
+        quote do
+          def unquote(fun)() do
+            [unquote(cast_prefix), unquote(tag)]
+          end
+        end
+
+      {_, _} ->
+        quote do
+          def unquote(fun)(args) when is_list(args) do
+            [unquote(cast_prefix), unquote(tag) | args]
+          end
+        end
     end
   end
 
@@ -1386,6 +1416,16 @@ defmodule JSV do
   @spec bad_cast :: no_return()
   defp bad_cast do
     raise ArgumentError, "invalid defcast arguments"
+  end
+
+  defmacro publish_casts(env) do
+    casts = Module.get_attribute(env.module, :jsv_casts)
+
+    quote do
+      def __jsv__(:casts) do
+        unquote(casts)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------

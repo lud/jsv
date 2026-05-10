@@ -3,7 +3,7 @@ defmodule JSV.Cast do
 
   @moduledoc false
 
-  defcast_module("jsv")
+  defcast_module(:skip)
 
   defcast string_to_integer(data) do
     with true <- is_binary(data),
@@ -75,9 +75,13 @@ defmodule JSV.Cast do
     end
   end
 
-  @spec atom_property_keys :: [binary]
+  # Custom declaration and implementation because the helper takes no argument
+  # but the handler takes the mapping argument. This is not supported by defcast
+  # yet.
+  @jsv_casts {:keep, "aprops"}
+  @spec atom_property_keys :: binary
   def atom_property_keys do
-    [@jsv_defcast_module, "aprops"]
+    "aprops"
   end
 
   @spec atom_property_keys(map, [{binary, %{binary => atom}}]) :: {:ok, map}
