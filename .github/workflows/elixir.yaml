@@ -42,24 +42,12 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
 
-      - name: Dependencies build cache
-        uses: actions/cache@v5
-        id: mix-deps
+      - name: Mix Dependencies
+        uses: lud/github-actions/mix-deps@v1
         with:
-          path: |
-            deps
-            _build
-            !_build/plts
-          key: ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ steps.setup_beam.outputs.otp-version }}--${{ steps.setup_beam.outputs.elixir-version }}--${{ hashFiles('mix.lock') }}
-          # For the build we want them compiled on the same versions.
-          restore-keys: |
-            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ steps.setup_beam.outputs.otp-version }}--${{ steps.setup_beam.outputs.elixir-version }}--
-
-      - name: Install Dependencies
-        run: |
-          mix local.rebar --force
-          mix local.hex --force
-          mix deps.get --check-locked
+          elixir-version: ${{ steps.setup_beam.outputs.elixir-version }}
+          otp-version: ${{ steps.setup_beam.outputs.otp-version }}
+          cache-version: ${{ env.cache_vsn }}
 
       # Use force as we use a template config so we do not want to ignore a
       # specific directory from the cache. So we always want to compile all the
@@ -77,15 +65,12 @@ jobs:
       - name: Run Credo
         run: mix credo --strict
 
-      - name: Retrieve PLT Cache
-        uses: actions/cache@v5
-        id: dialyzer-plts
+      - name: Run Dialyzer
+        uses: lud/github-actions/run-dialyzer@v1
         with:
-          path: _build/plts
-          key: ${{ env.cache_vsn }}-dialyzer-plts-${{ runner.os }}--${{ steps.setup_beam.outputs.otp-version }}--${{ steps.setup_beam.outputs.elixir-version }}--${{ hashFiles('mix.exs', 'mix.lock') }}
-
-      - name: Run dialyzer
-        run: mix dialyzer --halt-exit-status
+          elixir-version: ${{ steps.setup_beam.outputs.elixir-version }}
+          otp-version: ${{ steps.setup_beam.outputs.otp-version }}
+          cache-version: ${{ env.cache_vsn }}
 
         # Remove generated application beam files to prevent caching them. We
         # also use `mix compile --force` to always check that the code compiles.
