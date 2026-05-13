@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.1] - 2026-05-13
+
+### 🚀 Features
+
+- Return better stacktraces in builder warnings
+
 ## [0.19.0] - 2026-05-10
 
 ### 🚀 Features
