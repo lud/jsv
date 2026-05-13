@@ -47,27 +47,7 @@ defmodule JSV.Builder do
   def warn(%__MODULE__{warnings: warnings} = builder, key, message) when is_atom(key) and is_binary(message) do
     warning = %{key: key, message: message, rev_path: builder.current_rev_path}
 
-    :ok =
-      case builder.opts[:warnings] do
-        :emit -> emit_warning(warning)
-        :silent -> :ok
-      end
-
     %{builder | warnings: [warning | warnings]}
-  end
-
-  defp emit_warning(warning) do
-    %{key: _key, message: message, rev_path: rev_path} = warning
-
-    path = JSV.ErrorFormatter.format_schema_path(rev_path)
-
-    IO.warn("""
-    #{message}
-
-    Warning emitted at #{path}.
-
-    Use `JSV.build(schema, warnings: :silent)` to silence all warnings.
-    """)
   end
 
   @doc false

@@ -1499,7 +1499,47 @@ defmodule JSV do
     key = Key.of(ref_or_ns)
 
     {new_vds, builder} = Builder.build!(builder, ref_or_ns, vds)
+    maybe_emit_warnings(builder)
+
     {key, build_ctx(ctx, builder: builder, validators: new_vds)}
+  end
+
+  defp maybe_emit_warnings(%{warnings: []}) do
+    :ok
+  end
+
+  defp maybe_emit_warnings(%{warnings: warnings} = builder) do
+    case builder.opts[:warnings] do
+      :emit ->
+        stacktrace = warning_stacktrace()
+
+        Enum.each(warnings, fn w -> emit_warning(w, stacktrace) end)
+
+      :silent ->
+        :ok
+    end
+  end
+
+  defp warning_stacktrace do
+    {:current_stacktrace, stacktrace} = :erlang.process_info(self(), :current_stacktrace)
+    Enum.drop(stacktrace, 2)
+  end
+
+  defp emit_warning(warning, stacktrace) do
+    %{key: _key, message: message, rev_path: rev_path} = warning
+
+    path = JSV.ErrorFormatter.format_schema_path(rev_path)
+
+    IO.warn(
+      """
+      #{message}
+
+      Warning emitted at #{path}.
+
+      Use `JSV.build(schema, warnings: :silent)` to silence all warnings.
+      """,
+      stacktrace
+    )
   end
 
   @doc """
