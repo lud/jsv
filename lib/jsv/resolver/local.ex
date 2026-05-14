@@ -211,7 +211,12 @@ defmodule JSV.Resolver.Local do
         end
 
       File.dir?(dir_or_file) ->
-        Path.wildcard("#{dir_or_file}/**/*.json")
+        # Path.expand normalizes backslashes to forward slashes on Windows
+        # (where they are separators) while leaving them untouched on Unix
+        # (where backslash is a valid filename character). This matters
+        # because Path.wildcard delegates to :filelib.wildcard, which only
+        # walks forward-slash separators.
+        Path.wildcard(Path.join(Path.expand(dir_or_file), "**/*.json"))
     end
   end
 
