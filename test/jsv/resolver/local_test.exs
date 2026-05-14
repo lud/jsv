@@ -235,6 +235,9 @@ defmodule JSV.Resolver.LocalTest do
       assert {:normal, valid_schema} == WithWarnings.resolve("test://valid-schema/", [])
     end
 
+    # Windows does not honour POSIX-style chmod(0) to deny read access, so the
+    # file remains readable and there is no error to surface.
+    @tag skip: match?({:win32, _}, :os.type())
     test "file access error" do
       file = generate_file(Codec.format!(%{"$id" => "test://schema-1/", "type" => "object"}))
       File.chmod!(file, 0o000)
@@ -283,10 +286,11 @@ defmodule JSV.Resolver.LocalTest do
         |> generate_file()
         |> Path.relative_to(File.cwd!(), force: true)
 
-      file_with_different_path =
-        [file, "../..", Path.dirname(file), Path.basename(file)]
-        |> Path.join()
-        |> Path.relative_to(File.cwd!(), force: true)
+      # Construct a second string referring to the same file by detouring
+      # through `../<cwd-basename>` — that normalizes back to the original
+      # regardless of how deep the temp file lives relative to cwd (Briefly's
+      # temp dir is ~4 levels up on Windows, 2 levels up on most Linux setups).
+      file_with_different_path = Path.join(["..", Path.basename(File.cwd!()), file])
 
       defmodule DupIdsSameFileSource do
         use JSV.Resolver.Local, source: [file, file, file_with_different_path]
