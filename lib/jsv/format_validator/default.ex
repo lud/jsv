@@ -57,6 +57,14 @@ defmodule JSV.FormatValidator.Default do
     end
   end
 
+  def validate_cast("date", "+" <> _) do
+    {:error, :invalid_format}
+  end
+
+  def validate_cast("date", "-" <> _) do
+    {:error, :invalid_format}
+  end
+
   def validate_cast("date", data) do
     Date.from_iso8601(data)
   end

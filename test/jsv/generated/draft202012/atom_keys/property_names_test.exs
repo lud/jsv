@@ -55,6 +55,18 @@ defmodule JSV.Generated.Draft202012.AtomKeys.PropertyNamesTest do
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "ignores null", x do
+      data = nil
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "ignores booleans", x do
+      data = true
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 
   describe "propertyNames validation with pattern" do

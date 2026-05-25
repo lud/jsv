@@ -79,18 +79,6 @@ defmodule JSV.Generated.Draft7.AtomKeys.DateTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a invalid date string with 29 days in February (normal)", x do
-      data = "2021-02-29"
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
-    test "a valid date string with 29 days in February (leap)", x do
-      data = "2020-02-29"
-      expected_valid = true
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
     test "a invalid date string with 30 days in February (leap)", x do
       data = "2020-02-30"
       expected_valid = false
@@ -217,12 +205,6 @@ defmodule JSV.Generated.Draft7.AtomKeys.DateTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "a invalid date string with invalid month", x do
-      data = "2020-13-01"
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
     test "an invalid date string", x do
       data = "06/19/1963"
       expected_valid = false
@@ -249,12 +231,6 @@ defmodule JSV.Generated.Draft7.AtomKeys.DateTest do
 
     test "invalid month", x do
       data = "1998-13-01"
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
-    test "invalid month-day combination", x do
-      data = "1998-04-31"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -351,6 +327,84 @@ defmodule JSV.Generated.Draft7.AtomKeys.DateTest do
 
     test "invalid: day 00 is not valid per date-mday minimum of 01", x do
       data = "2024-01-00"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: empty string", x do
+      data = ""
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: embedded whitespace between year and month", x do
+      data = "2020 -01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: trailing character after valid full-date", x do
+      data = "2020-01-01X"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: trailing Z after full-date", x do
+      data = "2020-01-01Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: full-date followed by space and time component", x do
+      data = "2020-01-01 00:00:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "valid: four-digit year 0001", x do
+      data = "0001-01-01"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: two-digit year (N-2 digits)", x do
+      data = "20-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: three-digit year (N-1 digits)", x do
+      data = "998-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: five-digit year (N+1 digits)", x do
+      data = "12020-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: positive sign prefix on year", x do
+      data = "+2020-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: negative sign prefix on year", x do
+      data = "-2020-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: non-ASCII Bengali digit in year field", x do
+      data = "২020-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: alphabetic characters in year field", x do
+      data = "YYYY-01-01"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
