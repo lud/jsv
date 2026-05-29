@@ -431,11 +431,13 @@ defmodule JSV.Schema do
   """
 
   @spec xcast(schema, String.t() | atom | [schema_data]) :: %{:"x-jsv-cast" => caster_group}
+  # Workaround for Elixir 1.20.0-rc.4 type-checker crash on stacked `when`
+  # guards (https://github.com/elixir-lang/elixir/issues). Combined into a
+  # single `when ... or ...` clause; semantically tighter since `hd/1` is
+  # now only called when `caster` is a list.
   def xcast(%{} = schema, caster)
-      when is_binary(caster)
-      when is_atom(caster)
-      when is_binary(hd(caster))
-      when is_atom(hd(caster)) do
+      when is_binary(caster) or is_atom(caster) or
+             (is_list(caster) and (is_binary(hd(caster)) or is_atom(hd(caster)))) do
     normal = JSV.Schema.normalize(caster)
 
     case schema do
@@ -491,10 +493,8 @@ defmodule JSV.Schema do
   """
   @spec xcast(String.t() | atom | [schema_data]) :: %{:"x-jsv-cast" => caster_group}
   def xcast(caster)
-      when is_binary(caster)
-      when is_atom(caster)
-      when is_binary(hd(caster))
-      when is_atom(hd(caster)) do
+      when is_binary(caster) or is_atom(caster) or
+             (is_list(caster) and (is_binary(hd(caster)) or is_atom(hd(caster)))) do
     xcast(%{}, caster)
   end
 
