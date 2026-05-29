@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.2] - 2026-05-29
+
+### 🐛 Bug Fixes
+
+- Make local resolver work on Windows (#95)
+- Reject +/- prefixes on 'date' format
+
+### ⚙️ Miscellaneous Tasks
+
+- Updated JSON Schema test suite
+- Fix compilation warnings for Elixir 1.20
+
 ## [0.19.1] - 2026-05-13
 
 ### 🚀 Features
