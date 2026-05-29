@@ -5,7 +5,6 @@ defmodule JSV.Test.JsonSchemaSuite do
   alias JSV.Validator
   alias JSV.Validator.ValidationContext
   import ExUnit.Assertions
-  require Logger
   use ExUnit.CaseTemplate
 
   @moduledoc false

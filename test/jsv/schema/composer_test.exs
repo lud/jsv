@@ -5,6 +5,10 @@ defmodule JSV.Schema.ComposerTest do
 
   doctest JSV.Schema.Composer, import: true
 
+  defp erase_type(it) do
+    Process.get(make_ref(), it)
+  end
+
   describe "definition helpers" do
     fun_cases = [
       boolean: %{
@@ -206,20 +210,16 @@ defmodule JSV.Schema.ComposerTest do
     Enum.each(fun_cases, fn {fun, spec} ->
       test "#{fun} utility" do
         spec = unquote(Macro.escape(spec))
-
-        fun = Map.get(spec, :fun, unquote(fun))
+        fun = unquote(Map.get(spec, :fun, fun))
+        base_args = List.wrap(unquote(Macro.escape(Map.get(spec, :base, nil))))
 
         %{valids: valids, invalids: invalids} = spec
-        args = Map.get(spec, :args, [])
+        args = unquote(Macro.escape(Map.get(spec, :args, [])))
 
         # If no mergeable base schema is set we call the arity-1 function
         # version to ensure that the merge is properly handled on top of a nil
         # value.
-        schema =
-          case Map.get(spec, :base, nil) do
-            nil -> apply(Composer, fun, args)
-            base -> apply(Composer, fun, [base | args])
-          end
+        schema = apply(Composer, fun, base_args ++ args)
 
         root = JSV.build!(schema, formats: true, atoms: true)
 
@@ -264,7 +264,7 @@ defmodule JSV.Schema.ComposerTest do
 
       # but no other kind
       assert_raise FunctionClauseError, fn ->
-        assert %{properties: %{a: _}} = Composer.properties(1)
+        assert %{properties: %{a: _}} = Composer.properties(erase_type(1))
       end
     end
 
@@ -275,7 +275,7 @@ defmodule JSV.Schema.ComposerTest do
 
       # but no other kind
       assert_raise FunctionClauseError, fn ->
-        assert %{properties: %{a: _}} = Composer.props(1)
+        assert %{properties: %{a: _}} = Composer.props(erase_type(1))
       end
     end
 
@@ -285,7 +285,7 @@ defmodule JSV.Schema.ComposerTest do
 
       # but no other kind
       assert_raise FunctionClauseError, fn ->
-        Composer.all_of(%{type: :integer})
+        Composer.all_of(erase_type(%{type: :integer}))
       end
     end
 
@@ -295,7 +295,7 @@ defmodule JSV.Schema.ComposerTest do
 
       # but no other kind
       assert_raise FunctionClauseError, fn ->
-        Composer.any_of(%{type: :integer})
+        Composer.any_of(erase_type(%{type: :integer}))
       end
     end
 
@@ -305,7 +305,7 @@ defmodule JSV.Schema.ComposerTest do
 
       # but no other kind
       assert_raise FunctionClauseError, fn ->
-        Composer.one_of(%{type: :integer})
+        Composer.one_of(erase_type(%{type: :integer}))
       end
     end
   end

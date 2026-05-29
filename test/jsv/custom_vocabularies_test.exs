@@ -1,5 +1,4 @@
 defmodule JSV.CustomVocabulariesTest do
-  require JSV.Validator
   alias JSV.Validator
   import JSV.TestHelpers
   import Mox

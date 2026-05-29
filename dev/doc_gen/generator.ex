@@ -158,11 +158,7 @@ if Code.ensure_loaded?(Readmix.Generator) do
 
       {:ok, casted} = JSV.validate(input, schema, cast_formats: true)
 
-      support =
-        case support do
-          b when is_binary(b) -> b
-          {lib, version} -> "Requires `#{inspect({lib, version})}`."
-        end
+      true = is_binary(support)
 
       output =
         case {casted, custom_output} do

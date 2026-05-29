@@ -5,7 +5,6 @@ defmodule JSV.BuilderTest do
   alias JSV.Schema.Helpers
   import JSV.TestHelpers
   import Mox
-  require JSV
   use ExUnit.Case, async: true
 
   setup :verify_on_exit!

@@ -5,6 +5,10 @@ defmodule JSV.Schema.HelpersTest do
 
   doctest JSV.Schema.Helpers, import: true
 
+  defp erase_type(it) do
+    Process.get(make_ref(), it)
+  end
+
   defp build(schema) do
     JSV.build!(schema, formats: true, atoms: true)
   end
@@ -566,7 +570,7 @@ defmodule JSV.Schema.HelpersTest do
       assert %{properties: %{a: _}} = props(%{a: true})
 
       assert_raise FunctionClauseError, fn ->
-        props(1)
+        props(erase_type(1))
       end
     end
 
@@ -574,7 +578,7 @@ defmodule JSV.Schema.HelpersTest do
       assert %{allOf: [%{type: :integer}]} = all_of([%{type: :integer}])
 
       assert_raise FunctionClauseError, fn ->
-        all_of(%{type: :integer})
+        all_of(erase_type(%{type: :integer}))
       end
     end
 
@@ -582,7 +586,7 @@ defmodule JSV.Schema.HelpersTest do
       assert %{anyOf: [%{type: :integer}]} = any_of([%{type: :integer}])
 
       assert_raise FunctionClauseError, fn ->
-        any_of(%{type: :integer})
+        any_of(erase_type(%{type: :integer}))
       end
     end
 
@@ -590,7 +594,7 @@ defmodule JSV.Schema.HelpersTest do
       assert %{oneOf: [%{type: :integer}]} = one_of([%{type: :integer}])
 
       assert_raise FunctionClauseError, fn ->
-        one_of(%{type: :integer})
+        one_of(erase_type(%{type: :integer}))
       end
     end
   end
@@ -701,7 +705,7 @@ defmodule JSV.Schema.HelpersTest do
       assert %{type: :object, properties: %{a: _}} = aprops(%{a: true})
 
       assert_raise FunctionClauseError, fn ->
-        aprops(1)
+        aprops(erase_type(1))
       end
     end
   end
@@ -736,7 +740,7 @@ defmodule JSV.Schema.HelpersTest do
       assert %{type: :object, properties: %{a: _}} = aprops(a: true)
 
       assert_raise FunctionClauseError, fn ->
-        aprops(1)
+        aprops(erase_type(1))
       end
     end
   end
