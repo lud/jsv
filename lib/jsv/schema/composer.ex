@@ -20,7 +20,8 @@ defmodule JSV.Schema.Composer do
   """
 
   @type property_key :: atom | binary
-  @type properties :: [{property_key, Schema.schema()}] | %{optional(property_key) => Schema.schema()}
+  @type nested_schema :: JSV.native_schema()
+  @type properties :: [{property_key, nested_schema}] | %{optional(property_key) => nested_schema}
 
   defcompose :boolean, type: :boolean
 
@@ -39,13 +40,13 @@ defmodule JSV.Schema.Composer do
   Does **not** set the `type: :array` on the schema. Use `array_of/2` for a
   shortcut.
   """
-  @spec items(Schema.merge_base(), Schema.schema()) :: Schema.schema()
+  @spec items(Schema.merge_base(), nested_schema) :: Schema.schema()
   def items(merge_base \\ nil, item_schema) do
     Schema.merge(merge_base, %{items: item_schema})
   end
 
   @doc "Defines or merges onto a JSON Schema with `type: :array` and `items: item_schema`."
-  @spec array_of(Schema.merge_base(), Schema.schema()) :: Schema.schema()
+  @spec array_of(Schema.merge_base(), nested_schema) :: Schema.schema()
   def array_of(merge_base \\ nil, item_schema) do
     Schema.merge(merge_base, %{type: :array, items: item_schema})
   end
@@ -111,19 +112,19 @@ defmodule JSV.Schema.Composer do
   end
 
   @doc "Defines or merges onto a JSON Schema with `allOf: schemas`."
-  @spec all_of(Schema.merge_base(), [Schema.schema()]) :: Schema.schema()
+  @spec all_of(Schema.merge_base(), [nested_schema]) :: Schema.schema()
   def all_of(merge_base \\ nil, schemas) when is_list(schemas) do
     Schema.merge(merge_base, %{allOf: schemas})
   end
 
   @doc "Defines or merges onto a JSON Schema with `anyOf: schemas`."
-  @spec any_of(Schema.merge_base(), [Schema.schema()]) :: Schema.schema()
+  @spec any_of(Schema.merge_base(), [nested_schema]) :: Schema.schema()
   def any_of(merge_base \\ nil, schemas) when is_list(schemas) do
     Schema.merge(merge_base, %{anyOf: schemas})
   end
 
   @doc "Defines or merges onto a JSON Schema with `oneOf: schemas`."
-  @spec one_of(Schema.merge_base(), [Schema.schema()]) :: Schema.schema()
+  @spec one_of(Schema.merge_base(), [nested_schema]) :: Schema.schema()
   def one_of(merge_base \\ nil, schemas) when is_list(schemas) do
     Schema.merge(merge_base, %{oneOf: schemas})
   end

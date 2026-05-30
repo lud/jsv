@@ -34,7 +34,8 @@ defmodule JSV.Schema.Helpers do
              ]
 
   @type property_key :: atom | binary
-  @type properties :: [{property_key, Schema.schema()}] | %{optional(property_key) => Schema.schema()}
+  @type nested_schema :: JSV.native_schema()
+  @type properties :: [{property_key, nested_schema}] | %{optional(property_key) => nested_schema}
   @type schema :: Schema.schema()
   @type extra :: Schema.attributes() | nil
 
@@ -95,21 +96,21 @@ defmodule JSV.Schema.Helpers do
 
   @doc "Returns a JSON Schema with `allOf: schemas`."
   @doc group: "Schema Presets"
-  @spec all_of([Schema.schema()], extra) :: schema
+  @spec all_of([nested_schema], extra) :: schema
   def all_of(schemas, extra \\ nil) when is_list(schemas) do
     combine(extra, %{allOf: schemas})
   end
 
   @doc "Returns a JSON Schema with `anyOf: schemas`."
   @doc group: "Schema Presets"
-  @spec any_of([Schema.schema()], extra) :: schema
+  @spec any_of([nested_schema], extra) :: schema
   def any_of(schemas, extra \\ nil) when is_list(schemas) do
     combine(extra, %{anyOf: schemas})
   end
 
   @doc "Returns a JSON Schema with `oneOf: schemas`."
   @doc group: "Schema Presets"
-  @spec one_of([Schema.schema()], extra) :: schema
+  @spec one_of([nested_schema], extra) :: schema
   def one_of(schemas, extra \\ nil) when is_list(schemas) do
     combine(extra, %{oneOf: schemas})
   end
@@ -169,7 +170,7 @@ defmodule JSV.Schema.Helpers do
 
   @doc "Returns a JSON Schema with `type: :array` and `items: item_schema`."
   @doc group: "Schema Presets"
-  @spec array_of(Schema.schema(), extra) :: schema
+  @spec array_of(nested_schema, extra) :: schema
   def array_of(item_schema, extra \\ nil) do
     combine(extra, %{type: :array, items: item_schema})
   end
