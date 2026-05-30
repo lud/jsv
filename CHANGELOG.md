@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.3] - 2026-05-30
+
+### 🐛 Bug Fixes
+
+- Allow module-based schemas in schema helpers typespecs
+
 ## [0.19.2] - 2026-05-29
 
 ### 🐛 Bug Fixes
