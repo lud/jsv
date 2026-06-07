@@ -212,7 +212,7 @@ defmodule JSV.Resolver do
 
     acc = [top_descriptor]
 
-    scan_schema_pairs(top_schema, id, nss, meta, [ns], acc)
+    scan_schema_pairs(top_schema, ns, nss, meta, [ns], acc)
   end
 
   defp scan_subschema(raw_schema, ns, nss, meta, path, acc) when is_map(raw_schema) do

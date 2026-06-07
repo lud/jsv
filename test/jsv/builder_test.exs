@@ -592,4 +592,37 @@ defmodule JSV.BuilderTest do
              ] = root.warnings
     end
   end
+
+  describe "reported bugs" do
+    test "bug on namespace merging v0.19.3" do
+      # A root document without `$id` is identified by the `:root` namespace. A
+      # `$ref` to an anchor whose subschema itself contains a relative `$ref`
+      # used to crash because the anchored subschema was resolved with a `nil`
+      # namespace instead of `:root`.
+      raw = """
+      {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$ref": "#outer",
+        "definitions": {
+          "outer": {
+            "$anchor": "outer",
+            "$ref": "#inner"
+          },
+          "inner": {
+            "$anchor": "inner",
+            "type": "string"
+          }
+        }
+      }
+      """
+
+      root =
+        raw
+        |> JSON.decode!()
+        |> JSV.build!()
+
+      assert {:ok, "hello"} = JSV.validate("hello", root)
+      assert {:error, _} = JSV.validate(123, root)
+    end
+  end
 end
