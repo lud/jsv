@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.4] - 2026-06-07
+
+### 🐛 Bug Fixes
+
+- Fixed nested anchor resolution without root namespace
+
 ## [0.19.3] - 2026-05-30
 
 ### 🐛 Bug Fixes
