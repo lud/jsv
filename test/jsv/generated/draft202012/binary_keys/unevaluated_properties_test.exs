@@ -1457,4 +1457,56 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
+
+  describe "Evaluated properties collection needs to consider instance location with patternProperties" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "properties" => %{
+          "foo" => %{"patternProperties" => %{"^bar$" => %{"type" => "string"}}}
+        },
+        "unevaluatedProperties" => false
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "with only the nested evaluated property", x do
+      data = %{"foo" => %{"bar" => "foo"}}
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "with an unevaluated property that exists at another location", x do
+      data = %{"bar" => "bar", "foo" => %{"bar" => "foo"}}
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
+
+  describe "Evaluated properties collection needs to consider instance location with additionalProperties" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "properties" => %{"foo" => %{"additionalProperties" => %{"type" => "string"}}},
+        "unevaluatedProperties" => false
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "with only the nested evaluated property", x do
+      data = %{"foo" => %{"bar" => "foo"}}
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "with an unevaluated property that exists at another location", x do
+      data = %{"bar" => "bar", "foo" => %{"bar" => "foo"}}
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
 end

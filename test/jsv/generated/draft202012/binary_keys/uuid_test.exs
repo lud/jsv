@@ -156,5 +156,11 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UuidTest do
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "URN prefixed UUID is invalid", x do
+      data = "urn:uuid:2eb8aa08-aa98-11ea-b4aa-73b441d16380"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

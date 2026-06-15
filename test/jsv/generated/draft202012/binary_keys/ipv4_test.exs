@@ -85,6 +85,18 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Ipv4Test do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "a 2-part address resolving to a routable IP (inet_aton shorthand)", x do
+      data = "127.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a 3-part address resolving to a routable IP (inet_aton shorthand)", x do
+      data = "127.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "an IP address as an integer", x do
       data = "0x7f000001"
       expected_valid = false
@@ -99,6 +111,18 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Ipv4Test do
 
     test "invalid non-ASCII '২' (a Bengali 2)", x do
       data = "1২7.0.0.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid fullwidth digits (non-ASCII)", x do
+      data = "１９２.１６８.１.１"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid mathematical bold digits (non-ASCII)", x do
+      data = "𝟏𝟗𝟐.𝟏𝟔𝟖.𝟏.𝟏"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -207,6 +231,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Ipv4Test do
 
     test "tab character is invalid", x do
       data = "192.168.0.1\t"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "additional content after an embedded NUL byte", x do
+      data = <<49, 57, 50, 46, 49, 54, 56, 46, 48, 46, 49, 0, 46, 101, 118, 105, 108, 46, 99, 111, 109>>
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

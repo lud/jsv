@@ -259,6 +259,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DateTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "invalid: non-ASCII Bengali digit in month field", x do
+      data = "2020-0৪-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "ISO8601 / non-RFC3339: YYYYMMDD without dashes (2023-03-28)", x do
       data = "20230328"
       expected_valid = false
@@ -411,6 +417,30 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DateTest do
 
     test "invalid: alphabetic characters in year field", x do
       data = "YYYY-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: three-digit month (N+1 digits)", x do
+      data = "2020-001-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: alphabetic characters in month field", x do
+      data = "2020-MM-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: three-digit day (N+1 digits)", x do
+      data = "2020-01-001"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: alphabetic characters in day field", x do
+      data = "2020-01-DD"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
