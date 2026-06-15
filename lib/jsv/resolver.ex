@@ -161,116 +161,150 @@ defmodule JSV.Resolver do
     check_resolved(rsv, ns)
   end
 
-  # Extract all $ids and achors. We receive the top schema
+  # Extract all $ids and anchors. We receive the top schema.
+  #
+  # The top schema differs from a subschema in three ways: its `meta` is derived
+  # from `$schema` (subschemas inherit it), it is addressable both by its `$id`
+  # and by the external id it was fetched with, and it has no parent namespace.
+  # The rest (anchor keys, descriptor, recursion) is shared with `scan_subschema`.
   defp scan_schema(top_schema, external_id, default_meta) when not is_nil(external_id) do
-    {id, anchor, dynamic_anchor} = extract_keys(top_schema)
+    {raw_id, anchor, dynamic_anchor} = extract_keys(top_schema)
 
+    case split_id(raw_id) do
+      {:ok, id, id_anchor} ->
+        anchor_names = Enum.reject([id_anchor, anchor], &is_nil/1)
+        scan_top_schema(top_schema, external_id, id, anchor_names, dynamic_anchor, default_meta)
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  defp scan_top_schema(top_schema, external_id, id, anchor_names, dynamic_anchor, default_meta) do
     # For self references that target "#" or "#some/path" in the document, when
-    # the document does not have an id, we will force it. This is for the root
-    # document only.
-
-    ns =
-      case id do
-        nil -> external_id
-        _ -> id
-      end
-
+    # the document does not have an id, we will force it (the external id).
+    ns = id || external_id
     nss = [id, external_id] |> Enum.reject(&is_nil/1) |> Enum.uniq()
 
-    # Anchor needs to be resolved from the $id or the external ID (an URL) if
-    # set.
-    anchors =
-      case anchor do
-        nil -> []
-        _ -> Enum.map(nss, &Key.for_anchor(&1, anchor))
-      end
-
-    dynamic_anchors =
-      case dynamic_anchor do
-        # a dynamic anchor is also adressable as a regular anchor for the given namespace
-        nil -> []
-        _ -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, dynamic_anchor), Key.for_anchor(&1, dynamic_anchor)])
-      end
-
-    # The schema will be findable by its $id or external id.
-    id_aliases = nss
-    aliases = id_aliases ++ anchors ++ dynamic_anchors
-
-    # If no metaschema is defined we will use the default draft as a fallback.
-    # We normalize it because many schemas use
+    # If no metaschema is defined we use the default draft as a fallback. We
+    # normalize it because many schemas use
     # "http://json-schema.org/draft-07/schema#" with a trailing "#".
     meta = normalize_meta(Map.get(top_schema, "$schema", default_meta))
 
-    top_descriptor = %Descriptor{
+    descriptor = %Descriptor{
       raw: top_schema,
       meta: meta,
-      aliases: aliases,
+      # The schema is findable by its $id and/or external id, plus its anchors.
+      aliases: nss ++ anchor_keys(nss, anchor_names, dynamic_anchor),
       ns: ns,
       parent_ns: nil,
       rev_path: [external_id]
     }
 
-    acc = [top_descriptor]
-
-    scan_schema_pairs(top_schema, ns, nss, meta, [ns], acc)
+    scan_schema_pairs(top_schema, ns, nss, meta, [ns], [descriptor])
   end
 
-  defp scan_subschema(raw_schema, ns, nss, meta, path, acc) when is_map(raw_schema) do
-    # If the subschema defines an id, we will discard the current namespaces, as
-    # the sibling or nested anchors will now only relate to this id
+  # Splits an `$id` into its base URI (used as a namespace) and an optional
+  # anchor carried by a plain-name fragment.
+  #
+  # JSON Schema draft 7 lets `$id` be a bare plain-name fragment ("#foo") to
+  # define a location-independent identifier, _i.e._ an anchor (the spec requires
+  # such an id to begin with "#"). Later drafts moved that to `$anchor` and
+  # forbid non-empty fragments in `$id`, but we accept the draft-7 form for every
+  # draft to keep a single code path.
+  #
+  # - no fragment              id is the base URI
+  # - empty fragment ("#")     trimmed
+  # - bare plain-name fragment converted to anchor internally
+  # - fragment + base URI      invalid (several ids would share one namespace)
+  # - JSON pointer fragment    invalid
+  defp split_id(nil) do
+    {:ok, nil, nil}
+  end
 
-    parent_ns = ns
+  defp split_id(id) when is_binary(id) do
+    case URI.parse(id) do
+      %{fragment: nil} -> {:ok, id, nil}
+      %{fragment: ""} = uri -> {:ok, base_id(uri), nil}
+      %{fragment: "/" <> _} -> {:error, {:invalid_id_fragment, id}}
+      %{fragment: anchor} = uri -> expect_anchor_like_id(id, base_id(uri), anchor)
+    end
+  end
 
-    {id, anchors, dynamic_anchor} =
-      case extract_keys(raw_schema) do
-        # ID that is only a fragment is replaced as an anchor
-        {"#" <> frag_id, anchor, dynamic_anchor} -> {nil, [frag_id | List.wrap(anchor)], dynamic_anchor}
-        {id, anchor, dynamic_anchor} -> {id, List.wrap(anchor), dynamic_anchor}
-      end
+  defp expect_anchor_like_id(_id, nil = _no_base, anchor) do
+    {:ok, nil, anchor}
+  end
 
-    {id_aliases, ns, nss} =
-      with true <- is_binary(id),
-           {:ok, full_id} <- merge_id(ns, id) do
-        {[full_id], full_id, [full_id]}
-      else
-        _ -> {[], ns, nss}
-      end
+  defp expect_anchor_like_id(id, _base, _anchor) do
+    {:error, {:invalid_id_fragment, id}}
+  end
 
+  defp base_id(uri) do
+    case URI.to_string(%{uri | fragment: nil}) do
+      "" -> nil
+      base -> base
+    end
+  end
+
+  # Builds the resolution keys for the anchors a schema defines: regular anchors
+  # (from `$anchor` or a plain-name `$id` fragment) and a `$dynamicAnchor`, each
+  # addressable in every namespace the schema is known under. A dynamic anchor
+  # is also addressable as a regular anchor.
+  defp anchor_keys(nss, anchor_names, dynamic_anchor) do
     anchors =
-      for new_ns <- nss, a <- anchors do
+      for new_ns <- nss, a <- anchor_names do
         Key.for_anchor(new_ns, a)
       end
 
     dynamic_anchors =
       case dynamic_anchor do
         nil -> []
-        # a dynamic anchor is also adressable as a regular anchor for the given namespace
         da -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, da), Key.for_anchor(&1, da)])
       end
 
-    # We do not check for the meta $schema is subschemas, we only add the
-    # parent_one to the descriptor.
+    anchors ++ dynamic_anchors
+  end
 
-    acc =
-      case(id_aliases ++ anchors ++ dynamic_anchors) do
-        [] ->
-          acc
+  # Skip descriptor if schema has no identifier ($id/$anchor)
+  defp cons_descriptor(%Descriptor{aliases: []}, acc) do
+    acc
+  end
 
-        aliases ->
-          descriptor =
-            %Descriptor{
-              raw: raw_schema,
-              meta: meta,
-              aliases: aliases,
-              ns: ns,
-              parent_ns: parent_ns,
-              rev_path: path
-            }
+  defp cons_descriptor(descriptor, acc) do
+    [descriptor | acc]
+  end
 
-          [descriptor | acc]
-      end
+  defp scan_subschema(raw_schema, parent_ns, parent_nss, meta, path, acc) when is_map(raw_schema) do
+    {raw_id, anchor, dynamic_anchor} = extract_keys(raw_schema)
 
-    scan_schema_pairs(raw_schema, ns, nss, meta, path, acc)
+    with {:ok, id, id_anchor} <- split_id(raw_id) do
+      anchor_names = Enum.reject([id_anchor, anchor], &is_nil/1)
+
+      # A base URI in the $id discards the current namespaces, as the sibling or
+      # nested anchors will now only relate to this id. A bare plain-name
+      # fragment ($id "#foo") keeps the current namespaces and only adds an
+      # anchor.
+      {id_aliases, ns, nss} =
+        with true <- is_binary(id),
+             {:ok, full_id} <- merge_id(parent_ns, id) do
+          {[full_id], full_id, [full_id]}
+        else
+          _ -> {[], parent_ns, parent_nss}
+        end
+
+      # We do not check for the meta $schema in subschemas, we only add the
+      # parent_ns to the descriptor.
+      descriptor = %Descriptor{
+        raw: raw_schema,
+        meta: meta,
+        aliases: id_aliases ++ anchor_keys(nss, anchor_names, dynamic_anchor),
+        ns: ns,
+        parent_ns: parent_ns,
+        rev_path: path
+      }
+
+      scan_schema_pairs(raw_schema, ns, nss, meta, path, cons_descriptor(descriptor, acc))
+    end
   end
 
   defp scan_subschema(scalar, _parent_id, _nss, _meta, _path, acc)
@@ -495,10 +529,6 @@ defmodule JSV.Resolver do
 
   defp normalize_resolved(map) when is_map(map) do
     JSV.Schema.normalize(map)
-  end
-
-  defp merge_id(nil, child) do
-    RNS.derive(child, "")
   end
 
   defp merge_id(parent, child) do

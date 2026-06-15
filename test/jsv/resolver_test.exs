@@ -110,6 +110,100 @@ defmodule JSV.ResolverTest do
     end
   end
 
+  describe "fragments in $id" do
+    test "an empty fragment in $id is stripped, pointer self references still resolve (draft 7)" do
+      raw = %{
+        "$schema" => "http://json-schema.org/draft-07/schema#",
+        "$id" => "https://example.test/empty-fragment#",
+        "definitions" => %{"pos" => %{"type" => "integer", "minimum" => 0}},
+        "properties" => %{"n" => %{"$ref" => "#/definitions/pos"}}
+      }
+
+      assert {:ok, root} = JSV.build(raw)
+      assert {:ok, %{"n" => 3}} = JSV.validate(%{"n" => 3}, root)
+      assert {:error, _} = JSV.validate(%{"n" => -1}, root)
+    end
+
+    test "an empty fragment in $id is stripped, root self references still resolve (draft 7)" do
+      raw = %{
+        "$schema" => "http://json-schema.org/draft-07/schema#",
+        "$id" => "https://example.test/empty-fragment-root#",
+        "type" => "object",
+        "additionalProperties" => %{"$ref" => "#"}
+      }
+
+      assert {:ok, root} = JSV.build(raw)
+      assert {:ok, _} = JSV.validate(%{"a" => %{"b" => %{}}}, root)
+      assert {:error, _} = JSV.validate(%{"a" => 1}, root)
+    end
+
+    test "an empty fragment in $id is stripped (draft 2020-12)" do
+      raw = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$id" => "https://example.test/empty-fragment-2020#",
+        "$defs" => %{"pos" => %{"type" => "integer", "minimum" => 0}},
+        "properties" => %{"n" => %{"$ref" => "#/$defs/pos"}}
+      }
+
+      assert {:ok, root} = JSV.build(raw)
+      assert {:ok, %{"n" => 3}} = JSV.validate(%{"n" => 3}, root)
+      assert {:error, _} = JSV.validate(%{"n" => -1}, root)
+    end
+
+    test "a JSON pointer fragment in $id is rejected with an explicit error" do
+      raw = %{
+        "$schema" => "http://json-schema.org/draft-07/schema#",
+        "$id" => "https://example.test/with-fragment#/section",
+        "type" => "integer"
+      }
+
+      assert {:error, %JSV.BuildError{} = err} = JSV.build(raw)
+      assert Exception.message(err) =~ "must be a URI with no fragment or a bare plain-name anchor"
+      assert Exception.message(err) =~ "https://example.test/with-fragment#/section"
+    end
+
+    test "a plain-name fragment combined with a base URI in $id is rejected" do
+      # A bare "#section" is a valid anchor, but "base#section" would make every
+      # such id collapse onto the same base namespace, so it is rejected.
+      raw = %{
+        "$schema" => "http://json-schema.org/draft-07/schema#",
+        "$id" => "https://example.test/with-anchor#section",
+        "type" => "integer"
+      }
+
+      assert {:error, %JSV.BuildError{} = err} = JSV.build(raw)
+      assert Exception.message(err) =~ "must be a URI with no fragment or a bare plain-name anchor"
+    end
+
+    test "a bare plain-name fragment $id anchor is reachable through a $ref to the base URI + anchor (draft 7)" do
+      raw = %{
+        "$schema" => "http://json-schema.org/draft-07/schema#",
+        "$id" => "https://example.test/root",
+        "allOf" => [%{"$ref" => "https://example.test/root#section"}],
+        "definitions" => %{"A" => %{"$id" => "#section", "type" => "integer"}}
+      }
+
+      assert {:ok, root} = JSV.build(raw)
+      assert {:ok, 1} = JSV.validate(1, root)
+      assert {:error, _} = JSV.validate("nope", root)
+    end
+
+    test "a bare plain-name fragment $id anchor works on draft 2020-12 too" do
+      # 2020-12 normally uses $anchor, but no official test forbids the draft-7
+      # "#name" form, so we accept it across drafts for a single code path.
+      raw = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "$id" => "https://example.test/root-2020",
+        "allOf" => [%{"$ref" => "https://example.test/root-2020#section"}],
+        "$defs" => %{"A" => %{"$id" => "#section", "type" => "integer"}}
+      }
+
+      assert {:ok, root} = JSV.build(raw)
+      assert {:ok, 1} = JSV.validate(1, root)
+      assert {:error, _} = JSV.validate("nope", root)
+    end
+  end
+
   describe "$id and $anchor inside examples are treated as literals" do
     test "duplicate $id values inside examples do not cause an error" do
       schema = %{

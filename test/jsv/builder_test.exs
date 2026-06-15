@@ -624,5 +624,19 @@ defmodule JSV.BuilderTest do
       assert {:ok, "hello"} = JSV.validate("hello", root)
       assert {:error, _} = JSV.validate(123, root)
     end
+
+    test "bug on draft-4 replication v19.0.4" do
+      # An `$id` with a trailing "#" (empty fragment) used to break pointer self
+      # references: the schema was registered under the raw `$id` (with "#") but
+      # `$ref` resolution looks it up in its fragment-less canonical form.
+      raw = %{
+        "$schema" => "http://json-schema.org/draft-07/schema#",
+        "$id" => "http://json-schema.org/draft-04/schema#",
+        "definitions" => %{"schemaArray" => %{"type" => "array", "minItems" => 1}},
+        "properties" => %{"allOf" => %{"$ref" => "#/definitions/schemaArray"}}
+      }
+
+      assert {:ok, _} = JSV.build(raw)
+    end
   end
 end

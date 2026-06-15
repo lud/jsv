@@ -33,6 +33,11 @@ defmodule JSV.BuildError do
     "cannot resolve the relative reference #{inspect(relative)} against base #{inspect(ns)}"
   end
 
+  defp format_reason({:invalid_id_fragment, id}, _) do
+    "invalid $id #{inspect(id)}, an $id must be a URI with no fragment or a bare " <>
+      "plain-name anchor such as \"#name\""
+  end
+
   defp format_reason(:mixed_casts, _) do
     "using both jsv-cast and x-jsv-cast on the same schema is not supported"
   end
