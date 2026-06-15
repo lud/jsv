@@ -61,13 +61,15 @@ jobs:
         run: mix test
 
       - name: Check Formatting
-        if: ${{ matrix.elixir == '1.20' }}
+        if: ${{ matrix.elixir == '1.20' && matrix.otp == '29' }}
         run: mix format --check-formatted
 
       - name: Run Credo
+        if: ${{ matrix.elixir == '1.20' && matrix.otp == '29' }}
         run: mix credo --strict
 
       - name: Run Dialyzer
+        if: ${{ matrix.elixir == '1.20' && matrix.otp == '29' }}
         uses: lud/github-actions/run-dialyzer@v1
         with:
           elixir-version: ${{ steps.setup_beam.outputs.elixir-version }}
