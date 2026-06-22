@@ -289,12 +289,6 @@ defmodule JSV.Generated.Draft7.AtomKeys.DateTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "year 0000 is a leap year (0 % 400 == 0)", x do
-      data = "0000-02-29"
-      expected_valid = true
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
     test "century year 0100 is not a leap year", x do
       data = "0100-02-29"
       expected_valid = false
