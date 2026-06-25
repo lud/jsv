@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.6] - 2026-06-25
+
+### 🐛 Bug Fixes
+
+- Support unicode general categories in pattern/patternProperties
+
+### 🧪 Testing
+
+- Updated JSON Schema Test Suite
+
 ## [0.19.5] - 2026-06-15
 
 ### 🐛 Bug Fixes
