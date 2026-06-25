@@ -88,7 +88,12 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   take_keyword :pattern, pattern, acc, builder, _ do
-    re = unwrap_ok(Regex.compile(pattern))
+    re =
+      pattern
+      |> JSV.Helpers.RegexExt.translate_ecma_regex()
+      |> Regex.compile("u")
+      |> unwrap_ok()
+
     {[{:pattern, re} | acc], builder}
   end
 

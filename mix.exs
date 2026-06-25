@@ -3,7 +3,7 @@ defmodule JSV.MixProject do
 
   @source_url "https://github.com/lud/jsv"
   @version "0.19.5"
-  @jsts_ref "e491ac1126961fa56ac9523a42ac9e27c0311e78"
+  @jsts_ref "c77b6244ba45675aad38922337b734553480b30a"
 
   def project do
     [
@@ -162,6 +162,7 @@ defmodule JSV.MixProject do
         JSV.Normalizer.Normalize,
         JSV.Codec,
         JSV.Helpers.MapExt,
+        JSV.Helpers.RegexExt,
         JSV.Helpers.Traverse,
         JSV.Schema.Composer
       ],

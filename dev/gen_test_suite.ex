@@ -100,12 +100,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
       "multipleOf.json" => [ignore: ["always invalid, but naive implementations may raise an overflow error"]],
       "not.json" => [],
       "oneOf.json" => [],
-      "pattern.json" => [
-        ignore: [
-          # Invalid regex for elixir
-          "pattern with Unicode property escape requires unicode mode"
-        ]
-      ],
+      "pattern.json" => [],
       "patternProperties.json" => [
         ignore: [
           # Invalid regex for elixir

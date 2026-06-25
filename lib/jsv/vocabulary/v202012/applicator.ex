@@ -45,7 +45,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   take_keyword :patternProperties, pattern_properties, acc, builder, _ do
     {built_subs, builder} =
       Enum.map_reduce(pattern_properties, builder, fn {k, pschema}, builder ->
-        re = unwrap_ok(Regex.compile(k))
+        re = k |> JSV.Helpers.RegexExt.translate_ecma_regex() |> Regex.compile("u") |> unwrap_ok()
 
         {subvalidators, builder} = Builder.build_sub!(pschema, [patternProperties: k], builder)
         {{{k, re}, subvalidators}, builder}
