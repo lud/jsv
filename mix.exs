@@ -61,7 +61,7 @@ defmodule JSV.MixProject do
       {:meck, "~> 1.0", only: :dev, override: true},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:readmix, "~> 0.6", only: :dev, runtime: false},
+      {:readmix, "~> 0.6", only: [:dev, :test], runtime: false},
 
       # Test
       {:briefly, "~> 0.5.1", only: :test},
