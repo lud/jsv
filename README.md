@@ -61,7 +61,7 @@ Add `jsv` to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:jsv, "~> 0.19"},
+    {:jsv, "~> 0.20"},
   ]
 end
 ```

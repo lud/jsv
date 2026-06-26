@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0] - 2026-06-26
+
+### 🚀 Features
+
+- Removed NimbleOptions dependency and changed internal options to use maps
+
+### 🚜 Refactor
+
+- Skip tracking casts and unevaluated paths when schemas do not need it
+
 ## [0.19.6] - 2026-06-25
 
 ### 🐛 Bug Fixes
