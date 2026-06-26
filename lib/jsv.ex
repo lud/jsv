@@ -3,6 +3,7 @@ defmodule JSV do
   alias JSV.Builder
   alias JSV.BuildError
   alias JSV.ErrorFormatter
+  alias JSV.Helpers.OptsValidator
   alias JSV.Key
   alias JSV.Ref
   alias JSV.Resolver
@@ -12,8 +13,8 @@ defmodule JSV do
   alias JSV.ValidationError
   alias JSV.Validator
   alias JSV.Validator.ValidationContext
-  use JSV.Debanger, records: [:build]
   require Record
+  use JSV.Debanger, records: [:build]
 
   Record.defrecordp(:build_ctx, :build, builder: nil, validators: %{})
 
@@ -88,171 +89,16 @@ defmodule JSV do
 
   @default_default_meta "https://json-schema.org/draft/2020-12/schema"
 
-  @build_opts_schema NimbleOptions.new!(
-                       resolver: [
-                         type: {:or, [:atom, :mod_arg, {:list, {:or, [:atom, :mod_arg]}}]},
-                         default: [],
-                         doc: """
-                         The `JSV.Resolver` behaviour implementation module to
-                         retrieve schemas identified by an URL.
+  @default_validation_options %{cast: true, cast_formats: false}
 
-                         Accepts a `module`, a `{module, options}` tuple or a
-                         list of those forms.
-
-                         The options can be any term and will be given to the
-                         `resolve/2` callback of the module.
-
-                         The `JSV.Resolver.Embedded` and `JSV.Resolver.Internal`
-                         will be automatically appended to support module-based
-                         schemas and meta-schemas.
-                         """
-                       ],
-                       default_meta: [
-                         type: :string,
-                         doc:
-                           ~S(The meta schema to use for resolved schemas that do not define a `"$schema"` property.),
-                         default: @default_default_meta
-                       ],
-                       formats: [
-                         type: {:or, [:boolean, nil, {:list, :atom}]},
-                         doc: """
-                         Controls the validation of strings with the `"format"` keyword.
-
-                         * `nil` - Format validation is enabled if to the meta-schema uses the format assertion vocabulary.
-                         * `true` - Enforces validation with the default validator modules.
-                         * `false` - Disables all format validation.
-                         * `[Module1, Module2,...]` (A list of modules) - Format validation is enabled and
-                            will use those modules as validators instead of the default format validator modules.
-                            The default format validator modules can be included back in the list manually,
-                            see `default_format_validator_modules/0`.
-
-                         > #### Formats are disabled by the default meta-schema {: .warning}
-                         >
-                         > The default value for this option is `nil` to respect
-                         > the JSON Schema specification where format validation
-                         > is enabled via vocabularies.
-                         >
-                         > The default meta-schemas for the latest drafts (example: `#{@default_default_meta}`)
-                         > do not enable format validation.
-                         >
-                         > You'll probably want this option to be set to `true`
-                         > or a list of your own modules.
-
-                         Worth noting, while this option does support providing your own formats,
-                         the [official specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2.3)
-                         recommends against it:
-
-                         > Vocabularies do not support specifically declaring different value sets for keywords.
-                         > Due to this limitation, and the historically uneven implementation of this keyword,
-                         > it is RECOMMENDED to define additional keywords in a custom vocabulary rather than
-                         > additional format attributes if interoperability is desired.
-                         """,
-                         default: nil
-                       ],
-                       vocabularies: [
-                         type: {:map, :string, {:or, [:atom, :mod_arg]}},
-                         doc: """
-                         Allows to redefine modules implementing vocabularies.
-
-                         This option accepts a map with vocabulary URIs as keys and implementations as values.
-                         The URIs are not fetched by JSV and does not need to point to anything specific.
-                         For instance, vocabulary URIs in the standard Draft 2020-12 meta-schema point to
-                         human-readable documentation.
-
-                         The given implementations will only be used if the meta-schema used to build a validation root
-                         actually declare those URIs in their `$vocabulary` keyword.
-
-                         For instance, to redefine how the `type` keyword and other validation keywords are handled,
-                         one should pass the following map:
-
-                             %{
-                               "https://json-schema.org/draft/2020-12/vocab/validation" => MyCustomModule
-                             }
-
-                         Modules must implement the `JSV.Vocabulary` behaviour.
-
-                         Implementations can also be passed options by wrapping them in a tuple:
-
-                             %{
-                              "https://json-schema.org/draft/2020-12/vocab/validation" => {MyCustomModule, foo: "bar"}
-                             }
-                         """,
-                         default: %{}
-                       ],
-                       atoms: [
-                         type: :boolean,
-                         doc: """
-                         Whether to allow casts that create atoms. This enables the following helpers:
-
-                         - `JSV.Schema.Helpers.string_enum_to_atom/2`
-                         - `JSV.Schema.Helpers.string_enum_to_atom_or_nil/2`
-                         - `JSV.Schema.Helpers.string_to_atom/1`
-
-                         When set to `false`, these casters are silently dropped at build time. Schemas that
-                         relied on them will validate strings as strings (no atom conversion happens at
-                         runtime), so plan accordingly when toggling this option on existing data flows.
-
-                         It is safe to set to `true` for trusted schemas. Use `false` if you are building
-                         untrusted schemas at runtime to avoid third parties to define unwanted `x-jsv-cast`
-                         casts with atom casting.
-
-                         The current default value is `true` for compatibility reasons. In future releases, this
-                         option will default to false.
-                         """
-                       ],
-                       warnings: [
-                         type: {:in, [:emit, :silent]},
-                         default: :emit,
-                         doc: """
-                         Controls schema build warnings.
-
-                         - `:emit` - Warnings will be emitted when a schema is built with `IO.warn/2`.
-                         - `:silent` - Warnings will not be emitted.
-
-                         Warnings are always returned in the built root.
-                         """
-                       ]
-                     )
-
-  @validate_opts_schema NimbleOptions.new!(
-                          cast: [
-                            type: :boolean,
-                            default: true,
-                            doc: """
-                            Enables calling generic cast functions on validation.
-
-                            This is based on the `x-jsv-cast` JSON Schema custom keyword
-                            and is typically used by `defschema/1`.
-
-                            While it is on by default, some specific casting features are enabled
-                            separately, see option `:cast_formats`.
-                            """
-                          ],
-                          cast_formats: [
-                            type: :boolean,
-                            default: false,
-                            doc: """
-                            When enabled, format validators will return casted values,
-                            for instance a `Date` struct instead of the date as string.
-
-                            It has no effect when the schema was not built with formats enabled.
-                            """
-                          ],
-                          key: [
-                            type: :any,
-                            required: false,
-                            doc: """
-                            When specified, the validation will start in the schema at the given key
-                            instead of using the root schema.
-
-                            The key must have been built and returned by `build_key!/2`. The validation
-                            does not accept to validate any Ref or pointer in the schema.
-
-                            This is useful when validating with a JSON document that contains schemas but
-                            is not itself a schema.
-                            """
-                          ]
-                        )
+  @default_build_options %{
+    resolver: [],
+    default_meta: @default_default_meta,
+    formats: nil,
+    vocabularies: %{},
+    atoms: nil,
+    warnings: :emit
+  }
 
   @type normal_schema :: boolean() | %{binary => normal_schema() | [normal_schema()]}
 
@@ -261,8 +107,18 @@ defmodule JSV do
   """
   @type native_schema :: boolean() | map() | module() | normal_schema()
 
-  @type build_opt :: unquote(NimbleOptions.option_typespec(@build_opts_schema))
-  @type validate_opt :: unquote(NimbleOptions.option_typespec(@validate_opts_schema))
+  @type build_opt ::
+          {:resolver, module() | {module(), term()} | [module() | {module(), term()}]}
+          | {:default_meta, binary()}
+          | {:formats, boolean() | nil | [module()]}
+          | {:vocabularies, %{optional(binary()) => module() | {module(), term()}}}
+          | {:atoms, boolean()}
+          | {:warnings, :emit | :silent}
+
+  @type validate_opt ::
+          {:cast, boolean()}
+          | {:cast_formats, boolean()}
+          | {:key, term()}
 
   @opaque build_context :: record(:build_ctx, builder: Builder.t(), validators: Validator.validators())
 
@@ -277,7 +133,118 @@ defmodule JSV do
 
   ### Options
 
-  #{NimbleOptions.docs(@build_opts_schema)}
+  * `:resolver` (`module | {module, options} | [module | {module, options}]`) -
+    The `JSV.Resolver` behaviour implementation module to retrieve schemas
+    identified by an URL.
+
+    Accepts a `module`, a `{module, options}` tuple or a list of those forms.
+
+    The options can be any term and will be given to the `resolve/2` callback of
+    the module.
+
+    The `JSV.Resolver.Embedded` and `JSV.Resolver.Internal` will be
+    automatically appended to support module-based schemas and meta-schemas.
+
+    The default value is `[]`.
+
+  * `:default_meta` (`t:String.t/0`) - The meta schema to use for resolved
+    schemas that do not define a `"$schema"` property. The default value is
+    `#{inspect(@default_default_meta)}`.
+
+  * `:formats` (`boolean | nil | [module]`) - Controls the validation of strings
+    with the `"format"` keyword.
+
+    * `nil` - Format validation is enabled if to the meta-schema uses the format
+      assertion vocabulary.
+    * `true` - Enforces validation with the default validator modules.
+    * `false` - Disables all format validation.
+    * `[Module1, Module2,...]` (A list of modules) - Format validation is
+      enabled and will use those modules as validators instead of the default
+      format validator modules. The default format validator modules can be
+      included back in the list manually, see
+      `default_format_validator_modules/0`.
+
+    > #### Formats are disabled by the default meta-schema {: .warning}
+    >
+    > The default value for this option is `nil` to respect the JSON Schema
+    > specification where format validation is enabled via vocabularies.
+    >
+    > The default meta-schemas for the latest drafts (example:
+    > `#{@default_default_meta}`) do not enable format validation.
+    >
+    > You'll probably want this option to be set to `true` or a list of your own
+    > modules.
+
+    Worth noting, while this option does support providing your own formats, the
+    [official
+    specification](https://json-schema.org/draft/2020-12/draft-bhutton-json-schema-validation-00#rfc.section.7.2.3)
+    recommends against it:
+
+    > Vocabularies do not support specifically declaring different value sets
+    > for keywords. Due to this limitation, and the historically uneven
+    > implementation of this keyword, it is RECOMMENDED to define additional
+    > keywords in a custom vocabulary rather than additional format attributes
+    > if interoperability is desired.
+
+    The default value is `nil`.
+
+  * `:vocabularies` (`%{String.t() => module | {module, options}}`) - Allows to
+    redefine modules implementing vocabularies.
+
+    This option accepts a map with vocabulary URIs as keys and implementations
+    as values. The URIs are not fetched by JSV and does not need to point to
+    anything specific. For instance, vocabulary URIs in the standard Draft
+    2020-12 meta-schema point to human-readable documentation.
+
+    The given implementations will only be used if the meta-schema used to build
+    a validation root actually declare those URIs in their `$vocabulary`
+    keyword.
+
+    For instance, to redefine how the `type` keyword and other validation
+    keywords are handled, one should pass the following map:
+
+        %{
+          "https://json-schema.org/draft/2020-12/vocab/validation" => MyCustomModule
+        }
+
+    Modules must implement the `JSV.Vocabulary` behaviour.
+
+    Implementations can also be passed options by wrapping them in a tuple:
+
+        %{
+         "https://json-schema.org/draft/2020-12/vocab/validation" => {MyCustomModule, foo: "bar"}
+        }
+
+    The default value is `%{}`.
+
+  * `:atoms` (`t:boolean/0`) - Whether to allow casts that create atoms. This
+    enables the following helpers:
+
+    - `JSV.Schema.Helpers.string_enum_to_atom/2`
+    - `JSV.Schema.Helpers.string_enum_to_atom_or_nil/2`
+    - `JSV.Schema.Helpers.string_to_atom/1`
+
+    When set to `false`, these casters are silently dropped at build time.
+    Schemas that relied on them will validate strings as strings (no atom
+    conversion happens at runtime), so plan accordingly when toggling this
+    option on existing data flows.
+
+    It is safe to set to `true` for trusted schemas. Use `false` if you are
+    building untrusted schemas at runtime to avoid third parties to define
+    unwanted `x-jsv-cast` casts with atom casting.
+
+    The current default value is `true` for compatibility reasons. In future
+    releases, this option will default to false.
+
+  * `:warnings` (`:emit | :silent`) - Controls schema build warnings.
+
+    - `:emit` - Warnings will be emitted when a schema is built with
+      `IO.warn/2`.
+    - `:silent` - Warnings will not be emitted.
+
+    Warnings are always returned in the built root.
+
+    The default value is `:emit`.
   """
   @doc group: @doc_group
   @spec build(native_schema(), [build_opt]) :: {:ok, Root.t()} | {:error, Exception.t()}
@@ -382,7 +349,7 @@ defmodule JSV do
   def validation_entrypoint(%JSV.Root{} = schema, data, opts) do
     %JSV.Root{validators: validators, root_key: root_key} = schema
 
-    {key, opts} = Keyword.pop(opts, :key, root_key)
+    key = Map.get(opts, :key, root_key)
 
     case Map.fetch(validators, key) do
       {:ok, root_schema_validators} ->
@@ -411,10 +378,16 @@ defmodule JSV do
   """
   @doc group: @doc_group
   @spec resolver_chain(resolvers :: module | {module, term} | list({module, term})) :: [{module, term}]
-  def resolver_chain(resolver) do
-    resolvers = List.wrap(resolver)
+  def resolver_chain([]) do
+    [{JSV.Resolver.Embedded, []}, {JSV.Resolver.Internal, []}]
+  end
 
+  def resolver_chain(resolvers) when is_list(resolvers) do
     do_resolver_chain(resolvers, [], %{add_embedded: true, add_internal: true})
+  end
+
+  def resolver_chain(single) do
+    resolver_chain([single])
   end
 
   defp do_resolver_chain([impl | rest], acc, flags) do
@@ -464,23 +437,61 @@ defmodule JSV do
 
   ### Options
 
-  #{NimbleOptions.docs(@validate_opts_schema)}
+  * `:cast` (`t:boolean/0`) - Enables calling generic cast functions on
+    validation.
+
+    This is based on the `x-jsv-cast` JSON Schema custom keyword and is
+    typically used by `defschema/1`.
+
+    While it is on by default, some specific casting features are enabled
+    separately, see option `:cast_formats`.
+
+    The default value is `true`.
+
+  * `:cast_formats` (`t:boolean/0`) - When enabled, format validators will
+    return casted values, for instance a `Date` struct instead of the date as
+    string.
+
+    It has no effect when the schema was not built with formats enabled.
+
+    The default value is `false`.
+
+  * `:key` (`t:term/0`) - When specified, the validation will start in the
+    schema at the given key instead of using the root schema.
+
+    The key must have been built and returned by `build_key!/2`. The validation
+    does not accept to validate any Ref or pointer in the schema.
+
+    This is useful when validating with a JSON document that contains schemas
+    but is not itself a schema.
   """
   @doc group: @doc_group
   @spec validate(term, JSV.Root.t(), [validate_opt]) :: {:ok, term} | {:error, Exception.t()}
   def validate(data, root, opts \\ [])
 
   def validate(data, %JSV.Root{} = root, opts) do
-    case NimbleOptions.validate(opts, @validate_opts_schema) do
-      {:ok, opts} ->
-        case validation_entrypoint(root, data, opts) do
-          {:ok, casted_data, _} -> {:ok, casted_data}
-          {:error, %ValidationContext{} = validator} -> {:error, Validator.to_error(validator)}
-        end
+    opts = OptsValidator.validate(opts, @default_validation_options, &validate_validation_opts/2)
 
-      {:error, _} = err ->
-        err
+    case validation_entrypoint(root, data, opts) do
+      {:ok, casted_data, _} -> {:ok, casted_data}
+      {:error, %ValidationContext{} = validator} -> {:error, Validator.to_error(validator)}
     end
+  end
+
+  defp validate_validation_opts(:cast, value) do
+    OptsValidator.validate_boolean(:cast, value)
+  end
+
+  defp validate_validation_opts(:cast_formats, value) do
+    OptsValidator.validate_boolean(:cast_formats, value)
+  end
+
+  defp validate_validation_opts(:key, value) do
+    value
+  end
+
+  defp validate_validation_opts(key, _value) do
+    OptsValidator.unknown_option!(key)
   end
 
   @doc group: @doc_group
@@ -1418,6 +1429,7 @@ defmodule JSV do
     raise ArgumentError, "invalid defcast arguments"
   end
 
+  @doc false
   defmacro publish_casts(env) do
     casts = Module.get_attribute(env.module, :jsv_casts)
 
@@ -1444,10 +1456,86 @@ defmodule JSV do
   debang def build_init!(opts \\ [])
 
   def build_init!(opts) do
-    opts = NimbleOptions.validate!(opts, @build_opts_schema)
-    {resolver, opts} = make_resolver(opts)
-    builder = make_builder(resolver, opts)
+    opts = OptsValidator.validate(opts, @default_build_options, &validate_build_opts/2)
+    resolver = make_resolver(opts)
+    opts = Map.put(opts, :resolver, resolver)
+    builder = Builder.new(opts)
     build_ctx(builder: builder)
+  end
+
+  defp validate_build_opts(:resolver, value) do
+    list = List.wrap(value)
+
+    Enum.each(list, fn
+      atom when is_atom(atom) -> []
+      {atom, _} when is_atom(atom) -> []
+      _ -> OptsValidator.invalid_option!(:resolver, value, "a module, {module, arg} or a list of such elements")
+    end)
+
+    list
+  end
+
+  defp validate_build_opts(:default_meta, value) when is_binary(value) do
+    value
+  end
+
+  defp validate_build_opts(:default_meta, other) do
+    OptsValidator.invalid_option!(:default_meta, other, "a meta-schema URI (as string)")
+  end
+
+  defp validate_build_opts(:formats, value) when value in [true, false, nil, :default] do
+    value
+  end
+
+  defp validate_build_opts(:formats, value) when is_list(value) do
+    Enum.each(value, fn
+      mod when is_atom(mod) ->
+        []
+
+      _ ->
+        OptsValidator.invalid_option!(:formats, value, "a boolean or a list of modules")
+    end)
+
+    value
+  end
+
+  defp validate_build_opts(:formats, value) do
+    OptsValidator.invalid_option!(:formats, value, "a boolean or a list of modules")
+  end
+
+  defp validate_build_opts(:atoms, value) do
+    OptsValidator.validate_boolean(:atoms, value)
+  end
+
+  defp validate_build_opts(:vocabularies, value) when is_map(value) do
+    Enum.each(value, fn
+      {k, v} when is_binary(k) and is_atom(v) ->
+        []
+
+      {k, {m, _}} when is_binary(k) and is_atom(m) ->
+        []
+
+      _ ->
+        OptsValidator.invalid_option!(:vocabularies, value, "a map of %{URI (as string) => module | {module, arg}")
+    end)
+
+    value
+  end
+
+  defp validate_build_opts(:vocabularies, value) do
+    OptsValidator.invalid_option!(:vocabularies, value, "a map of %{URI (as string) => module | {module, arg}")
+  end
+
+  defp validate_build_opts(:warnings, value) when value in [:emit, :silent] do
+    value
+  end
+
+  defp validate_build_opts(:warnings, other) do
+    OptsValidator.invalid_option!(:warnings, other, ":emit or :silent")
+  end
+
+  defp validate_build_opts(key, _value) do
+    OptsValidator.unknown_option!(key)
   end
 
   @doc "Adds a schema to the build context."
@@ -1509,7 +1597,7 @@ defmodule JSV do
   end
 
   defp maybe_emit_warnings(%{warnings: warnings} = builder) do
-    case builder.opts[:warnings] do
+    case builder.opts.warnings do
       :emit ->
         stacktrace = warning_stacktrace()
 
@@ -1576,18 +1664,8 @@ defmodule JSV do
   end
 
   defp make_resolver(opts) do
-    {resolvers, opts} = Keyword.pop!(opts, :resolver)
-    {default_meta, opts} = Keyword.pop!(opts, :default_meta)
-
-    resolver =
-      resolvers
-      |> resolver_chain()
-      |> Resolver.chain_of(default_meta)
-
-    {resolver, opts}
-  end
-
-  defp make_builder(resolver, opts) do
-    Builder.new([{:resolver, resolver} | opts])
+    opts.resolver
+    |> resolver_chain()
+    |> Resolver.chain_of(opts.default_meta)
   end
 end

@@ -1,4 +1,5 @@
 defmodule JSV.ErrorFormatter do
+  alias JSV.Helpers.OptsValidator
   alias JSV.Key
   alias JSV.Normalizer
   alias JSV.Ref
@@ -38,26 +39,9 @@ defmodule JSV.ErrorFormatter do
     __MODULE__.ValidationErrorSchema
   end
 
-  @normalize_opts_schema NimbleOptions.new!(
-                           sort: [
-                             type: {:in, [:asc, :desc]},
-                             default: :desc,
-                             doc: """
-                             Controls the sort direction. Errors are sorted by `instanceLocation`.
-                             """
-                           ],
-                           keys: [
-                             type: {:in, [:atoms, :strings]},
-                             doc: """
-                             Define the type of the keys in the normalized errors maps.
+  @type normalize_opt :: {:sort, :asc | :desc} | {:keys, :atoms | :strings}
 
-                             While truly "normalized" JSON data should not have atom keys,
-                             this option defaults to :atoms for backward compatibility reasons.
-                             """
-                           ]
-                         )
-
-  @type normalize_opt :: unquote(NimbleOptions.option_typespec(@normalize_opts_schema))
+  @default_normalize_options %{sort: :desc, keys: :atoms}
 
   @doc """
   Returns a JSON-able version of the errors contained in the ValidationError.
@@ -67,21 +51,45 @@ defmodule JSV.ErrorFormatter do
 
   ### Options
 
-  #{NimbleOptions.docs(@normalize_opts_schema)}
+  * `:sort` (`:asc | :desc`) - Controls the sort direction. Errors are sorted by
+    `instanceLocation`. The default value is `:desc`.
+
+  * `:keys` (`:atoms | :strings`) - Define the type of the keys in the
+    normalized errors maps.
+
+    While truly "normalized" JSON data should not have atom keys, this option
+    defaults to :atoms for backward compatibility reasons.
   """
   @spec normalize_error(ValidationError.t(), keyword) :: map()
   def normalize_error(%ValidationError{} = e, opts \\ []) do
-    opts =
-      opts
-      |> NimbleOptions.validate!(@normalize_opts_schema)
-      |> Keyword.put_new(:keys, :atoms)
+    opts = OptsValidator.validate(opts, @default_normalize_options, &validate_normalize_opts/2)
 
     top = %{valid: false, details: normalize_errors(e.errors, opts)}
     normalize_keys(top, opts)
   end
 
+  defp validate_normalize_opts(:sort, value) when value in [:asc, :desc] do
+    value
+  end
+
+  defp validate_normalize_opts(:sort, value) do
+    OptsValidator.invalid_option!(:sort, value, ":asc or :desc")
+  end
+
+  defp validate_normalize_opts(:keys, value) when value in [:atoms, :strings] do
+    value
+  end
+
+  defp validate_normalize_opts(:keys, value) do
+    OptsValidator.invalid_option!(:keys, value, ":atoms or :strings")
+  end
+
+  defp validate_normalize_opts(key, _value) do
+    OptsValidator.unknown_option!(key)
+  end
+
   defp normalize_keys(with_atoms, opts) do
-    case opts[:keys] do
+    case opts.keys do
       :atoms -> with_atoms
       :strings -> Normalizer.normalize(with_atoms)
     end
@@ -107,7 +115,7 @@ defmodule JSV.ErrorFormatter do
       {{data_path, eval_path, schema_path}, errors} -> error_annot(data_path, eval_path, schema_path, errors, opts)
       {already_normalized, [already_normalized]} -> already_normalized
     end)
-    |> sort_errors(opts[:sort])
+    |> sort_errors(opts.sort)
   end
 
   defp sort_errors(errors, order) do

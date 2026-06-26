@@ -45,9 +45,6 @@ defmodule JSV.MixProject do
 
   defp deps do
     [
-      # Actual dependencies
-      {:nimble_options, "~> 1.0"},
-
       # Optional JSON support
       {:jason, "~> 1.0", optional: true},
       {:decimal, "~> 2.0 or ~> 3.0", optional: true},
@@ -59,9 +56,12 @@ defmodule JSV.MixProject do
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:eflambe, "~> 0.3", only: :dev},
+      # eflambe pulls an old meck that does not compile on recent OTP; override it.
+      {:meck, "~> 1.0", only: :dev, override: true},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:readmix, "~> 0.6", only: [:dev, :test], runtime: false},
+      {:readmix, "~> 0.6", only: :dev, runtime: false},
 
       # Test
       {:briefly, "~> 0.5.1", only: :test},

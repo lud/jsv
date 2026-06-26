@@ -41,7 +41,7 @@ defmodule JSV.Validator do
   @type validator :: JSV.Subschema.t() | BooleanSchema.t() | {:alias_of, binary}
   @type result :: {:ok, term, context} | {:error, context}
 
-  @spec context(%{Key.t() => validator}, Key.t(), keyword()) :: context
+  @spec context(%{Key.t() => validator}, Key.t(), map()) :: context
   def context(validators, entrypoint, opts) do
     %ValidationContext{
       data_path: [],

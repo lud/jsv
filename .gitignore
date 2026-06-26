@@ -26,3 +26,5 @@ jsv-*.tar
 /tmp/
 
 .env.test
+# Flame graph traces (bench/eflambe_simple.exs)
+/bench/output/

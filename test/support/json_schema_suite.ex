@@ -13,7 +13,7 @@ defmodule JSV.Test.JsonSchemaSuite do
 
   def run_test(json_schema, schema, data, expected_valid, opts \\ []) do
     {valid?, %ValidationContext{} = validator} =
-      case JSV.validation_entrypoint(schema, data, []) do
+      case JSV.validation_entrypoint(schema, data, %{cast: false, cast_formats: false}) do
         {:ok, casted, vctx} ->
           assert_correct_cast(json_schema, data, casted)
           {true, vctx}

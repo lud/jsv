@@ -29,7 +29,7 @@ defmodule JSV.Vocabulary.V202012.Format do
 
   take_keyword :format, format, acc, builder, _ do
     validator_mods =
-      case builder.opts[:formats] do
+      case builder.opts.formats do
         # opt in / out, use defaults mods
         bool when is_boolean(bool) -> validation_modules_or_ignore(bool)
         # no opt-in/out, use default for vocabulary "assert" opt
@@ -84,7 +84,7 @@ defmodule JSV.Vocabulary.V202012.Format do
   end
 
   defp validate_format(data, module, format, vctx) do
-    cast_formats? = vctx.opts[:cast_formats]
+    cast_formats? = vctx.opts.cast_formats
 
     case module.validate_cast(format, data) do
       {:ok, casted} when cast_formats? ->

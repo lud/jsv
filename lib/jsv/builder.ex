@@ -95,17 +95,15 @@ defmodule JSV.Builder do
   Returns a new builder. Builders are not reusable ; a fresh builder must be
   made for each different root schema.
   """
-  @spec new(keyword) :: t
+  @spec new(map) :: t
   def new(opts) do
     # beware, the :vocabularies option is not the final value of the
     # :vocabularies key in the Builder struct. It's a configuration option to
     # build the final value. This option is kept around in the :vocabulary_impls
     # struct key after being merged on top of the default implementations.
-    {resolver, opts} = Keyword.pop!(opts, :resolver)
-    {add_vocabulary_impls, opts} = Keyword.pop!(opts, :vocabularies)
-    vocabulary_impls = build_vocabulary_impls(add_vocabulary_impls)
+    vocabulary_impls = build_vocabulary_impls(opts.vocabularies)
 
-    struct!(__MODULE__, resolver: resolver, opts: opts, vocabulary_impls: vocabulary_impls)
+    struct!(__MODULE__, resolver: opts.resolver, opts: opts, vocabulary_impls: vocabulary_impls)
   end
 
   @doc """
@@ -449,6 +447,10 @@ defmodule JSV.Builder do
     "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.V7.Format, assert: true},
     "https://json-schema.org/draft-07/--fallback--vocab/meta-data" => Vocabulary.V7.MetaData
   }
+
+  defp build_vocabulary_impls(user_mapped) when map_size(user_mapped) == 0 do
+    @vocabulary_impls
+  end
 
   defp build_vocabulary_impls(user_mapped) do
     Map.merge(@vocabulary_impls, user_mapped)

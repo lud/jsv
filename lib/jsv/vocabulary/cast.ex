@@ -203,7 +203,7 @@ defmodule JSV.Vocabulary.Cast do
       Validator.error?(vctx) ->
         {:ok, data, vctx}
 
-      vctx.opts[:cast] ->
+      Map.fetch!(vctx.opts, :cast) ->
         call_cast_rescue(:"jsv-cast", call, data, vctx)
 
       :other ->
@@ -216,7 +216,7 @@ defmodule JSV.Vocabulary.Cast do
       Validator.error?(vctx) ->
         {:ok, data, vctx}
 
-      vctx.opts[:cast] ->
+      Map.fetch!(vctx.opts, :cast) ->
         call_casts(casts, data, vctx)
 
       :other ->

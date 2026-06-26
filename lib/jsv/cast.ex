@@ -157,7 +157,7 @@ defmodule JSV.Cast do
   @default_atoms_build true
 
   defp check_atoms_opt(builder) do
-    case builder.opts[:atoms] do
+    case builder.opts.atoms do
       nil -> {@default_atoms_build, JSV.Builder.warn(builder, :unsafe_atoms, @unsafe_atoms_warning)}
       bool -> {bool, builder}
     end
