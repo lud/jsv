@@ -17,6 +17,8 @@ defmodule JSV.Builder do
   @derive {Inspect, Application.compile_env(:jsv, :builder_inspect_derive, only: [:ns, :current_rev_path, :resolver])}
   @enforce_keys [:resolver]
   defstruct current_rev_path: [],
+            has_casts: false,
+            has_unevaluated: false,
             ns: nil,
             opts: [],
             parent_ns: nil,
@@ -27,6 +29,8 @@ defmodule JSV.Builder do
             warnings: []
 
   @type t :: %__MODULE__{
+          has_casts: boolean,
+          has_unevaluated: boolean,
           resolver: term,
           staged: [term],
           vocabularies: term,
@@ -377,6 +381,16 @@ defmodule JSV.Builder do
       case List.keytake(schema_validators, Vocabulary.Cast, 0) do
         nil -> {nil, schema_validators}
         {{Vocabulary.Cast, cast}, svs} -> {cast, svs}
+      end
+
+    # Track at the root level whether any subschema in the whole tree carries a
+    # cast, so the validator can skip the cast stack machinery entirely when
+    # there is nothing to cast. The builder is threaded back through every
+    # nested build_sub! call, so nested casts are detected too.
+    builder =
+      case cast do
+        nil -> builder
+        _ -> %{builder | has_casts: true}
       end
 
     # Reverse the list to keep the priority order from builder.vocabularies

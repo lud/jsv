@@ -11,11 +11,15 @@ defmodule JSV.Root do
   defstruct validators: %{},
             root_key: nil,
             raw: nil,
+            has_casts: false,
+            has_unevaluated: false,
             warnings: []
 
   @type t :: %__MODULE__{
           raw: map | boolean | nil,
           validators: Validator.validators(),
+          has_casts: boolean,
+          has_unevaluated: boolean,
           warnings: [term]
         }
 end

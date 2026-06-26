@@ -280,6 +280,8 @@ defmodule JSV do
       raw: normal_schema,
       validators: validators,
       root_key: root_key,
+      has_casts: builder.has_casts,
+      has_unevaluated: builder.has_unevaluated,
       warnings: :lists.reverse(builder.warnings)
     }
   end
@@ -350,10 +352,12 @@ defmodule JSV do
     %JSV.Root{validators: validators, root_key: root_key} = schema
 
     key = Map.get(opts, :key, root_key)
+    feature_cast = schema.has_casts and opts.cast
+    feature_unevaluated = schema.has_unevaluated
 
     case Map.fetch(validators, key) do
       {:ok, root_schema_validators} ->
-        context = JSV.Validator.context(validators, key, opts)
+        context = JSV.Validator.context(validators, key, opts, feature_cast, feature_unevaluated)
         JSV.Validator.validate(data, root_schema_validators, context)
 
       :error ->
@@ -1644,6 +1648,8 @@ defmodule JSV do
       raw: nil,
       validators: vds,
       root_key: root_key,
+      has_casts: builder.has_casts,
+      has_unevaluated: builder.has_unevaluated,
       warnings: :lists.reverse(builder.warnings)
     }
   end

@@ -29,7 +29,19 @@ defmodule JSV.Validator do
     # :eval_path stores both the current keyword nesting leading to an error, and
     # the namespace changes for error absolute location.
 
-    @enforce_keys [:validators, :scope, :errors, :evaluated, :data_path, :eval_path, :schema_path, :opts, :cast_stacks]
+    @enforce_keys [
+      :validators,
+      :scope,
+      :errors,
+      :evaluated,
+      :data_path,
+      :eval_path,
+      :schema_path,
+      :opts,
+      :cast_stacks,
+      :feature_cast,
+      :feature_unevaluated
+    ]
     defstruct @enforce_keys
 
     @type t :: %__MODULE__{}
@@ -41,8 +53,8 @@ defmodule JSV.Validator do
   @type validator :: JSV.Subschema.t() | BooleanSchema.t() | {:alias_of, binary}
   @type result :: {:ok, term, context} | {:error, context}
 
-  @spec context(%{Key.t() => validator}, Key.t(), map()) :: context
-  def context(validators, entrypoint, opts) do
+  @spec context(%{Key.t() => validator}, Key.t(), map(), boolean(), boolean()) :: context
+  def context(validators, entrypoint, opts, feature_cast, feature_unevaluated) do
     %ValidationContext{
       data_path: [],
       eval_path: key_to_eval_path(entrypoint),
@@ -52,7 +64,9 @@ defmodule JSV.Validator do
       errors: [],
       evaluated: [%{}],
       opts: opts,
-      cast_stacks: %{}
+      cast_stacks: %{},
+      feature_cast: feature_cast,
+      feature_unevaluated: feature_unevaluated
     }
   end
 
@@ -85,12 +99,13 @@ defmodule JSV.Validator do
     end)
   end
 
-  # TODO if the :cast option is disabled for the validator, we should skip all
-  # the cast stack shenanigans.
-
   # Executes all validators with the given data, collecting errors on the way,
   # then return either ok or error with all errors.
-  def validate(data, %Subschema{} = sub, vctx) do
+  #
+  # When :feature_cast is false (no cast anywhere in the schema, or the :cast
+  # option is disabled), we skip the whole cast stack machinery: nothing will
+  # ever be cast, so the push/pop bookkeeping is pure overhead.
+  def validate(data, %Subschema{} = sub, %{feature_cast: true} = vctx) do
     %{validators: validators, cast: cast} = sub
     %{cast_stacks: cast_stacks, data_path: data_path} = vctx
 
@@ -102,15 +117,17 @@ defmodule JSV.Validator do
         cast_stacks: push_cast(cast_stacks, data_path, cast)
     }
 
-    vdr_result =
-      reduce(validators, data, vctx, fn {module, mod_validators}, data, vctx ->
-        module.validate(data, mod_validators, vctx)
-      end)
+    vdr_result = call_vocabulary(validators, data, vctx)
 
     case vdr_result do
       {:ok, value, vctx} -> pop_apply_cast(value, data_path, vctx)
       {:error, _} = err -> err
     end
+  end
+
+  def validate(data, %Subschema{} = sub, %{feature_cast: false} = vctx) do
+    vctx = %{vctx | schema_path: sub.schema_path}
+    call_vocabulary(sub.validators, data, vctx)
   end
 
   # Pushing a cast from a subschema is special. Multiple casts can be attempted
@@ -193,24 +210,58 @@ defmodule JSV.Validator do
   """
   @spec reduce(Enumerable.t(), term, context, function) :: result
   def reduce(enum, datain, vctx, fun) when is_function(fun, 3) do
-    {new_data, new_vctx} =
-      Enum.reduce(enum, {datain, vctx}, fn item, {data, vctx} ->
-        case fun.(item, data, vctx) do
-          # When returning :ok, the errors may be empty or not, depending on
-          # previous iterations.
-          {:ok, new_data, new_vctx} ->
-            {new_data, new_vctx}
+    do_reduce(reduce_list(enum), datain, vctx, fun)
+  end
 
-          # When returning :error, an error MUST be set
-          {:error, %ValidationContext{errors: [_ | _]} = new_vctx} ->
-            {data, new_vctx}
+  defp reduce_list(list) when is_list(list) do
+    list
+  end
 
-          other ->
-            raise "Invalid return from #{Exception.format_fa(fun, 3)}, expected {:ok, data, context} or {:error, term}, got: #{inspect(other)}"
-        end
-      end)
+  defp reduce_list(map) when is_map(map) do
+    :maps.to_list(map)
+  end
 
-    return(new_data, new_vctx)
+  defp reduce_list(enum) do
+    Enum.to_list(enum)
+  end
+
+  defp do_reduce([item | rest], data, vctx, fun) do
+    case fun.(item, data, vctx) do
+      # errors may be empty or not, depending on previous iterations
+      {:ok, new_data, new_vctx} ->
+        do_reduce(rest, new_data, new_vctx, fun)
+
+      # on :error an error MUST be set; data is unchanged, vctx carries on
+      {:error, %ValidationContext{errors: [_ | _]} = new_vctx} ->
+        do_reduce(rest, data, new_vctx, fun)
+
+      other ->
+        raise "Invalid return from #{Exception.format_fa(fun, 3)}, expected {:ok, data, context} or {:error, term}, got: #{inspect(other)}"
+    end
+  end
+
+  defp do_reduce([], data, vctx, _fun) do
+    return(data, vctx)
+  end
+
+  defp call_vocabulary([{mod, mod_validators} | vocab], data, vctx) do
+    case mod.validate(data, mod_validators, vctx) do
+      {:ok, new_data, new_vctx} ->
+        # When returning :ok, the errors may be empty or not, depending on
+        # previous iterations.
+        call_vocabulary(vocab, new_data, new_vctx)
+
+      # When returning :error, an error MUST be set
+      {:error, %ValidationContext{errors: [_ | _]} = new_vctx} ->
+        call_vocabulary(vocab, data, new_vctx)
+
+      other ->
+        raise "Invalid return from #{Exception.format_mfa(mod, :validate, 3)}, expected {:ok, data, context} or {:error, term}, got: #{inspect(other)}"
+    end
+  end
+
+  defp call_vocabulary([], data, vctx) do
+    return(data, vctx)
   end
 
   @doc """
@@ -262,7 +313,7 @@ defmodule JSV.Validator do
         eval_path: append_eval_path(eval_path, add_eval_path),
         schema_path: append_schema_path(schema_path, add_eval_path),
         errors: [],
-        evaluated: [%{} | evaluated]
+        evaluated: push_evaluated(vctx, evaluated)
     }
 
     case validate(data, subvalidators, sub_vctx) do
@@ -292,7 +343,7 @@ defmodule JSV.Validator do
         schema_path: append_schema_path(schema_path, add_eval_path),
         cast_stacks: %{},
         errors: [],
-        evaluated: [%{} | evaluated]
+        evaluated: push_evaluated(vctx, evaluated)
     }
 
     case validate(data, subvalidators, sub_vctx) do
@@ -416,8 +467,16 @@ defmodule JSV.Validator do
   """
   @spec merge_tracked(context, context) :: context
   def merge_tracked(%ValidationContext{} = vctx, %ValidationContext{} = sub) do
-    %{cast_stacks: top_cast_stacks, evaluated: [top_vctx | rest_vctx]} = vctx
-    %{cast_stacks: sub_cast_stacks, evaluated: [top_sub | _rest_sub]} = sub
+    # Each feature is merged independently and only when active. When neither
+    # casts nor unevaluated tracking are used, this is a no-op.
+    vctx
+    |> merge_tracked_casts(sub)
+    |> merge_tracked_evaluated(sub)
+  end
+
+  defp merge_tracked_casts(%ValidationContext{feature_cast: true} = vctx, sub) do
+    %{cast_stacks: top_cast_stacks} = vctx
+    %{cast_stacks: sub_cast_stacks} = sub
 
     cast_stacks =
       Map.merge(top_cast_stacks, sub_cast_stacks, fn
@@ -426,7 +485,21 @@ defmodule JSV.Validator do
         _dpath, {n, nil}, {_, cast} -> {n, cast}
       end)
 
-    %{vctx | cast_stacks: cast_stacks, evaluated: [Map.merge(top_vctx, top_sub) | rest_vctx]}
+    %{vctx | cast_stacks: cast_stacks}
+  end
+
+  defp merge_tracked_casts(%ValidationContext{feature_cast: false} = vctx, _sub) do
+    vctx
+  end
+
+  defp merge_tracked_evaluated(%ValidationContext{feature_unevaluated: true} = vctx, sub) do
+    %{evaluated: [top_vctx | rest_vctx]} = vctx
+    %{evaluated: [top_sub | _rest_sub]} = sub
+    %{vctx | evaluated: [Map.merge(top_vctx, top_sub) | rest_vctx]}
+  end
+
+  defp merge_tracked_evaluated(%ValidationContext{feature_unevaluated: false} = vctx, _sub) do
+    vctx
   end
 
   @spec return(term, context) :: result
@@ -505,14 +578,33 @@ defmodule JSV.Validator do
     %{vctx | errors: [error | errors]}
   end
 
-  defp add_evaluated(%ValidationContext{} = vctx, key) do
+  # Pushes a fresh evaluation frame for a nested validation, but only when the
+  # schema actually uses unevaluatedProperties/unevaluatedItems. Otherwise the
+  # frame would never be read, so we keep the parent list untouched.
+  defp push_evaluated(%ValidationContext{feature_unevaluated: true}, evaluated) do
+    [%{} | evaluated]
+  end
+
+  defp push_evaluated(%ValidationContext{feature_unevaluated: false}, evaluated) do
+    evaluated
+  end
+
+  defp add_evaluated(%ValidationContext{feature_unevaluated: false} = vctx, _key) do
+    vctx
+  end
+
+  defp add_evaluated(%ValidationContext{feature_unevaluated: true} = vctx, key) do
     %{evaluated: [current | ev]} = vctx
     current = Map.put(current, key, true)
     %{vctx | evaluated: [current | ev]}
   end
 
+  # Only reachable when the schema actually uses unevaluatedProperties/Items, in
+  # which case the evaluation frames are tracked. There is intentionally no
+  # clause for feature_unevaluated: false so an invariant break crashes loudly
+  # rather than silently reporting nothing as evaluated.
   @spec list_evaluaded(context) :: [String.t() | integer()]
-  def list_evaluaded(vctx) do
+  def list_evaluaded(%ValidationContext{feature_unevaluated: true} = vctx) do
     %{evaluated: [current | _]} = vctx
     Map.keys(current)
   end

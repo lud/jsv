@@ -13,11 +13,13 @@ defmodule JSV.Vocabulary.V202012.Unevaluated do
   end
 
   take_keyword :unevaluatedProperties, unevaluated_properties, acc, builder, _ do
-    take_sub(:unevaluatedProperties, unevaluated_properties, acc, builder)
+    # Flag the whole build as using unevaluated tracking so the validator keeps
+    # the per-property evaluation bookkeeping (skipped otherwise).
+    take_sub(:unevaluatedProperties, unevaluated_properties, acc, %{builder | has_unevaluated: true})
   end
 
   take_keyword :unevaluatedItems, unevaluated_items, acc, builder, _ do
-    take_sub(:unevaluatedItems, unevaluated_items, acc, builder)
+    take_sub(:unevaluatedItems, unevaluated_items, acc, %{builder | has_unevaluated: true})
   end
 
   ignore_any_keyword()

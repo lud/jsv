@@ -90,7 +90,18 @@ defmodule JSV.Test.JsonSchemaSuite do
     _ = assert %ValidationError{} = error
     formatted = JSV.normalize_error(error, keys: :strings)
 
-    case JSV.validate(formatted, @error_vroot) do
+    pkey = :jsv_error_format_validation_local
+
+    # Capture IO so debugging with dbg() does not spam the logs from this call
+    # to JSV.validate
+    _ =
+      ExUnit.CaptureIO.capture_io(fn ->
+        Process.put(pkey, JSV.validate(formatted, @error_vroot))
+      end)
+
+    error_validation = Process.get(pkey)
+
+    case error_validation do
       {:ok, _} ->
         :ok
 
