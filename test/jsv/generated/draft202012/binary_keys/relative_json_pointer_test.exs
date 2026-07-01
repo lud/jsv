@@ -103,6 +103,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RelativeJsonPointerTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "non-ASCII digit in the prefix is not allowed", x do
+      data = "١/foo"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "## is not a valid json-pointer", x do
       data = "0##"
       expected_valid = false
@@ -129,6 +135,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RelativeJsonPointerTest do
 
     test "multi-digit integer prefix", x do
       data = "120/foo/bar"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "multi-digit prefix with a zero followed by another digit", x do
+      data = "100"
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
