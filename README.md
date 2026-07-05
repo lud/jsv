@@ -59,7 +59,7 @@ Add `jsv` to your `mix.exs`:
 
 <!-- rdmx :app_dep vsn:$app_vsn -->
 ```elixir
-def deps do
+defp deps do
   [
     {:jsv, "~> 0.20"},
   ]

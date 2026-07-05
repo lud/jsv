@@ -37,6 +37,7 @@ defmodule JSV.Validator do
       :data_path,
       :eval_path,
       :schema_path,
+      :seen_refs,
       :opts,
       :cast_stacks,
       :feature_cast,
@@ -59,6 +60,7 @@ defmodule JSV.Validator do
       data_path: [],
       eval_path: key_to_eval_path(entrypoint),
       schema_path: [Key.namespace_of(entrypoint)],
+      seen_refs: [],
       validators: validators,
       scope: [Key.namespace_of(entrypoint)],
       errors: [],
@@ -313,7 +315,10 @@ defmodule JSV.Validator do
         eval_path: append_eval_path(eval_path, add_eval_path),
         schema_path: append_schema_path(schema_path, add_eval_path),
         errors: [],
-        evaluated: push_evaluated(vctx, evaluated)
+        evaluated: push_evaluated(vctx, evaluated),
+        # A sub term can never be equal to its parent term, seen refs cannot
+        # match anymore so we can discard them.
+        seen_refs: []
     }
 
     case validate(data, subvalidators, sub_vctx) do
@@ -359,9 +364,25 @@ defmodule JSV.Validator do
 
   @spec validate_ref(term, Key.t(), eval_sub_path(), context) :: result
   def validate_ref(data, ref, eval_path, vctx) do
-    with_scope(vctx, ref, {:ref, eval_path, ref}, fn vctx ->
-      do_validate_ref(data, ref, vctx)
-    end)
+    %{seen_refs: seen_refs} = vctx
+    seen_key = {ref, data}
+
+    # A ref that is already being evaluated with the same data is an infinite
+    # recursion (undefined behavior per JSON Schema core 9.4.1). It defines no
+    # constraint over the data so it validates successfully.
+    if seen_key in seen_refs do
+      {:ok, data, vctx}
+    else
+      result =
+        with_scope(%{vctx | seen_refs: [seen_key | seen_refs]}, ref, {:ref, eval_path, ref}, fn vctx ->
+          do_validate_ref(data, ref, vctx)
+        end)
+
+      case result do
+        {:ok, data, vctx} -> {:ok, data, %{vctx | seen_refs: seen_refs}}
+        {:error, vctx} -> {:error, %{vctx | seen_refs: seen_refs}}
+      end
+    end
   end
 
   defp do_validate_ref(data, ref, %ValidationContext{} = vctx) do
