@@ -16,6 +16,19 @@ defmodule JSV.Resolver.Internal do
   representation of an Elixir module. Modules pointed at with such references
   MUST export a `json_schema/0` function that returns a normalized JSON schema
   with binary keys and values.
+
+  ### Security considerations
+
+  This resolver is always included in the resolver chain used by `JSV.build/2`,
+  so any schema, including a schema obtained from external input, can contain a
+  `jsv:module:` reference. Resolving such a reference calls `json_schema/0` on
+  the target module.
+
+  The reachable surface is narrow: only modules already known by the runtime
+  can be referenced, the invoked function name and arity are fixed, and errors
+  raised during resolution are returned as build errors. Keep `json_schema/0`
+  implementations pure, building and returning the schema data, so that
+  resolving a module reference stays free of side effects.
   """
 
   @uri_prefix "jsv:module:"
