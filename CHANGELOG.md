@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.0] - 2026-07-05
+
+### 🐛 Bug Fixes
+
+- Prevent infinite recursion in cross ref schemas
+- [**breaking**] JSV.Resolver.Httpc security defaults (no redirects, TLS verification, private atomic cache, size/timeout limits)
+- Bound regex backtracking cost in pattern and patternProperties matching
+- Support dynamicAnchor in id-less root schemas and fail gracefully on malformed keywords
+
+### 📚 Documentation
+
+- Document internal resolver security considerations
+
+### 🧪 Testing
+
+- Updated JSON Schema Test Suite
+- Updated JSON Schema Test Suite
+
 ## [0.20.0] - 2026-06-26
 
 ### 🚀 Features
