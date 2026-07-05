@@ -38,6 +38,18 @@ defmodule JSV.BuildError do
       "plain-name anchor such as \"#name\""
   end
 
+  defp format_reason({:invalid_id, id}, _) do
+    "invalid $id, expected a string, got: #{inspect(id)}"
+  end
+
+  defp format_reason({:invalid_ref, ref}, _) do
+    "invalid reference, expected a string, got: #{inspect(ref)}"
+  end
+
+  defp format_reason({:invalid_anchor, keyword, anchor}, _) do
+    "invalid #{keyword}, expected a string, got: #{inspect(anchor)}"
+  end
+
   defp format_reason(:mixed_casts, _) do
     "using both jsv-cast and x-jsv-cast on the same schema is not supported"
   end

@@ -1665,7 +1665,7 @@ defmodule JSV do
   defp schema_to_key(raw_schema) do
     case Map.get(raw_schema, "$id", :root) do
       root_ns when is_binary(root_ns) or :root == root_ns -> ^root_ns = Key.of(root_ns)
-      other -> raise ArgumentError, "invalid root $id: #{inspect(other)}"
+      other -> raise BuildError.of({:invalid_id, other}, {__MODULE__, :build, 2}, "#")
     end
   end
 

@@ -35,6 +35,8 @@ defmodule JSV.Vocabulary.V7.Core do
   end
 
   consume_keyword :definitions
+  ignore_keyword(:"$dynamicRef")
+  ignore_keyword(:"$dynamicAnchor")
 
   # $ref overrides any other keyword in Draft7
   def handle_keyword(_kw_tuple, acc, builder, raw_schema) when is_map_key(raw_schema, "$ref") do

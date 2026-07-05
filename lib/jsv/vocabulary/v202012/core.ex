@@ -91,13 +91,18 @@ defmodule JSV.Vocabulary.V202012.Core do
     {ref, builder}
   end
 
-  # Look for a dynamic anchor in this schema (that may have an $id) without
-  # looking down in subschemas that define their own $id.
+  # Look for a dynamic anchor in this schema resource without looking down in
+  # subschemas that define their own $id. The resource is not required to
+  # declare an $id itself, as is typically the case for a root schema.
 
-  defp find_local_dynamic_anchor(%{"$id" => _} = raw_schema, anchor) do
+  defp find_local_dynamic_anchor(raw_schema, anchor) when is_map(raw_schema) do
     with :error <- do_find_local_dynamic_anchor(Map.delete(raw_schema, "$id"), anchor) do
       {:error, {:no_such_dynamic_anchor, anchor}}
     end
+  end
+
+  defp find_local_dynamic_anchor(raw_schema, anchor) when is_boolean(raw_schema) do
+    {:error, {:no_such_dynamic_anchor, anchor}}
   end
 
   defp do_find_local_dynamic_anchor(%{"$id" => _}, _anchor) do

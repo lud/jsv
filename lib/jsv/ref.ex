@@ -82,7 +82,7 @@ defmodule JSV.Ref do
     %Ref{ns: ns, kind: :pointer, arg: segments, dynamic?: false}
   end
 
-  defp do_parse(url, current_ns, dynamic?) do
+  defp do_parse(url, current_ns, dynamic?) when is_binary(url) do
     uri = URI.parse(url)
     {kind, arg} = parse_fragment(uri.fragment)
 
@@ -91,6 +91,10 @@ defmodule JSV.Ref do
     with {:ok, ns} <- RNS.derive(current_ns, url) do
       {:ok, %Ref{ns: ns, kind: kind, arg: arg, dynamic?: dynamic?}}
     end
+  end
+
+  defp do_parse(url, _current_ns, _dynamic?) do
+    {:error, {:invalid_ref, url}}
   end
 
   defp parse_fragment(nil) do

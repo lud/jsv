@@ -170,13 +170,11 @@ defmodule JSV.Resolver do
   defp scan_schema(top_schema, external_id, default_meta) when not is_nil(external_id) do
     {raw_id, anchor, dynamic_anchor} = extract_keys(top_schema)
 
-    case split_id(raw_id) do
-      {:ok, id, id_anchor} ->
-        anchor_names = Enum.reject([id_anchor, anchor], &is_nil/1)
-        scan_top_schema(top_schema, external_id, id, anchor_names, dynamic_anchor, default_meta)
-
-      {:error, _} = err ->
-        err
+    with :ok <- validate_anchor(anchor, "$anchor"),
+         :ok <- validate_anchor(dynamic_anchor, "$dynamicAnchor"),
+         {:ok, id, id_anchor} <- split_id(raw_id) do
+      anchor_names = Enum.reject([id_anchor, anchor], &is_nil/1)
+      scan_top_schema(top_schema, external_id, id, anchor_names, dynamic_anchor, default_meta)
     end
   end
 
@@ -231,6 +229,10 @@ defmodule JSV.Resolver do
     end
   end
 
+  defp split_id(id) do
+    {:error, {:invalid_id, id}}
+  end
+
   defp expect_anchor_like_id(_id, nil = _no_base, anchor) do
     {:ok, nil, anchor}
   end
@@ -277,7 +279,9 @@ defmodule JSV.Resolver do
   defp scan_subschema(raw_schema, parent_ns, parent_nss, meta, path, acc) when is_map(raw_schema) do
     {raw_id, anchor, dynamic_anchor} = extract_keys(raw_schema)
 
-    with {:ok, id, id_anchor} <- split_id(raw_id) do
+    with :ok <- validate_anchor(anchor, "$anchor"),
+         :ok <- validate_anchor(dynamic_anchor, "$dynamicAnchor"),
+         {:ok, id, id_anchor} <- split_id(raw_id) do
       anchor_names = Enum.reject([id_anchor, anchor], &is_nil/1)
 
       # A base URI in the $id discards the current namespaces, as the sibling or
@@ -320,6 +324,14 @@ defmodule JSV.Resolver do
     |> EnumExt.reduce_ok(acc, fn {item, index}, acc ->
       scan_subschema(item, parent_id, nss, meta, [index | path], acc)
     end)
+  end
+
+  defp validate_anchor(anchor, keyword) do
+    case anchor do
+      nil -> :ok
+      anchor when is_binary(anchor) -> :ok
+      other -> {:error, {:invalid_anchor, keyword, other}}
+    end
   end
 
   defp extract_keys(schema) do
@@ -578,6 +590,7 @@ defmodule JSV.Resolver do
     with {:ok, %Resolved{raw: raw, meta: meta, ns: ns, parent_ns: parent_ns, rev_path: rev_path}} <-
            fetch_local(cache, ns, :dealias),
          {:ok, [sub | _] = parent_chain} <- fetch_docpath(raw, docpath),
+         :ok <- check_pointed_schema(sub, docpath),
          {:ok, ns, parent_ns} <- derive_docpath_ns(parent_chain, ns, parent_ns) do
       {:ok,
        %Resolved{
@@ -591,6 +604,16 @@ defmodule JSV.Resolver do
     else
       {:error, _} = err -> err
     end
+  end
+
+  # A JSON pointer can target any value in a schema document, but only actual
+  # schemas (maps and booleans) can be resolved as schemas.
+  defp check_pointed_schema(sub, _docpath) when is_map(sub) when is_boolean(sub) do
+    :ok
+  end
+
+  defp check_pointed_schema(sub, docpath) do
+    {:error, {:invalid_sub_schema, docpath, sub}}
   end
 
   defp fetch_local(cache, key, aliases \\ nil) do
