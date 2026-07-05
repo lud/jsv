@@ -2,6 +2,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   alias JSV.Builder
   alias JSV.Codec
   alias JSV.Helpers.Math
+  alias JSV.Helpers.RegexExt
   alias JSV.Validator
   use JSV.Vocabulary, priority: 300
 
@@ -90,7 +91,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   take_keyword :pattern, pattern, acc, builder, _ do
     re =
       pattern
-      |> JSV.Helpers.RegexExt.translate_ecma_regex()
+      |> RegexExt.translate_ecma_regex()
       |> Regex.compile("u")
       |> unwrap_ok()
 
@@ -366,7 +367,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   def validate_keyword({:pattern, re}, data, vctx) when is_binary(data) do
-    if Regex.match?(re, data) do
+    if RegexExt.bounded_match?(re, data) do
       {:ok, data, vctx}
     else
       {:error, Validator.with_error(vctx, :pattern, data, pattern: re.source)}

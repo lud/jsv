@@ -1,7 +1,7 @@
 defmodule JSV.Helpers.RegexExt do
   @moduledoc """
-  Helpers to adapt ECMA-262 regular expressions (the dialect used by JSON Schema
-  `pattern` and `patternProperties`) to Erlang's regex engine.
+  Helpers to compile and run ECMA-262 regular expressions (the dialect used by
+  JSON Schema `pattern` and `patternProperties`) with Erlang's regex engine.
 
   Erlang's `:re` (PCRE2) accepts Unicode script and binary property names, but
   rejects the long General_Category names that ECMA-262 allows, such as
@@ -29,6 +29,32 @@ defmodule JSV.Helpers.RegexExt do
   @spec translate_ecma_regex(binary) :: binary
   def translate_ecma_regex(ecma_regex) when is_binary(ecma_regex) do
     parse_translate(ecma_regex, <<>>)
+  end
+
+  # Backtracking budget for a match. Legitimate matches consume roughly 3
+  # steps per subject byte, so the per-byte factor leaves a wide margin while
+  # keeping the budget linear in the subject size. Pathological patterns such
+  # as ^(a+)+$ need an exponential number of steps and exhaust the budget
+  # immediately. The cap is PCRE2's default MATCH_LIMIT.
+  @base_match_limit 10_000
+  @match_limit_per_byte 50
+  @max_match_limit 10_000_000
+
+  @doc """
+  Returns whether `regex` matches `subject`, like `Regex.match?/2`, but with a
+  backtracking budget proportional to the subject size.
+
+  Schema-supplied `pattern` and `patternProperties` regexes can require
+  catastrophic backtracking on crafted data. This function bounds the match
+  cost linearly in `byte_size(subject)`; a match that exhausts the budget is
+  reported as a non-match.
+  """
+  @spec bounded_match?(Regex.t(), binary) :: boolean
+  def bounded_match?(%Regex{re_pattern: re_pattern}, subject) when is_binary(subject) do
+    limit = min(@max_match_limit, @base_match_limit + @match_limit_per_byte * byte_size(subject))
+
+    :re.run(subject, re_pattern, [{:match_limit, limit}, {:match_limit_recursion, limit}, {:capture, :none}]) ==
+      :match
   end
 
   defp parse_translate(<<?\\, p, ?{, rest::binary>>, acc) when p in [?p, ?P] do

@@ -1,6 +1,7 @@
 defmodule JSV.Vocabulary.V202012.Applicator do
   alias JSV.Builder
   alias JSV.ErrorFormatter
+  alias JSV.Helpers.RegexExt
   alias JSV.Validator
   alias JSV.Vocabulary
   alias JSV.Vocabulary.V202012.Validation
@@ -45,7 +46,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   take_keyword :patternProperties, pattern_properties, acc, builder, _ do
     {built_subs, builder} =
       Enum.map_reduce(pattern_properties, builder, fn {k, pschema}, builder ->
-        re = k |> JSV.Helpers.RegexExt.translate_ecma_regex() |> Regex.compile("u") |> unwrap_ok()
+        re = k |> RegexExt.translate_ecma_regex() |> Regex.compile("u") |> unwrap_ok()
 
         {subvalidators, builder} = Builder.build_sub!(pschema, [patternProperties: k], builder)
         {{{k, re}, subvalidators}, builder}
@@ -302,7 +303,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   defp pattern_properties_validations(data, pattern_properties) do
     for {{pattern, re}, subschema} <- pattern_properties,
         {key, _} <- data,
-        Regex.match?(re, key) do
+        RegexExt.bounded_match?(re, key) do
       {:patternProperties, key, subschema, pattern}
     end
   end

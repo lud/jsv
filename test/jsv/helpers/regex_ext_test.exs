@@ -189,6 +189,39 @@ defmodule JSV.Helpers.RegexExtTest do
     end
   end
 
+  describe "match?/2" do
+    test "behaves like Regex.match?/2 on regular patterns" do
+      re = Regex.compile!("^[a-z]+-\\d+$", "u")
+      assert RegexExt.bounded_match?(re, "abc-123")
+      refute RegexExt.bounded_match?(re, "abc-")
+      refute RegexExt.bounded_match?(re, "")
+    end
+
+    test "matches unicode subjects" do
+      re = Regex.compile!("^\\p{L}+$", "u")
+      assert RegexExt.bounded_match?(re, "héllø")
+      refute RegexExt.bounded_match?(re, "héllø1")
+    end
+
+    test "matches subjects far larger than the base budget" do
+      # Alternations create a backtracking point on every character, so this
+      # exercises the per-byte scaling of the budget.
+      re = Regex.compile!("^(a|b)*$", "u")
+      assert RegexExt.bounded_match?(re, String.duplicate("ab", 50_000))
+      refute RegexExt.bounded_match?(re, String.duplicate("ab", 50_000) <> "!")
+    end
+
+    test "aborts catastrophic backtracking instead of consuming the full PCRE2 budget" do
+      # Regex.match?/2 needs ~200ms on this input (PCRE2 default match limit);
+      # the size-scaled budget rejects it in well under a millisecond.
+      re = Regex.compile!("^(a+)+$", "u")
+      subject = String.duplicate("a", 3000) <> "!"
+      {us, result} = :timer.tc(fn -> RegexExt.bounded_match?(re, subject) end)
+      refute result
+      assert us < 100_000
+    end
+  end
+
   describe "translate_ecma_regex/1 property markers without braces" do
     test "leaves a bare \\p / \\P at end of string untouched" do
       assert RegexExt.translate_ecma_regex("\\p") == "\\p"
