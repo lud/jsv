@@ -1,0 +1,47 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/gh/lud/pm@main/resources/pm-project.schema.json",
+  "idMask": "000",
+  "doctypes": {
+    "feature": {
+      "tag": "feat",
+      "dir": "context/features",
+      "requireParent": true,
+      "intermediateDir": true,
+      "doneStatuses": [
+        "done"
+      ],
+      "blockedStatuses": [
+        "blocked"
+      ],
+      "defaultStatus": "new"
+    },
+    "spec": {
+      "tag": "spec",
+      "dir": ".",
+      "parent": "feature",
+      "requireParent": true,
+      "intermediateDir": false,
+      "doneStatuses": [
+        "done"
+      ],
+      "blockedStatuses": [
+        "blocked"
+      ],
+      "defaultStatus": "new"
+    },
+    "task": {
+      "tag": "task",
+      "dir": ".",
+      "parent": "spec",
+      "requireParent": true,
+      "intermediateDir": false,
+      "doneStatuses": [
+        "done"
+      ],
+      "blockedStatuses": [
+        "blocked"
+      ],
+      "defaultStatus": "new"
+    }
+  }
+}
