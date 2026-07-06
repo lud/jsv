@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.1] - 2026-07-06
+
+### 🚀 Features
+
+- Allow to define @doc above defschema to document json_schema/0 generated function
+
 ## [0.21.0] - 2026-07-05
 
 ### 🐛 Bug Fixes
