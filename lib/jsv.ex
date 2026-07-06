@@ -718,6 +718,10 @@ defmodule JSV do
       @legacy_jsv_tag 0
       @jsv_schema JSV.Schema.xcast(schema, Atom.to_string(__MODULE__))
 
+      def json_schema do
+        @jsv_schema
+      end
+
       defstruct JSV.__defschema__(:struct_keys, {schema, skip_keys_set, @additional_properties_key})
 
       @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
@@ -729,10 +733,6 @@ defmodule JSV do
         )
 
         json_schema()
-      end
-
-      def json_schema do
-        @jsv_schema
       end
 
       @doc false
@@ -980,6 +980,10 @@ defmodule JSV do
                   |> Map.put(:"x-jsv-cast", Atom.to_string(__MODULE__))
                   |> Map.put_new(:"$id", Internal.module_to_uri(__MODULE__))
 
+      def json_schema do
+        @jsv_schema
+      end
+
       @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
       @doc false
       def schema do
@@ -989,10 +993,6 @@ defmodule JSV do
         )
 
         json_schema()
-      end
-
-      def json_schema do
-        @jsv_schema
       end
 
       @doc false
