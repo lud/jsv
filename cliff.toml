@@ -66,6 +66,9 @@ protect_breaking_commits = false
 # Assigns commits to groups.
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
+  
+  # Shared libcheck commit parsers
+
   { message = "^feat", group = "<!-- 0 -->🚀 Features" },
   { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
   { message = "^doc", group = "<!-- 3 -->📚 Documentation" },
@@ -77,7 +80,6 @@ commit_parsers = [
   { message = "^chore\\(release\\): prepare for", skip = true },
   { message = "^chore\\(deps.*\\)", skip = true },
   { message = "^chore\\(pr\\)", skip = true },
-  { message = "^chore\\(pm\\)", skip = true },
   { message = "^chore\\(pull\\)", skip = true },
   { message = "^chore\\(libcheck\\)", skip = true },
   { message = "^chore: Update Elixir workflow", skip = true },
