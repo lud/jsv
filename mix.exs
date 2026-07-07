@@ -55,19 +55,15 @@ defmodule JSV.MixProject do
       {:idna, "~> 6.0 or ~> 7.0"},
 
       # Dev
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:eflambe, "~> 0.3", only: :dev},
       # eflambe pulls an old meck that does not compile on recent OTP; override it.
       {:meck, "~> 1.0", only: :dev, override: true},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:libdev, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:readmix, "~> 0.6", only: [:dev, :test], runtime: false},
 
       # Test
       {:briefly, "~> 0.5.1", only: :test},
       {:patch, "~> 0.16.0", only: :test},
-      {:ex_check, "~> 0.16.0", only: [:dev, :test], runtime: false},
-      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.2", only: :test},
 
       # JSON Schema Test Suite

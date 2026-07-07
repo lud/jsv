@@ -1,11 +1,11 @@
-gen-test-suite: deps
+gen-test-suite: _mix_deps
   mix compile
   mix jsv.gen_test_suite draft2020-12
   mix jsv.gen_test_suite draft7
   # mix format --check-formatted
   # git status --porcelain | rg "test/generated" --count && mix test || true
 
-update-test-suite: deps
+update-test-suite: _mix_deps
   mix deps.get
   mix jsv.update_jsts_ref
   mix deps.get
@@ -13,7 +13,7 @@ update-test-suite: deps
   mix test
   just _git_status
 
-deps:
+_mix_deps:
   mix deps.get
 
 test:
@@ -26,22 +26,23 @@ lint:
 dialyzer:
   mix dialyzer --format dialyzer
 
-_mix_format:
-  mix format
+format:
+  mix format --migrate
 
-_mix_check:
-  mix check
+_libdev_check:
+  mix libdev.check
 
 _git_status:
   git status
 
-docs:
+readme:
   mix rdmx.update README.md
   rg rdmx guides -l0 | xargs -0 -n 1 mix rdmx.update
+
+docs: readme
   mix docs --warnings-as-errors
 
 changelog:
   git cliff -o CHANGELOG.md
 
-check: deps _mix_format _mix_check docs _git_status
-
+check: _mix_deps format readme _libdev_check _git_status
