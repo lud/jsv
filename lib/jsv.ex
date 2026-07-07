@@ -498,6 +498,10 @@ defmodule JSV do
     OptsValidator.unknown_option!(key)
   end
 
+  @doc """
+  Same as `validate/3` but returns the validated data directly or raises a
+  validation error.
+  """
   @doc group: @doc_group
   @spec validate!(term, JSV.Root.t(), keyword) :: term
   def validate!(data, root, opts \\ []) do

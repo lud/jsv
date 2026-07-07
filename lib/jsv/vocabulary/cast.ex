@@ -12,10 +12,19 @@ defmodule JSV.Vocabulary.Cast do
   @moduledoc false
 
   defmodule CastHandlerLocationError do
+    @moduledoc """
+    Error raised at build time when the cast function referenced by the
+    `x-jsv-cast` or `jsv-cast` schema keywords cannot be found in the target
+    module.
+    """
     defexception [:module, :function, :message]
   end
 
   defmodule BadCastReturnValueError do
+    @moduledoc """
+    Error used when a cast function returns an invalid value. Cast functions
+    must return a result tuple, either `{:ok, value}` or `{:error, reason}`.
+    """
     @enforce_keys [:module, :function, :arity, :value]
     defexception @enforce_keys
 

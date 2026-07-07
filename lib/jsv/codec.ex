@@ -19,12 +19,20 @@ defmodule JSV.Codec do
           end)
 
   @supports_formatting @codec.supports_formatting?()
+  @doc """
+  Returns whether the current codec supports encoding with human readable
+  indentation, as done by `format!/1` and `format_to_iodata!/1`.
+  """
   @spec supports_formatting? :: boolean
   def supports_formatting? do
     @supports_formatting
   end
 
   @supports_ordered_formatting @codec.supports_ordered_formatting?()
+  @doc """
+  Returns whether the current codec supports encoding with ordered map keys, as
+  done by `format_ordered!/2` and `format_ordered_to_iodata!/2`.
+  """
   @spec supports_ordered_formatting? :: boolean
   def supports_ordered_formatting? do
     @supports_ordered_formatting

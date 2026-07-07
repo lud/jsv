@@ -7,6 +7,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
   use Mix.Task
 
   @shortdoc "Regenerate the JSON Schema Test Suite"
+  @moduledoc false
 
   @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
 
@@ -675,6 +676,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
   end
 
   defmodule ValueDumper do
+    @moduledoc false
     import Inspect.Algebra
 
     @key_order [

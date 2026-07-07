@@ -1,6 +1,7 @@
 # credo:disable-for-this-file Credo.Check.Readability.Specs
 # credo:disable-for-this-file Credo.Check.Readability.ModuleDoc
 defmodule Mix.Tasks.Jsv.UpdateJstsRef do
+  @moduledoc false
   use Mix.Task
 
   @dep_dir "deps/json_schema_test_suite"

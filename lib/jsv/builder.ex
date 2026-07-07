@@ -430,6 +430,9 @@ defmodule JSV.Builder do
     {leftovers, module.finalize_validators(mod_acc), builder}
   end
 
+  @doc """
+  Returns whether the given vocabulary module is enabled in the builder.
+  """
   @spec vocabulary_enabled?(t, module) :: boolean
   def vocabulary_enabled?(builder, vocab) do
     Enum.find_value(builder.vocabularies, false, fn
@@ -495,6 +498,13 @@ defmodule JSV.Builder do
   # TODO if we want to fail on resolver errors, we need to keep the
   # current_rev_path when a ref is staged. Currently those are resolved at the
   # top level and the buil path is just [:root] or [ns].
+  @doc """
+  Raises a `JSV.BuildError` with the given reason, pointing to the current
+  schema location of the builder.
+
+  The `action` describes the operation that failed, generally as a
+  `{module, function, args}` tuple, and is used for error reporting.
+  """
   @spec fail(t, term, term) :: no_return()
   def fail(%__MODULE__{} = builder, reason, action) do
     build_path = ErrorFormatter.format_schema_path(builder.current_rev_path)

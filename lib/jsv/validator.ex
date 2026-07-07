@@ -54,6 +54,14 @@ defmodule JSV.Validator do
   @type validator :: JSV.Subschema.t() | BooleanSchema.t() | {:alias_of, binary}
   @type result :: {:ok, term, context} | {:error, context}
 
+  @doc """
+  Returns a new validation context targeting the given entrypoint key in the
+  validators map, with the given validation options.
+
+  The two flags enable the tracking machinery for casts and for evaluated
+  properties and items. They are computed at build time so schemas that use
+  neither feature validate without the tracking overhead.
+  """
   @spec context(%{Key.t() => validator}, Key.t(), map(), boolean(), boolean()) :: context
   def context(validators, entrypoint, opts, feature_cast, feature_unevaluated) do
     %ValidationContext{
@@ -362,6 +370,13 @@ defmodule JSV.Validator do
     end
   end
 
+  @doc """
+  Validates the data against the subschema referenced by the given key.
+
+  A reference that is already being evaluated with the same data is an
+  infinite recursion, in that case the data is considered valid, as per JSON
+  Schema core 9.4.1.
+  """
   @spec validate_ref(term, Key.t(), eval_sub_path(), context) :: result
   def validate_ref(data, ref, eval_path, vctx) do
     %{seen_refs: seen_refs} = vctx
@@ -523,6 +538,10 @@ defmodule JSV.Validator do
     vctx
   end
 
+  @doc """
+  Returns the validation result for the given data, as `{:ok, data, vctx}`
+  when the context holds no errors, `{:error, vctx}` otherwise.
+  """
   @spec return(term, context) :: result
   def return(data, %ValidationContext{errors: []} = vctx) do
     {:ok, data, vctx}
@@ -568,6 +587,14 @@ defmodule JSV.Validator do
     }
   end
 
+  @doc """
+  Adds an error of the given `kind` to the validation context and returns the
+  updated context. The calling module is registered as the error formatter.
+
+  The `args` are a keyword list or map of values used when formatting the
+  error message, generally the values extracted from the schema keyword and
+  the reason of the failure.
+  """
   defmacro with_error(vctx, kind, data, args) do
     quote bind_quoted: binding() do
       JSV.Validator.__with_error__(__MODULE__, vctx, kind, data, args)
@@ -622,19 +649,30 @@ defmodule JSV.Validator do
 
   # Only reachable when the schema actually uses unevaluatedProperties/Items, in
   # which case the evaluation frames are tracked. There is intentionally no
-  # clause for feature_unevaluated: false so an invariant break crashes loudly
-  # rather than silently reporting nothing as evaluated.
+  # clause for feature_unevaluated: false.
+  @doc """
+  Lists the object keys and array indices of the data that were evaluated in
+  the current evaluation frame. Used by vocabulary implementations to support
+  the `unevaluatedProperties` and `unevaluatedItems` keywords.
+  """
   @spec list_evaluaded(context) :: [String.t() | integer()]
   def list_evaluaded(%ValidationContext{feature_unevaluated: true} = vctx) do
     %{evaluated: [current | _]} = vctx
     Map.keys(current)
   end
 
+  @doc """
+  Returns all errors collected in the context as a flat list.
+  """
   @spec flat_errors(context) :: [Error.t()]
   def flat_errors(vctx) do
     :lists.flatten(vctx.errors)
   end
 
+  @doc """
+  Builds a `JSV.ValidationError` exception from the errors collected in the
+  context.
+  """
   @spec to_error(context) :: ValidationError.t()
   def to_error(vctx) do
     ValidationError.of(flat_errors(vctx))

@@ -223,6 +223,13 @@ defmodule JSV.ErrorFormatter do
     }
   end
 
+  @doc """
+  Formats a data path into a JSON pointer string prefixed with `#`.
+
+  The path is given in reverse order, as stored in errors and validation
+  contexts. For instance, a path pointing to the first element of a `"users"`
+  array is given as `[0, "users"]` and formatted as `"#/users/0"`.
+  """
   @spec format_data_path(raw_path) :: String.t()
   def format_data_path([]) do
     "#"

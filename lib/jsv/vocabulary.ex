@@ -274,6 +274,17 @@ defmodule JSV.Vocabulary do
     end
   end
 
+  @doc """
+  Compiles the wrapped block only when the Decimal library is available. This
+  allows vocabulary implementations to define function clauses matching on the
+  `Decimal` struct.
+
+      with_decimal do
+        def handle(%Decimal{} = n) do
+          # ...
+        end
+      end
+  """
   defmacro with_decimal([{:do, _} | _] = blocks) do
     quote do
       if Code.ensure_loaded?(Decimal), unquote(blocks)
