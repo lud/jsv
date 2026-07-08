@@ -47,6 +47,10 @@ defmodule JSV.Resolver.Httpc do
     also accepts `false` to disable that cache. Cache directories are created
     with `0700` permissions and files are written atomically. Note that there
     is no cache expiration mechanism.
+
+    The `0700` permissions rely on Unix mode bits and have no effect on
+    Windows, where filesystem access is governed by ACLs instead.
+
   - `:max_body_size` - The maximum size in bytes of a response body. Larger
     responses produce a `{:body_too_large, url}` error. Defaults to
     `#{@default_max_body_size}` (10 MiB).

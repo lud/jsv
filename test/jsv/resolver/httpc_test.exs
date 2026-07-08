@@ -263,6 +263,7 @@ defmodule JSV.Resolver.HttpcTest do
       assert {:normal, ^cached_schema} = Httpc.resolve(url, allowed_prefixes: [url], cache_dir: cache_dir)
     end
 
+    @tag :unix
     test "writes cache files atomically in a private directory" do
       url = "http://some-host/some/schema"
       schema = %{"id" => "jsv://test/#{System.system_time(:microsecond)}"}
@@ -284,6 +285,7 @@ defmodule JSV.Resolver.HttpcTest do
       assert 0o700 == band(File.stat!(Path.dirname(cached_path)).mode, 0o777)
     end
 
+    @tag :unix
     test "a symlinked cache entry is ignored and replaced" do
       # A symlink planted at the cache path must not be read nor followed on
       # write. The resolver fetches the resource again and replaces the entry
