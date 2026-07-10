@@ -832,6 +832,14 @@ defmodule JSV.Schema.HelpersTest do
       assert_cast root, %{}, %{}
       assert_cast root, %{"extra" => "value"}, %{"extra" => "value"}
     end
+
+    test "guard clauses are handled by the compiler helper" do
+      assert %{type: :object, properties: %{a: _}, required: [:a]} = arprops(a: true)
+
+      assert_raise FunctionClauseError, fn ->
+        arprops(erase_type(1))
+      end
+    end
   end
 
   describe "the ~> operator" do

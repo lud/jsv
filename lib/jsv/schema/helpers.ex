@@ -336,7 +336,7 @@ defmodule JSV.Schema.Helpers do
       end
 
     extra
-    |> combine(%{properties: Map.new(properties), required: required})
+    |> combine(%{type: :object, properties: Map.new(properties), required: required})
     |> xcast(JSV.Cast.atom_property_keys())
   end
 
