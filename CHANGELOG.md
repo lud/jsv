@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.2] - 2026-07-10
+
+### 🐛 Bug Fixes
+
+- Ignore httpc cache chmod tests on windows
+- Add missing type: object on arprops schema helper
+
+### 📚 Documentation
+
+- Added missing docs for public API
+
 ## [0.21.1] - 2026-07-06
 
 ### 🚀 Features
