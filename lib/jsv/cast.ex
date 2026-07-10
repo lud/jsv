@@ -151,7 +151,8 @@ defmodule JSV.Cast do
                           "`JSV.build(schema, atoms: true)`\n\n" <>
                           "This option is safe to use for schemas that are trusted " <>
                           "(files from the codebase, first party remote sources, etc.). " <>
-                          "Prefer setting `false` for schemas built dynamically at runtime."
+                          "Prefer setting `false` for schemas built dynamically at runtime " <>
+                          "from untrusted sources"
 
   # TODO(v2): Default building atoms to false
   @default_atoms_build true
