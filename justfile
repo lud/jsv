@@ -8,7 +8,7 @@ gen-test-suite: _mix_deps
 update-test-suite: _mix_deps
   mix deps.get
   mix jsv.update_jsts_ref
-  mix deps.get
+  mix deps.get | rg json_schema_test_suite
   just gen-test-suite
   mix test
   just _git_status

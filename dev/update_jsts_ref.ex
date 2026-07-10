@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Jsv.UpdateJstsRef do
     end
 
     {log, 0} = git(~w(log #{current_ref}..#{new_ref}))
-    IO.puts([IO.ANSI.faint(), log, IO.ANSI.reset()])
+    IO.puts([IO.ANSI.magenta(), log, IO.ANSI.reset()])
 
     IO.puts("updating mix.exs")
 
