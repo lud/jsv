@@ -35,7 +35,7 @@ defmodule JSV.Generated.Draft7.AtomKeys.UniqueItemsTest do
     end
 
     test "numbers are unique if mathematically unequal", x do
-      data = [1.0, 1.00, 1]
+      data = [1.0, 1.0, 1]
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -316,7 +316,7 @@ defmodule JSV.Generated.Draft7.AtomKeys.UniqueItemsTest do
     end
 
     test "numbers are unique if mathematically unequal", x do
-      data = [1.0, 1.00, 1]
+      data = [1.0, 1.0, 1]
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

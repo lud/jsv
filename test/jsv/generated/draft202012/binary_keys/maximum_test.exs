@@ -61,7 +61,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.MaximumTest do
     end
 
     test "boundary point float is valid", x do
-      data = 300.00
+      data = 300.0
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

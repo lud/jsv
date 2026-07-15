@@ -3,6 +3,8 @@
 defmodule Mix.Tasks.Jsv.GenTestSuite do
   alias CliMate.CLI
   alias JSV.Helpers.Traverse
+  alias Mix.Tasks.Jsv.GenTestSuite.FloatWrapper
+  alias Mix.Tasks.Jsv.GenTestSuite.ValueDumper
   require EEx
   use Mix.Task
 
@@ -478,14 +480,50 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
   end
 
   defp decode_json(json) do
-    {decoded, :ok, ""} =
-      JSON.decode(json, :ok,
-        float: fn float_str ->
-          Decimal.new(float_str, max_digits: 99, max_exponent: 6_144)
-        end
-      )
+    decoded =
+      JSON.decode(json, :ok, float: fn float_str -> FloatWrapper.new(float_str) end)
 
-    decoded
+    case decoded do
+      {decoded_value, :ok, ""} ->
+        decoded_value
+
+      {:error, reason} ->
+        # Error reasons are {tag, offset} or {tag, offset, bytes}
+        offset = elem(reason, 1)
+
+        raise """
+        could not decode json
+
+        ERROR
+        #{inspect(reason)}
+
+        AT
+        #{json_sample(json, offset)}
+        """
+    end
+  end
+
+  defp json_sample(json, offset, context_lines \\ 3) do
+    offset = min(offset, byte_size(json))
+    prefix = binary_part(json, 0, offset)
+    suffix = binary_part(json, offset, byte_size(json) - offset)
+
+    {lines_before, [cursor_prefix]} = prefix |> String.split("\n") |> Enum.split(-1)
+
+    # The last part of the split may contain more lines, Enum.take/2 discards it
+    # when there are more lines than needed.
+    [cursor_suffix | lines_after] = String.split(suffix, "\n", parts: context_lines + 2)
+    lines_after = Enum.take(lines_after, context_lines)
+
+    cursor_line = cursor_prefix <> cursor_suffix
+    pointer = String.duplicate(" ", String.length(cursor_prefix)) <> "^"
+
+    sample =
+      [Enum.take(lines_before, -context_lines), cursor_line, pointer, lines_after]
+      |> List.flatten()
+      |> Enum.join("\n")
+
+    "line #{length(lines_before) + 1}, column #{String.length(cursor_prefix) + 1}:\n#{sample}"
   end
 
   defp ignored?(%{"description" => d} = t, [name | ignored]) when is_binary(name) do
@@ -515,7 +553,7 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
           already_skipped
 
         test ->
-          if contains_decimal_struct?(test) do
+          if contains_float_wrapper?(test) do
             test
           else
             %{test | skip?: true}
@@ -524,9 +562,9 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     )
   end
 
-  defp contains_decimal_struct?(data) do
+  defp contains_float_wrapper?(data) do
     Traverse.postwalk(data, fn
-      {:struct, %Decimal{}, _} -> throw(:contains_decimal)
+      {:struct, %FloatWrapper{}, _} -> throw(:contains_decimal)
       other -> elem(other, 1)
     end)
 
@@ -643,9 +681,9 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
 
     schema =
       Traverse.postwalk(schema, fn
-        {:struct, %Decimal{} = d, _} -> Decimal.to_float(d)
-        {:val, value} when is_map(value) -> __MODULE__.ValueDumper.wrap(value, suite_flavor)
-        {_, x} -> x
+        {:struct, %FloatWrapper{} = fw, _} -> FloatWrapper.as_json_decoded(fw)
+        {:val, value} when is_map(value) and not is_struct(value) -> ValueDumper.wrap(value, suite_flavor)
+        {_, x} when not is_struct(x) -> x
       end)
 
     inspect(schema, pretty: true, limit: :infinity, printable_limit: :infinity)
@@ -659,149 +697,189 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     # Using the inspect protocol, depending on the flavor we will render the
     # data differently.
     #
-    # The data parsed from the test suite already contains Decimal structs
-    # instead of floats
+    # The data parsed from the test suite contains FloatWrapper struct instead
+    # of floats
     #
-    # * For :decimal_test_data we will inspect the Decimal struct as-is, which
-    #   outputs a `Decimal.new("...")` call
-    # * For other flavors we will render the data as a a float.
-
+    # Depending on the suite flavor the ValueDumper will render
+    # * Decimal.new(float-as-string) for the decimal suite
+    # * the parsed float as an inspect(float) for other test suites
     data =
       Traverse.postwalk(data, fn
-        {:struct, %Decimal{} = d, _} -> __MODULE__.ValueDumper.wrap(d, suite_flavor)
-        {_, x} -> x
+        {:struct, %FloatWrapper{} = fw, _} -> ValueDumper.wrap(fw, suite_flavor)
+        {_, x} when not is_struct(x) -> x
       end)
 
     inspect(data, pretty: true, limit: :infinity, printable_limit: :infinity)
   end
+end
 
-  defmodule ValueDumper do
-    @moduledoc false
-    import Inspect.Algebra
+defmodule Mix.Tasks.Jsv.GenTestSuite.FloatWrapper do
+  @moduledoc false
+  defstruct [:float_str]
 
-    @key_order [
-                 # metada of the schema
-                 "$schema",
-                 "$id",
-                 "$anchor",
-                 "$dynamicAnchor",
+  def new(float_str) when is_binary(float_str) do
+    %__MODULE__{float_str: float_str}
+  end
 
-                 # text headers
-                 "title",
-                 "description",
-                 "comment",
+  def as_json_decoded(%__MODULE__{float_str: float_str}) do
+    JSON.decode!(float_str)
+  end
 
-                 # collection of other schemas
-                 "definitions",
-                 "$defs",
+  def as_elixir_code(%__MODULE__{} = fw) do
+    inspect(as_json_decoded(fw))
+  end
+end
 
-                 # references to other schemas
-                 "$dynamicRef",
-                 "$ref",
+defmodule Mix.Tasks.Jsv.GenTestSuite.ValueDumper do
+  @moduledoc false
+  alias Mix.Tasks.Jsv.GenTestSuite.FloatWrapper
+  import Inspect.Algebra
 
-                 # validations
+  @key_order [
+               # metada of the schema
+               "$schema",
+               "$id",
+               "$anchor",
+               "$dynamicAnchor",
 
-                 # type should be the first validation
-                 "type",
+               # text headers
+               "title",
+               "description",
+               "comment",
 
-                 # properties should be ordered like so, with required afterwards
-                 "properties",
-                 "patternProperties",
-                 "additionalProperties",
-                 "required"
-               ]
-               |> Enum.with_index()
-               |> Map.new()
+               # collection of other schemas
+               "definitions",
+               "$defs",
 
-    @schema_struct_keys Map.keys(Map.from_struct(JSV.Schema.__struct__()))
+               # references to other schemas
+               "$dynamicRef",
+               "$ref",
 
-    defstruct value: [], suite_flavor: nil
+               # validations
 
-    def wrap(value, suite_flavor) do
-      %__MODULE__{value: value, suite_flavor: suite_flavor}
-    end
+               # type should be the first validation
+               "type",
 
-    def render(%{value: %Decimal{} = d, suite_flavor: :decimal_test_data}, _) do
-      "Decimal.new(#{inspect(Decimal.to_string(d))}, JsonSchemaSuite.decimal_opts())"
-    end
+               # properties should be ordered like so, with required afterwards
+               "properties",
+               "patternProperties",
+               "additionalProperties",
+               "required"
+             ]
+             |> Enum.with_index()
+             |> Map.new()
 
-    # Render normal floats
-    def render(%{value: %Decimal{} = d}, _) do
-      # We return the decimal as a string, but as we are implementing the
-      # inspect protocol this will be a float in the generated test module.
-      Decimal.to_string(d)
-    end
+  @schema_struct_keys Map.keys(Map.from_struct(JSV.Schema.__struct__()))
 
-    # Render JSV.Schema structs or maps with atom keys
-    def render(%{value: map, suite_flavor: :jsv_schema_structs}, inspect_opts)
-        when is_map(map) and not is_struct(map) do
-      # Map keys in schemas are always binaries
+  defstruct value: [], suite_flavor: nil
 
-      # Turn the map into a list ordered by key_order
-      list = to_ordlist(map)
+  def wrap(value, suite_flavor) do
+    %__MODULE__{value: value, suite_flavor: suite_flavor}
+  end
 
-      # Force cast all keys as atoms
-      list = Enum.map(list, fn {k, v} -> {String.to_atom(k), v} end)
+  def render(%{value: %FloatWrapper{} = fw, suite_flavor: :decimal_test_data}, _) do
+    "Decimal.new(#{inspect(fw.float_str)}, JsonSchemaSuite.decimal_opts())"
+  end
 
-      # Inner map is a keyword
-      fun = &Inspect.List.keyword/2
+  def render(%{value: %FloatWrapper{} = fw, suite_flavor: _}, _) do
+    FloatWrapper.as_elixir_code(fw)
+  end
 
-      schema_struct_compatible? = Enum.all?(list, fn {k, _} -> k in @schema_struct_keys end)
+  # Render JSV.Schema structs or maps with atom keys
+  def render(%{value: map, suite_flavor: :jsv_schema_structs}, inspect_opts)
+      when is_map(map) and not is_struct(map) do
+    # Map keys in schemas are always binaries
 
-      struct_name =
-        if schema_struct_compatible? do
-          "JSV.Schema"
-        else
-          ""
-        end
+    # Turn the map into a list ordered by key_order
+    list = to_ordlist(map)
 
-      map_container_doc(list, struct_name, inspect_opts, fun)
-    end
+    # Force cast all keys as atoms
+    list = Enum.map(list, fn {k, v} -> {String.to_atom(k), v} end)
 
-    # # Render maps with binary keys
-    def render(%{value: map, suite_flavor: _other_flavors}, inspect_opts)
-        when is_map(map) and not is_struct(map) do
-      # Map keys in schemas are always binaries
+    # Inner map is a keyword
+    fun = &Inspect.List.keyword/2
 
-      # Turn the map into a list ordered by key_order
-      list = to_ordlist(map)
+    schema_struct_compatible? = Enum.all?(list, fn {k, _} -> k in @schema_struct_keys end)
 
-      # Inner map render
-      fun = &to_assoc(&1, &2, " => ")
-
-      struct_name = ""
-
-      map_container_doc(list, struct_name, inspect_opts, fun)
-    end
-
-    defp to_assoc({key, value}, opts, sep) do
-      concat(concat(to_doc(key, opts), sep), to_doc(value, opts))
-    end
-
-    defp map_container_doc(list, name, opts, fun) do
-      open = "%" <> name <> "{"
-      sep = ","
-      close = "}"
-      container_doc(open, list, close, opts, fun, separator: sep, break: :strict)
-    end
-
-    def to_ordlist(map) do
-      map
-      |> Map.to_list()
-      |> Enum.sort_by(fn {k, _} -> order_of(k) end)
-    end
-
-    defp order_of(key) when is_binary(key) do
-      case Map.fetch(@key_order, key) do
-        {:ok, order} -> {0, order}
-        :error -> {1, key}
+    struct_name =
+      if schema_struct_compatible? do
+        "JSV.Schema"
+      else
+        ""
       end
+
+    map_container_doc(list, struct_name, inspect_opts, fun)
+  end
+
+  # # Render maps with binary keys
+  def render(%{value: map, suite_flavor: _other_flavors}, inspect_opts)
+      when is_map(map) and not is_struct(map) do
+    # Map keys in schemas are always binaries
+
+    # Turn the map into a list ordered by key_order
+    list = to_ordlist(map)
+
+    # Inner map render
+    fun = &to_assoc(&1, &2, " => ")
+
+    struct_name = ""
+
+    map_container_doc(list, struct_name, inspect_opts, fun)
+  end
+
+  defp to_assoc({key, value}, opts, sep) do
+    concat(concat(to_doc(key, opts), sep), to_doc(value, opts))
+  end
+
+  defp map_container_doc(list, name, opts, fun) do
+    open = "%" <> name <> "{"
+    sep = ","
+    close = "}"
+    container_doc(open, list, close, opts, fun, separator: sep, break: :strict)
+  end
+
+  def to_ordlist(map) do
+    map
+    |> Map.to_list()
+    |> Enum.sort_by(fn {k, _} -> order_of(k) end)
+  end
+
+  defp order_of(key) when is_binary(key) do
+    case Map.fetch(@key_order, key) do
+      {:ok, order} -> {0, order}
+      :error -> {1, key}
     end
   end
 end
 
 defimpl Inspect, for: Mix.Tasks.Jsv.GenTestSuite.ValueDumper do
+  alias Mix.Tasks.Jsv.GenTestSuite.ValueDumper
+
   def inspect(dumper, opts) do
-    Mix.Tasks.Jsv.GenTestSuite.ValueDumper.render(dumper, opts)
+    ValueDumper.render(dumper, opts)
+  rescue
+    e ->
+      # Error formating will recursively try to use inspect. If the error is
+      # because of ValueDumper.render own rendering code this will loop trough
+      # here forever
+      task =
+        Task.async(fn ->
+          Exception.format(:error, e, __STACKTRACE__)
+        end)
+
+      message =
+        case Task.yield(task, 1000) || Task.shutdown(task) do
+          {:ok, result} ->
+            result
+
+          nil ->
+            "could not inspect value: #{inspect(dumper.value)} " <>
+              "with `Mix.Tasks.Jsv.GenTestSuite.ValueDumper.render/2` " <>
+              "on suite flavor #{inspect(dumper.suite_flavor)}"
+        end
+
+      Mix.Shell.IO.error(message)
+
+      System.halt(1)
   end
 end

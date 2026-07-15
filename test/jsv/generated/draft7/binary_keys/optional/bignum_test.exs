@@ -85,7 +85,7 @@ defmodule JSV.Generated.Draft7.BinaryKeys.Optional.BignumTest do
     end
 
     test "comparison works for high numbers", x do
-      data = 972_783_798_187_987_123_879_878_123.188781371
+      data = 9.727837981879871e26
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
@@ -113,7 +113,7 @@ defmodule JSV.Generated.Draft7.BinaryKeys.Optional.BignumTest do
     end
 
     test "comparison works for very negative numbers", x do
-      data = -972_783_798_187_987_123_879_878_123.188781371
+      data = -9.727837981879871e26
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
