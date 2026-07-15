@@ -205,6 +205,10 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
 
       # Unsupported
 
+      # The idn-email.json file contains a lone UTF-16 surrogate escape
+      # ("\ud800") in a test data string. Such a code point cannot be
+      # represented in UTF-8, so the strict OTP JSON decoder rejects the whole
+      # file and we cannot even decode it to generate the other tests.
       "optional/format/idn-email.json" => :unsupported,
       "optional/format/idn-hostname.json" => :unsupported,
       "optional/ecmascript-regex.json" => :unsupported,
