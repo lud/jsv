@@ -1,0 +1,698 @@
+# credo:disable-for-this-file Credo.Check.Readability.Specs
+defmodule JSV.TestSuiteGenerator do
+  alias CliMate.CLI
+  alias JSV.Helpers.Traverse
+  alias JSV.TestSuiteGenerator.FloatWrapper
+  alias JSV.TestSuiteGenerator.ValueDumper
+  require EEx
+
+  @moduledoc false
+
+  @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
+
+  defp enabled_specific_202012 do
+    %{
+      "anchor.json" => [],
+      "content.json" => [],
+      "defs.json" => [],
+      "dependentRequired.json" => [],
+      "dependentSchemas.json" => [],
+      "dynamicRef.json" => [],
+      "maxContains.json" => [],
+      "minContains.json" => [],
+      "prefixItems.json" => [],
+      "unevaluatedItems.json" => [],
+      "unevaluatedProperties.json" => [],
+      "vocabulary.json" => [],
+
+      # Optional
+
+      "optional/anchor.json" => [],
+      "optional/no-schema.json" => [],
+      "optional/dependencies-compatibility.json" => [],
+      "optional/dynamicRef.json" => [],
+      "optional/refOfUnknownKeyword.json" => [],
+
+      # Formats
+
+      "optional/format-assertion.json" => [],
+      "optional/format/duration.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          "weeks cannot be combined with other units",
+          "hours and seconds cannot appear without minutes",
+          "years and days cannot appear without months",
+          "fractional duration is not allowed by RFC 3339 ABNF"
+        ],
+        elixir: "~> 1.17"
+      ],
+      "optional/format/uuid.json" => [schema_build_opts: [formats: true]],
+
+      # Unsupported
+
+      "optional/format/ecmascript-regex.json" => :unsupported
+    }
+  end
+
+  defp enabled_specific_7 do
+    %{
+      "additionalItems.json" => [],
+      "definitions.json" => [],
+      "dependencies.json" => [],
+
+      # Unsupported
+
+      "optional/content.json" => :unsupported
+    }
+  end
+
+  defp enabled_common do
+    %{
+      "additionalProperties.json" => [
+        atom_ignore: [
+          # Those tests use regexes in pattern properties. We do not want to
+          # render those as atoms as it will be confusing.
+          "additionalProperties being false does not allow other properties",
+          "non-ASCII pattern with additionalProperties"
+        ]
+      ],
+      "allOf.json" => [],
+      "anyOf.json" => [],
+      "boolean_schema.json" => [],
+      "const.json" => [decimal_ignore: true],
+      "contains.json" => [],
+      "default.json" => [],
+      "enum.json" => [decimal_ignore: true],
+      "exclusiveMaximum.json" => [],
+      "exclusiveMinimum.json" => [],
+      "format.json" => [],
+      "if-then-else.json" => [],
+      "infinite-loop-detection.json" => [],
+      "items.json" => [],
+      "maximum.json" => [],
+      "maxItems.json" => [],
+      "maxLength.json" => [],
+      "maxProperties.json" => [],
+      "minimum.json" => [],
+      "minItems.json" => [],
+      "minLength.json" => [],
+      "minProperties.json" => [],
+      "multipleOf.json" => [ignore: ["always invalid, but naive implementations may raise an overflow error"]],
+      "not.json" => [],
+      "oneOf.json" => [],
+      "pattern.json" => [],
+      "patternProperties.json" => [
+        ignore: [
+          # Invalid regex for elixir
+          "patternProperties with Unicode property escape"
+        ]
+      ],
+      "properties.json" => [],
+      "propertyNames.json" => [],
+      "ref.json" => [],
+      "refRemote.json" => [],
+      "required.json" => [],
+      "type.json" => [],
+      "uniqueItems.json" => [decimal_ignore: true],
+
+      # Optional
+
+      "optional/bignum.json" => [],
+      "optional/id.json" => [],
+
+      # Formats
+
+      "optional/format/date.json" => [schema_build_opts: [formats: true]],
+      "optional/format/email.json" => [schema_build_opts: [formats: true]],
+      "optional/format/hostname.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          "exceeds maximum label length",
+          "a host name with a component too long"
+        ]
+      ],
+      "optional/format/ipv4.json" => [schema_build_opts: [formats: true]],
+      "optional/format/ipv6.json" => [schema_build_opts: [formats: true]],
+      "optional/format/iri-reference.json" => [schema_build_opts: [formats: true]],
+      "optional/format/iri.json" => [schema_build_opts: [formats: true]],
+      "optional/format/json-pointer.json" => [schema_build_opts: [formats: true]],
+      "optional/format/regex.json" => [schema_build_opts: [formats: true]],
+      "optional/format/relative-json-pointer.json" => [schema_build_opts: [formats: true]],
+      "optional/format/unknown.json" => [schema_build_opts: [formats: true]],
+      "optional/format/uri-reference.json" => [schema_build_opts: [formats: true]],
+      "optional/format/uri-template.json" => [schema_build_opts: [formats: true]],
+      "optional/format/uri.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          # LDAP URL with IPv6 and ?-separated query fields, valid but rejected by Erlang's uri_string.
+          # Test name "a valid URL" is too generic so we ignore by data
+          fn
+            %{"data" => d} -> d == "ldap://[2001:db8::7]/c=GB?objectClass?one"
+            _ -> false
+          end
+        ]
+      ],
+      "optional/format/time.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          # Elixir built-in calendar does not support leap seconds
+          "valid leap second, large positive time-offset",
+          "valid leap second, positive time-offset",
+          "valid leap second, zero time-offset",
+          "valid leap second, large negative time-offset",
+          "a valid time string with leap second, Zulu",
+          "valid leap second, negative time-offset",
+
+          # Elixir does not require a time offset to be set
+          "no time offset",
+          "no time offset with second fraction",
+
+          # Elixir supports more formats that RFC3339
+          "only RFC3339 not all of ISO 8601 are valid",
+
+          # Elixir does not support RFC 3339 §4.3 "-00:00" unknown local offset
+          "time with unknown local offset is valid"
+        ]
+      ],
+      "optional/format/date-time.json" => [
+        schema_build_opts: [formats: true],
+        ignore: [
+          "case-insensitive T and Z",
+          "a valid date-time with a leap second, UTC",
+          "a valid date-time with a leap second, with minus offset"
+        ]
+      ],
+
+      # Architecture problems
+
+      # Uses schema 2019 in tests which we do not support
+      "optional/cross-draft.json" => :unsupported,
+
+      # We need to make a change so each vocabulary module exports a strict list
+      # of supported keywords, and the resolver schema scanner does not
+      # automatically build schemas under unknown keywords.
+      #
+      # Another problem is that we need to convert the raw schemas to know if it
+      # is a sub schema is a real schema or an object that contains "$id" but is
+      # not under a supported keyword. For that we should traverse the whole
+      # schema and tag the "real" schemas we find, and then when a path points to
+      # a definition with "$id" inside we check if the tag is present, or we
+      # disregard that "$id".
+      "optional/unknownKeyword.json" => :unsupported,
+
+      # Unsupported
+
+      # The idn-email.json file contains a lone UTF-16 surrogate escape
+      # ("\ud800") in a test data string. Such a code point cannot be
+      # represented in UTF-8, so the strict OTP JSON decoder rejects the whole
+      # file and we cannot even decode it to generate the other tests.
+      "optional/format/idn-email.json" => :unsupported,
+      "optional/format/idn-hostname.json" => :unsupported,
+      "optional/ecmascript-regex.json" => :unsupported,
+      "optional/float-overflow.json" => :unsupported,
+      "optional/non-bmp-regex.json" => :unsupported
+    }
+  end
+
+  defp raise_same_key(k, v1, v2) do
+    raise ArgumentError, """
+    duplicate definition for test #{inspect(k)}
+
+    COMMON
+    #{inspect(v1)}
+
+    SPECIFIC
+    #{inspect(v2)}
+
+    """
+  end
+
+  defp test_suites do
+    %{
+      "draft2020-12" => Map.merge(enabled_common(), enabled_specific_202012(), &raise_same_key/3),
+      "draft7" => Map.merge(enabled_common(), enabled_specific_7(), &raise_same_key/3)
+    }
+  end
+
+  EEx.function_from_string(
+    :defp,
+    :module_template,
+    ~S"""
+    # credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
+    # credo:disable-for-this-file Credo.Check.Readability.StringSigils
+
+    defmodule <%= inspect(@module_name) %> do
+      alias JSV.Test.JsonSchemaSuite
+      use ExUnit.Case, async: true
+
+      @moduledoc \"""
+      Test generated from <%= Path.relative_to_cwd(@path) %>
+      \"""
+
+      <%= for suite_case <- @test_cases do %>
+
+        <%= if suite_case.elixir_version_check do %>
+          if JsonSchemaSuite.version_check(<%= inspect(suite_case.elixir_version_check) %>) do
+        <% end %>
+
+        describe <%= inspect(suite_case.description) %> do
+
+          setup do
+            json_schema = <%= render_ordered_schema(suite_case.schema, @suite_flavor) %>
+            schema = JsonSchemaSuite.build_schema(json_schema, <%= inspect(@schema_build_opts, limit: :infinity, pretty: true) %>)
+            {:ok, json_schema: json_schema, schema: schema}
+          end
+
+          <%= for suite_ut <- suite_case.tests do %>
+
+            <%= if not suite_ut.skip? do %>
+            test <%= inspect(suite_ut.description) %>, x do
+              data = <%= render_test_data(suite_ut.data, @suite_flavor) %>
+              expected_valid = <%= inspect(suite_ut.valid?) %>
+              JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+            end
+            <% end %>
+
+
+          <% end %>
+        end
+
+        <%= if suite_case.elixir_version_check do %>
+          end
+        <% end %>
+
+      <% end %>
+    end
+    """,
+    [
+      :assigns
+    ]
+  )
+
+  def run(suite) do
+    # Generate default JSON schemas
+    do_run(suite, :default)
+
+    # Generate tests using %JSV.Schema{} structs for any compatible map.
+    do_run(suite, :jsv_schema_structs)
+
+    # Generate tests where data can contain Decimal structs (but not schemas)
+    do_run(suite, :decimal_test_data)
+
+    Mix.start()
+    Mix.Task.run("format", ["--migrate"])
+  end
+
+  # Format can be :binary or :atom, it changes the way the schemas will be
+  # represented in the tests
+  defp do_run(suite_name, suite_flavor, max_tests \\ :infinity) do
+    subnamespace =
+      case suite_flavor do
+        :default -> "BinaryKeys"
+        :jsv_schema_structs -> "AtomKeys"
+        :decimal_test_data -> "DecimalValues"
+      end
+
+    suite_ns = String.replace(suite_name, "-", "")
+    namespace = Module.concat([JSV, Generated, Macro.camelize(suite_ns), subnamespace])
+    test_directory = namespace |> preferred_path() |> String.replace(~r/\.ex$/, "")
+
+    CLI.warn("Deleting current test files directory #{test_directory}")
+    _ = File.rm_rf!(test_directory)
+
+    test_suite =
+      case Map.fetch(test_suites(), suite_name) do
+        {:ok, map} when is_map(map) -> map
+        :error -> raise ArgumentError, "No suite configuration for #{inspect(suite_name)}"
+      end
+
+    schema_options = [default_meta: default_meta(suite_name)]
+
+    test_suite
+    |> stream_cases(suite_name, suite_flavor)
+    |> take_max_tests(max_tests)
+    |> Stream.map(&gen_test_mod(&1, namespace, suite_flavor, schema_options))
+    |> Enum.count()
+    |> then(&IO.puts("Wrote #{&1} files"))
+  end
+
+  defp take_max_tests(stream, :infinity) do
+    stream
+  end
+
+  defp take_max_tests(stream, n) do
+    Stream.take(stream, n)
+  end
+
+  defp default_meta("draft7") do
+    "http://json-schema.org/draft-07/schema"
+  end
+
+  defp default_meta("draft2020-12") do
+    "https://json-schema.org/draft/2020-12/schema"
+  end
+
+  def stream_cases(enabled_cases, suite_name, suite_flavor) do
+    suite_dir = suite_dir!(suite_name)
+
+    suite_dir
+    |> Path.join("**/**.json")
+    |> Path.wildcard()
+    |> Enum.sort()
+    |> Stream.transform(
+      fn -> {_discarded = [], enabled_cases} end,
+      fn path, {discarded, enabled} ->
+        rel_path = Path.relative_to(path, suite_dir)
+
+        # We delete the {file, opts} entry in the enabled map when we use it, so
+        # we can print unexpected configs (useful when the JSON schema test
+        # suite maintainers delete some test files).
+
+        case Map.pop(enabled, rel_path, :error) do
+          {:unsupported, rest_enabled} -> {[], {discarded, rest_enabled}}
+          {:error, ^enabled} -> {[], {[rel_path | discarded], enabled}}
+          {opts, rest_enabled} -> {[%{path: path, rel_path: rel_path, opts: opts}], {discarded, rest_enabled}}
+        end
+      end,
+      fn {discarded, rest_enabled} ->
+        # Cases found in the JSON files that were not declared, and so not
+        # returned in the stream
+        print_unchecked(suite_name, discarded)
+
+        # Cases configured in `all_enabled` that were not found as JSON files.
+        print_unexpected(suite_name, rest_enabled)
+      end
+    )
+    |> Stream.flat_map(fn item ->
+      %{path: path, opts: opts} = item
+
+      case marshall_file(path, suite_flavor, opts) do
+        [] -> []
+        test_cases -> [Map.put(item, :test_cases, test_cases)]
+      end
+    end)
+  end
+
+  defp marshall_file(source_path, suite_flavor, opts) do
+    ignore = Keyword.get(opts, :ignore, [])
+
+    ignore =
+      if suite_flavor == :jsv_schema_structs do
+        Keyword.get(opts, :atom_ignore, []) ++ ignore
+      else
+        ignore
+      end
+
+    {ignore, ignore_all?} =
+      if suite_flavor == :decimal_test_data do
+        case Keyword.get(opts, :decimal_ignore) do
+          nil -> {ignore, false}
+          true -> {ignore, true}
+        end
+      else
+        {ignore, false}
+      end
+
+    if ignore_all? do
+      []
+    else
+      elixir = Keyword.get(opts, :elixir, nil)
+      do_marshall_file(source_path, suite_flavor, ignore, elixir)
+    end
+  end
+
+  defp do_marshall_file(source_path, suite_flavor, ignored, elixir) do
+    source_path
+    |> File.read!()
+    |> decode_json()
+    |> Enum.flat_map(fn suite_case ->
+      %{"description" => sc_desc, "schema" => schema, "tests" => tests} = suite_case
+      suite_case_ignored? = ignored?(suite_case, ignored)
+
+      tests =
+        Enum.map(tests, fn suite_ut ->
+          %{"description" => tt_descr, "data" => data, "valid" => valid} = suite_ut
+
+          suite_ut_ignored? = ignored?(suite_ut, ignored)
+
+          %{
+            description: tt_descr,
+            data: data,
+            valid?: valid,
+            skip?: suite_ut_ignored? or suite_case_ignored?,
+            ignore: ignored
+          }
+        end)
+
+      # For the :decimal_test_data flavor we will only generate tests that do
+      # have a Decimal struct in the test data
+      tests =
+        if suite_flavor == :decimal_test_data do
+          mark_skip_tests_without_decimal_test_data(tests)
+        else
+          tests
+        end
+
+      all_ignored? = Enum.all?(tests, & &1.skip?)
+
+      if all_ignored? do
+        []
+      else
+        [%{description: sc_desc, schema: schema, tests: tests, elixir_version_check: elixir}]
+      end
+    end)
+  end
+
+  defp decode_json(json) do
+    decoded =
+      JSON.decode(json, :ok, float: fn float_str -> FloatWrapper.new(float_str) end)
+
+    case decoded do
+      {decoded_value, :ok, ""} ->
+        decoded_value
+
+      {:error, reason} ->
+        # Error reasons are {tag, offset} or {tag, offset, bytes}
+        offset = elem(reason, 1)
+
+        raise """
+        could not decode json
+
+        ERROR
+        #{inspect(reason)}
+
+        AT
+        #{json_sample(json, offset)}
+        """
+    end
+  end
+
+  defp json_sample(json, offset, context_lines \\ 3) do
+    offset = min(offset, byte_size(json))
+    prefix = binary_part(json, 0, offset)
+    suffix = binary_part(json, offset, byte_size(json) - offset)
+
+    {lines_before, [cursor_prefix]} = prefix |> String.split("\n") |> Enum.split(-1)
+
+    # The last part of the split may contain more lines, Enum.take/2 discards it
+    # when there are more lines than needed.
+    [cursor_suffix | lines_after] = String.split(suffix, "\n", parts: context_lines + 2)
+    lines_after = Enum.take(lines_after, context_lines)
+
+    cursor_line = cursor_prefix <> cursor_suffix
+    pointer = String.duplicate(" ", String.length(cursor_prefix)) <> "^"
+
+    sample =
+      [Enum.take(lines_before, -context_lines), cursor_line, pointer, lines_after]
+      |> List.flatten()
+      |> Enum.join("\n")
+
+    "line #{length(lines_before) + 1}, column #{String.length(cursor_prefix) + 1}:\n#{sample}"
+  end
+
+  defp ignored?(%{"description" => d} = t, [name | ignored]) when is_binary(name) do
+    if d == name do
+      true
+    else
+      ignored?(t, ignored)
+    end
+  end
+
+  defp ignored?(t, [fun | ignored]) when is_function(fun) do
+    case fun.(t) do
+      true -> true
+      false -> ignored?(t, ignored)
+    end
+  end
+
+  defp ignored?(_, []) do
+    false
+  end
+
+  defp mark_skip_tests_without_decimal_test_data(tests) do
+    Enum.map(
+      tests,
+      fn
+        %{skip?: true} = already_skipped ->
+          already_skipped
+
+        test ->
+          if contains_float_wrapper?(test) do
+            test
+          else
+            %{test | skip?: true}
+          end
+      end
+    )
+  end
+
+  defp contains_float_wrapper?(data) do
+    Traverse.postwalk(data, fn
+      {:struct, %FloatWrapper{}, _} -> throw(:contains_decimal)
+      other -> elem(other, 1)
+    end)
+
+    false
+  catch
+    :contains_decimal -> true
+  end
+
+  def suite_dir!(suite) do
+    path = Path.join(@root_suites_dir, suite)
+
+    case File.dir?(path) do
+      true -> path
+      false -> raise ArgumentError, "unknown suite #{suite}, could not find directory #{path}"
+    end
+  end
+
+  defp print_unchecked(suite, []) do
+    IO.puts("All cases checked out for #{suite}")
+  end
+
+  defp print_unchecked(suite, paths) do
+    total = length(paths)
+    maxprint = 20
+    more? = total > maxprint
+
+    print_list =
+      paths
+      |> Enum.sort_by(fn
+        "optional/format/" <> _ = rel_path -> {2, rel_path}
+        "optional/" <> _ = rel_path -> {1, rel_path}
+        rel_path -> {0, rel_path}
+      end)
+      |> Enum.take(maxprint)
+      |> Enum.map_intersperse(?\n, fn filename -> "{#{inspect(filename)}, []}," end)
+
+    IO.warn(
+      """
+      Unchecked test cases in #{suite}:
+      #{print_list}
+      #{(more? && "... (#{total - maxprint} more)") || ""}
+      """,
+      []
+    )
+  end
+
+  defp print_unexpected(_suite, map) when map_size(map) == 0 do
+    # no noise
+  end
+
+  defp print_unexpected(suite, map) do
+    IO.warn(
+      """
+      Unexpected test cases in #{suite}:
+      #{map |> Map.to_list() |> Enum.map_join("\n", &inspect/1)}
+      """,
+      []
+    )
+  end
+
+  defp gen_test_mod(mod_info, namespace, suite_flavor, schema_options) do
+    module_name = module_name(mod_info, namespace)
+
+    case_build_opts = get_in(mod_info, [:opts, :schema_build_opts]) || []
+    schema_build_opts = Keyword.merge(schema_options, case_build_opts)
+
+    assigns =
+      Map.merge(mod_info, %{module_name: module_name, schema_build_opts: schema_build_opts, suite_flavor: suite_flavor})
+
+    module_contents = module_template(assigns)
+    module_path = module_path(module_name)
+
+    File.mkdir_p!(Path.dirname(module_path))
+    File.write!(module_path, module_contents, [:sync])
+    module_path
+  end
+
+  defp module_path(module_name) do
+    path = preferred_path(module_name)
+    mod_path = Regex.replace(~r/\.ex$/, path, ".exs")
+    true = String.ends_with?(mod_path, ".exs")
+    mod_path
+  end
+
+  defp preferred_path(module_name) do
+    mount = Modkit.Mount.define!([{JSV.Generated, "test/jsv/generated"}])
+    {:ok, path} = Modkit.Mount.preferred_path(mount, module_name)
+    path
+  end
+
+  defp module_name(mod_info, namespace) do
+    mod_name =
+      mod_info.rel_path
+      |> String.replace("optional/", "optional.")
+      |> Path.basename(".json")
+      |> Macro.underscore()
+      |> String.replace(~r/[^A-Za-z0-9.\/]/, "_")
+      |> Macro.camelize()
+      |> Kernel.<>("Test")
+
+    module = Module.concat(namespace, mod_name)
+
+    case inspect(module) do
+      ~s(:"Elixir) <> _ -> raise "invalid module: #{inspect(module)}"
+      _ -> module
+    end
+  end
+
+  defp render_ordered_schema(schema, suite_flavor) when is_map(schema) do
+    # For all flavors the wrapper will render the keys in a preferred order.
+
+    # For now we support Decimal in data but not in the schema, so here it is
+    # always a float.
+
+    schema =
+      Traverse.postwalk(schema, fn
+        {:struct, %FloatWrapper{} = fw, _} -> FloatWrapper.as_json_decoded(fw)
+        {:val, value} when is_map(value) and not is_struct(value) -> ValueDumper.wrap(value, suite_flavor)
+        {_, x} when not is_struct(x) -> x
+      end)
+
+    inspect(schema, pretty: true, limit: :infinity, printable_limit: :infinity)
+  end
+
+  defp render_ordered_schema(schema, _) when is_boolean(schema) do
+    inspect(schema, pretty: true, limit: :infinity, printable_limit: :infinity)
+  end
+
+  defp render_test_data(data, suite_flavor) do
+    # Using the inspect protocol, depending on the flavor we will render the
+    # data differently.
+    #
+    # The data parsed from the test suite contains FloatWrapper struct instead
+    # of floats
+    #
+    # Depending on the suite flavor the ValueDumper will render
+    # * Decimal.new(float-as-string) for the decimal suite
+    # * the parsed float as an inspect(float) for other test suites
+    data =
+      Traverse.postwalk(data, fn
+        {:struct, %FloatWrapper{} = fw, _} -> ValueDumper.wrap(fw, suite_flavor)
+        {_, x} when not is_struct(x) -> x
+      end)
+
+    inspect(data, pretty: true, limit: :infinity, printable_limit: :infinity)
+  end
+end

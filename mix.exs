@@ -199,6 +199,7 @@ defmodule JSV.MixProject do
       mount: [
         {JSV, "lib/jsv"},
         {JSV.DocGen, "dev/doc_gen"},
+        {JSV.TestSuiteGenerator, "dev/test_suite_generator"},
         {Mix.Tasks.Jsv, "dev", flavor: :mix_task}
       ]
     ]
