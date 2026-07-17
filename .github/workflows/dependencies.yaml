@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - "main"
+    paths:
+      - "mix.lock"
+      - "mix.exs"
 
 # The API requires write permission on the repository to submit dependencies
 permissions:
