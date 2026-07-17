@@ -54,7 +54,13 @@ defmodule JSV.StructSupport do
         raise ArgumentError, errmsg("must define properties as a map, got: #{inspect(other)}")
 
       _ ->
-        raise ArgumentError, errmsg("must include a properties key")
+        raise ArgumentError,
+              errmsg(
+                "must include a properties key. The defschema macro defines a struct whose fields are " <>
+                  "the schema properties, so a schema without properties has no struct to define. For a " <>
+                  "schema whose constraints come only from combinators such as oneOf, allOf or $ref, define " <>
+                  "a plain module with a json_schema/0 function instead of using defschema."
+              )
     end
   end
 
