@@ -113,7 +113,7 @@ defmodule JSV.TestSuiteGenerator do
       "refRemote.json" => [],
       "required.json" => [],
       "type.json" => [],
-      "uniqueItems.json" => [decimal_ignore: true],
+      "uniqueItems.json" => [],
 
       # Optional
 

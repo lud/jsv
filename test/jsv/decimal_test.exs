@@ -25,4 +25,30 @@ defmodule JSV.DecimalTest do
       assert decimal_data == JSV.validate!(decimal_data, root)
     end
   end
+
+  describe "supports unique items with Decimal" do
+    # JSON Schema compares numbers by mathematical value, and its data model
+    # makes no distinction between integers and other numbers. Decimals with a
+    # zero fractional part are therefore equal to the corresponding integer.
+
+    setup do
+      {:ok, root: JSV.build!(%{type: :array, uniqueItems: true})}
+    end
+
+    test "decimals with a zero fractional part duplicate an integer", %{root: root} do
+      assert {:error, _} = JSV.validate([Decimal.new("1"), 1], root)
+      assert {:error, _} = JSV.validate([Decimal.new("1.0"), 1], root)
+      assert {:error, _} = JSV.validate([1, Decimal.new("1.000")], root)
+      assert {:error, _} = JSV.validate([Decimal.new("1.0E+3"), 1000], root)
+    end
+
+    test "trailing zeros are insignificant between decimals", %{root: root} do
+      assert {:error, _} = JSV.validate([Decimal.new("1.5"), Decimal.new("1.50")], root)
+    end
+
+    test "mathematically distinct numbers stay unique", %{root: root} do
+      data = [Decimal.new("1.0"), Decimal.new("1.5"), Decimal.new("15"), 2]
+      assert data == JSV.validate!(data, root)
+    end
+  end
 end

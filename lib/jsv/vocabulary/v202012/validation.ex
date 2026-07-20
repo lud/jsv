@@ -380,9 +380,11 @@ defmodule JSV.Vocabulary.V202012.Validation do
     data
     |> Enum.with_index()
     |> Enum.reduce({[], %{}}, fn {item, index}, {duplicate_indices, seen} ->
-      case Map.fetch(seen, item) do
+      key = unique_item_key(item)
+
+      case Map.fetch(seen, key) do
         {:ok, seen_index} -> {[{index, seen_index} | duplicate_indices], seen}
-        :error -> {duplicate_indices, Map.put(seen, item, index)}
+        :error -> {duplicate_indices, Map.put(seen, key, index)}
       end
     end)
     |> case do
@@ -392,6 +394,20 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   pass validate_keyword({:uniqueItems, true})
+
+  with_decimal do
+    defp unique_item_key(%Decimal{} = item) do
+      if Decimal.integer?(item) do
+        Decimal.to_integer(item)
+      else
+        Decimal.normalize(item)
+      end
+    end
+  end
+
+  defp unique_item_key(item) do
+    item
+  end
 
   def validate_keyword({:minProperties, n}, data, vctx) when is_map(data) do
     case map_size(data) do
