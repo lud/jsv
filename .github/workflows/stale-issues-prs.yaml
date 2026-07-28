@@ -12,7 +12,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v10
+      - uses: actions/stale@v11
         with:
           stale-issue-message: "This issue has become stale after 7 days with no activity. Please comment or it will be closed in 7 days."
           stale-pr-message: "This PR has become stale after 14 days with no activity. Please comment or it will be closed in 14 days."
