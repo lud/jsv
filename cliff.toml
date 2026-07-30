@@ -11,11 +11,21 @@ All notable changes to this project will be documented in this file.\n
 
 # A Tera template to be rendered for each release in the changelog.
 # See https://keats.github.io/tera/docs/#introduction
+#
+# `message` is the annotated tag message, which git-cliff reads on its own, so
+# release notes live in the tag and survive a full regeneration. For the release
+# being cut the tag does not exist yet, so pass the same text with
+# `--with-tag-message`. Tags created by `mix version` default to a "new version
+# X.Y.Z" annotation, which is filtered out rather than rendered as a note.
+
 body = """
 {% if version %}\
     ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% else %}\
     ## [unreleased]
+{% endif %}\
+{% if message and message is not starting_with("new version") %}
+{{ message }}
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | striptags | trim | upper_first }}
