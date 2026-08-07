@@ -26,6 +26,6 @@
   "nimble_parsec": {:hex, :nimble_parsec, "1.4.2", "8efba0122db06df95bfaa78f791344a89352ba04baedd3849593bfce4d0dc1c6", [:mix], [], "hexpm", "4b21398942dda052b403bbe1da991ccd03a053668d147d53fb8c4e0efe09c973"},
   "patch": {:hex, :patch, "0.16.0", "dfa2e1c381959d821ab1ddf4acd55f42d1c798003f0fef270154c0c5bd139b08", [:mix], [], "hexpm", "50e06ef77a9b4987edfc717a9bf047429f3d69af397a42d9ff311f27ccb23408"},
   "readmix": {:hex, :readmix, "0.8.1", "ab3a5d5b92b1fccc4bb724b298287947c801cf34c2d7ba72a4bbc38d754cb8d5", [:mix], [{:cli_mate, "~> 0.10", [hex: :cli_mate, repo: "hexpm", optional: false]}, {:nimble_options, "~> 1.0", [hex: :nimble_options, repo: "hexpm", optional: false]}], "hexpm", "b1f8f0b7e35871a0d93a57cf54afe0030c025942543f21e65e36063cdc3fd970"},
-  "sobelow": {:hex, :sobelow, "0.14.1", "2f81e8632f15574cba2402bcddff5497b413c01e6f094bc0ab94e83c2f74db81", [:mix], [{:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "8fac9a2bd90fdc4b15d6fca6e1608efb7f7c600fa75800813b794ee9364c87f2"},
+  "sobelow": {:hex, :sobelow, "0.15.0", "b067d7f8522a9d758fa89cb2bfcbab7ad72c45a0993cb958c989c6fd956fdd56", [:mix], [{:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "24a800e2d7fa8c3bd21561b6ad8ad4745ed726a09fd606598981d9048708da98"},
   "texture": {:hex, :texture, "1.2.0", "aa9097e0709652044ba500de817d60ce8a48dc0b4ffd92232fd33459a20282f6", [:mix], [{:abnf_parsec, "~> 2.0", [hex: :abnf_parsec, repo: "hexpm", optional: false]}], "hexpm", "f250de468cfe35f404faf232429f40114f83f73430e0f7086a9cc251865642e2"},
 }
