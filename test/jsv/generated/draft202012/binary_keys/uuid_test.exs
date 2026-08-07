@@ -174,5 +174,23 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UuidTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "an underscore in place of a hex digit is invalid", x do
+      data = "2eb8aa08-aa98-11ea-b4aa-73b441d1_380"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing newline after a complete UUID is invalid", x do
+      data = "2eb8aa08-aa98-11ea-b4aa-73b441d16380\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a variant nibble not defined by RFC 4122 is valid", x do
+      data = "2eb8aa08-aa98-11ea-f4aa-73b441d16380"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

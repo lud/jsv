@@ -474,5 +474,41 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DateTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "valid: date inside the Julian to Gregorian reform gap", x do
+      data = "1582-10-10"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: year field numerically larger than a 32-bit signed integer", x do
+      data = "2147483648-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: character just above '9' as the second digit of the day", x do
+      data = "2020-01-0:"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: non-ASCII digit leaving ten UTF-8 bytes but eight characters", x do
+      data = "২0-01-01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: en dash separators instead of hyphen-minus", x do
+      data = "2020–01–01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid: NUL character after an otherwise valid full-date", x do
+      data = <<50, 48, 50, 48, 45, 48, 49, 45, 48, 49, 0>>
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

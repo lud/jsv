@@ -193,6 +193,18 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Ipv4Test do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "valid IPv4 with an octet in the 200 to 249 range", x do
+      data = "200.0.0.0"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "valid IPv4 with two-digit octets", x do
+      data = "10.20.30.40"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "empty string is invalid", x do
       data = ""
       expected_valid = false
@@ -243,6 +255,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.Ipv4Test do
 
     test "with port number is invalid", x do
       data = "192.168.0.1:80"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an IPv4-mapped IPv6 address is invalid", x do
+      data = "::ffff:192.168.0.1"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

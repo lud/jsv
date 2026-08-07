@@ -144,5 +144,35 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.RelativeJsonPointerTest do
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "tilde not followed by 0 or 1 in the json-pointer part", x do
+      data = "0/~2"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "unescaped tilde at the end of the json-pointer part", x do
+      data = "0/foo/bar~"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "octothorpe followed by a json-pointer", x do
+      data = "1#/foo/bar"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "empty reference tokens in the json-pointer part", x do
+      data = "0//"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "trailing newline after the non-negative integer", x do
+      data = "1\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

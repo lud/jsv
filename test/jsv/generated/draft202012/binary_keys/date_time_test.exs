@@ -180,5 +180,29 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DateTimeTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "a numeric offset without minutes is invalid", x do
+      data = "1985-04-12T23:20:50+01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "hour 24 is invalid even with a leap second", x do
+      data = "2016-12-31T24:59:60+01:00"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a second fraction of fifteen nines is valid", x do
+      data = "1985-04-12T00:59:59.999999999999999Z"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing newline is invalid", x do
+      data = "1985-04-12T23:20:50Z\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

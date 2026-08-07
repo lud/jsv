@@ -158,6 +158,24 @@ defmodule JSV.Generated.Draft7.AtomKeys.HostnameTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "trailing newline is invalid", x do
+      data = "example.com\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "invalid non-ASCII KELVIN SIGN (U+212A)", x do
+      data = "Kelvin.example.com"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "consecutive hyphens inside a label", x do
+      data = "a--b.com"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 
   describe "validation of A-label (punycode) host names" do

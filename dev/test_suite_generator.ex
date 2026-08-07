@@ -38,12 +38,6 @@ defmodule JSV.TestSuiteGenerator do
       "optional/format-assertion.json" => [],
       "optional/format/duration.json" => [
         schema_build_opts: [formats: true],
-        ignore: [
-          "weeks cannot be combined with other units",
-          "hours and seconds cannot appear without minutes",
-          "years and days cannot appear without months",
-          "fractional duration is not allowed by RFC 3339 ABNF"
-        ],
         elixir: "~> 1.17"
       ],
       "optional/format/uuid.json" => [schema_build_opts: [formats: true]],

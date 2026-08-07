@@ -424,22 +424,17 @@ defmodule JSV.FormatValidationTest do
           "PT5H30M",
           # 10 seconds
           "PT10S",
-          # Mixed with fractional seconds
-          "P1Y2M3DT4H5M6.7S",
 
-          # Negative duration not allowed, but Elixir accepts it
-          "P-1Y",
-          # Invalid minute value (60), but Elixir accepts infinite amounts
+          # Minute value (60) out of the usual range, but the ABNF accepts any
+          # amount
           "P1Y2M3DT4H60M",
-          # Invalid hour value (24), same
-          "P1Y2M3DT24H",
-          # Excessive precision is ok in Elixir
-          "PT10.0000000000001S"
+          # Hour value (24), same
+          "P1Y2M3DT24H"
         ],
 
         # Invalid duration strings
         [
-          # Half a year, unsupported by elixir
+          # Half a year, the ABNF has no fractional components
           "P0.5Y",
           # Missing duration components
           "P",
@@ -450,6 +445,12 @@ defmodule JSV.FormatValidationTest do
           "P1Y2M3D4H",
           # Fractional days not directly allowed (should be PT84H)
           "P1Y2M3.5D",
+          # Fractional seconds are not allowed either, though Elixir accepts them
+          "P1Y2M3DT4H5M6.7S",
+          "PT10.0000000000001S",
+
+          # Negative durations are not allowed, though Elixir accepts them
+          "P-1Y",
 
           # Missing 'P' at the start
           "1Y2M3D"

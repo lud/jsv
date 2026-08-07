@@ -9,10 +9,13 @@ defmodule JSV.FormatValidator.Default.Optional.Hostname do
     # we are catching exits from :idna library so we will use exit instead of
     # throw here.
 
-    # This is a single grapheme
-    idn_label_separator = "．"
+    # The hostname format is restricted to ASCII. :idna would otherwise map
+    # lookalikes such as the KELVIN SIGN (U+212A) onto their ASCII counterpart.
+    if not ascii?(data) do
+      exit(:non_ascii)
+    end
 
-    if String.starts_with?(data, ".") || String.ends_with?(data, ".") || String.contains?(data, idn_label_separator) do
+    if String.starts_with?(data, ".") || String.ends_with?(data, ".") do
       exit(:empty_label)
     end
 
@@ -42,6 +45,18 @@ defmodule JSV.FormatValidator.Default.Optional.Hostname do
     FunctionClauseError -> {:error, :invalid_hostname}
   catch
     :exit, _ -> {:error, :invalid_hostname}
+  end
+
+  defp ascii?(<<c, rest::binary>>) when c < 128 do
+    ascii?(rest)
+  end
+
+  defp ascii?(<<>>) do
+    true
+  end
+
+  defp ascii?(_) do
+    false
   end
 
   defp bad_hostname_label?("") do

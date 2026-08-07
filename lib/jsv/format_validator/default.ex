@@ -42,11 +42,15 @@ defmodule JSV.FormatValidator.Default do
     is_binary(data)
   end
 
+  # RFC 3339 requires the time offset to be "Z" or a full "+hh:mm"/"-hh:mm", but
+  # Elixir also accepts truncated forms such as "+01".
+  @rfc3339_offset ~r/(?:[Zz]|[-+][0-9]{2}:[0-9]{2})\z/
+
   @impl true
   def validate_cast("date-time", data) do
     case DateTime.from_iso8601(data) do
       {:ok, dt, _} ->
-        if String.contains?(data, " ") do
+        if String.contains?(data, " ") or not Regex.match?(@rfc3339_offset, data) do
           {:error, :invalid_format}
         else
           {:ok, dt}
@@ -69,12 +73,25 @@ defmodule JSV.FormatValidator.Default do
     Date.from_iso8601(data)
   end
 
+  # RFC 3339 Appendix A. Elixir's parser is more permissive: it accepts signs,
+  # fractional components, a comma as the decimal separator, and mixing weeks
+  # with other elements.
+  @rfc3339_duration ~r"""
+  \AP(?:
+    [0-9]+W
+    | (?:[0-9]+Y(?:[0-9]+M(?:[0-9]+D)?)?|[0-9]+M(?:[0-9]+D)?|[0-9]+D)
+      (?:T(?:[0-9]+H(?:[0-9]+M(?:[0-9]+S)?)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S))?
+    | T(?:[0-9]+H(?:[0-9]+M(?:[0-9]+S)?)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S)
+  )\z
+  """x
+
   if @supports_duration do
     def validate_cast("duration", data) do
-      # JSON schema adheres closely to the spec, the duration cannot mix Week and
-      # other P-level elements. But we are allowing it because Elixir allows it,
-      # we do not want to put arbitrary limit to capabilities.
-      Duration.from_iso8601(data)
+      if Regex.match?(@rfc3339_duration, data) do
+        Duration.from_iso8601(data)
+      else
+        {:error, :invalid_format}
+      end
     end
   end
 

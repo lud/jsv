@@ -69,17 +69,17 @@ The listing below describe values returned when that option is enabled.
 * The format is implemented with the native `DateTime` module.
 * The native `DateTime` module supports the `YYYY-MM-DD` format only for dates. `2024T...`, `2024-W50T...`, `2024-12T...` will not be valid.
 * Decimal precision is not capped to milliseconds. `2024-12-14T23:10:00.500000001Z` will be valid.
+* The `T` separator and the `Z` designator must be uppercase. `2024-12-14t23:10:00z` will be invalid.
+* The native `DateTime` module does not support leap seconds. `1998-12-31T23:59:60Z` will be invalid.
 
 ### duration
 
 * **support**: Requires Elixir 1.17
-* **input**: `"P1DT4,5S"`
-* **output**: `%Duration{day: 1, second: 4, microsecond: {500000, 1}}`
+* **input**: `"P1DT4S"`
+* **output**: `%Duration{day: 1, second: 4}`
 * The format is implemented with the native `Duration` module.
-* Elixir documentation states that _Only seconds may be specified with a decimal fraction, using either a comma or a full stop: P1DT4,5S_.
-* Elixir durations accept negative values.
-* Elixir durations accept out-of-range values, for instance more than 59 minutes.
-* Excessive precision (as in `"PT10.0000000000001S"`) will be valid.
+* Durations follow the RFC 3339 Appendix A grammar, which is stricter than `Duration.from_iso8601/1`. Signed and fractional components such as `-P1Y`, `P1DT4,5S` or `PT10.0000000000001S` will be invalid.
+* Out-of-range values are valid, for instance more than 59 minutes as in `PT90M`.
 
 ### email
 
@@ -94,6 +94,7 @@ The listing below describe values returned when that option is enabled.
 * **support**: Depends on `:idna` (automatically included)
 * **input**: `"xn--zca29lwxobi7a"`
 * **output**: Input value.
+* Host names are ASCII. Internationalized host names are validated in their A-label (punycode) form, as in `xn--zca29lwxobi7a`.
 
 ### ipv4
 
@@ -150,6 +151,7 @@ The listing below describe values returned when that option is enabled.
 * The native `Time` implementation will completely discard the time offset information. Invalid offsets will be valid.
 * Decimal precision is not capped to milliseconds. `23:10:00.500000001` will be valid.
 * The RFC 3339 §4.3 unknown local offset (`-00:00`) is not supported. `12:34:56-00:00` will be invalid.
+* The native `Time` module does not support leap seconds. `23:59:60Z` will be invalid.
 
 ### unknown
 

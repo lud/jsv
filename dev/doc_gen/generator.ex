@@ -23,18 +23,18 @@ if Code.ensure_loaded?(Readmix.Generator) do
         native: DateTime,
         notes: [
           "The native `DateTime` module supports the `YYYY-MM-DD` format only for dates. `2024T...`, `2024-W50T...`, `2024-12T...` will not be valid.",
-          "Decimal precision is not capped to milliseconds. `2024-12-14T23:10:00.500000001Z` will be valid."
+          "Decimal precision is not capped to milliseconds. `2024-12-14T23:10:00.500000001Z` will be valid.",
+          ~s[The `T` separator and the `Z` designator must be uppercase. `2024-12-14t23:10:00z` will be invalid.],
+          ~s[The native `DateTime` module does not support leap seconds. `1998-12-31T23:59:60Z` will be invalid.]
         ]
       },
       "duration" => %{
-        input: "P1DT4,5S",
+        input: "P1DT4S",
         support: "Requires Elixir 1.17",
         native: Duration,
         notes: [
-          "Elixir documentation states that _Only seconds may be specified with a decimal fraction, using either a comma or a full stop: P1DT4,5S_.",
-          "Elixir durations accept negative values.",
-          "Elixir durations accept out-of-range values, for instance more than 59 minutes.",
-          ~s[Excessive precision (as in `"PT10.0000000000001S"`) will be valid.]
+          ~s[Durations follow the RFC 3339 Appendix A grammar, which is stricter than `Duration.from_iso8601/1`. Signed and fractional components such as `-P1Y`, `P1DT4,5S` or `PT10.0000000000001S` will be invalid.],
+          "Out-of-range values are valid, for instance more than 59 minutes as in `PT90M`."
         ]
       },
       "email" => %{
@@ -47,7 +47,10 @@ if Code.ensure_loaded?(Readmix.Generator) do
       },
       "hostname" => %{
         input: "xn--zca29lwxobi7a",
-        support: idna
+        support: idna,
+        notes: [
+          "Host names are ASCII. Internationalized host names are validated in their A-label (punycode) form, as in `xn--zca29lwxobi7a`."
+        ]
       },
       "ipv4" => %{
         input: "127.0.0.1",
@@ -86,7 +89,8 @@ if Code.ensure_loaded?(Readmix.Generator) do
         notes: [
           "The native `Time` implementation will completely discard the time offset information. Invalid offsets will be valid.",
           "Decimal precision is not capped to milliseconds. `23:10:00.500000001` will be valid.",
-          ~s[The RFC 3339 §4.3 unknown local offset (`-00:00`) is not supported. `12:34:56-00:00` will be invalid.]
+          ~s[The RFC 3339 §4.3 unknown local offset (`-00:00`) is not supported. `12:34:56-00:00` will be invalid.],
+          ~s[The native `Time` module does not support leap seconds. `23:59:60Z` will be invalid.]
         ]
       },
       "unknown" => %{

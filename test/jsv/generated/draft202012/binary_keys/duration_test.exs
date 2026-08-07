@@ -164,6 +164,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DurationTest do
         JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
       end
 
+      test "weeks cannot be combined with other units", x do
+        data = "P1Y2W"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
       test "invalid non-ASCII '২' (a Bengali 2)", x do
         data = "P২Y"
         expected_valid = false
@@ -212,6 +218,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DurationTest do
         JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
       end
 
+      test "fractional duration is not allowed by RFC 3339 ABNF", x do
+        data = "PT0.5S"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
       test "leading whitespace is invalid", x do
         data = " P1D"
         expected_valid = false
@@ -236,6 +248,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DurationTest do
         JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
       end
 
+      test "years and days cannot appear without months", x do
+        data = "P1Y2D"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
       test "months and days can appear without years", x do
         data = "P1M2D"
         expected_valid = true
@@ -248,9 +266,75 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DurationTest do
         JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
       end
 
+      test "hours and seconds cannot appear without minutes", x do
+        data = "PT1H2S"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
       test "minutes and seconds can appear without hour", x do
         data = "PT1M2S"
         expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "a leading sign is not allowed", x do
+        data = "-P1D"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "a number before the time separator has no unit", x do
+        data = "P1D2T3H"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "exponent notation is not allowed in a component", x do
+        data = "P1e2D"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "a trailing newline is invalid", x do
+        data = "P1D\n"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "weeks cannot be combined with a time component", x do
+        data = "P1WT1H"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "weeks cannot be combined with a zero-valued component", x do
+        data = "P0Y1W"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "a leading zero in a component is valid", x do
+        data = "P01D"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "a component with many digits is valid", x do
+        data = "P999999999999999999999999999999999999999999999999999999999999999999999999999999D"
+        expected_valid = true
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "a comma as the decimal separator is invalid", x do
+        data = "PT0,5S"
+        expected_valid = false
+        JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+      end
+
+      test "a sign inside a component is invalid", x do
+        data = "P-1D"
+        expected_valid = false
         JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
       end
     end
