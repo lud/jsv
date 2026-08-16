@@ -10,6 +10,8 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     open-pull-requests-limit: 1
+    assignees:
+      - "lud"
     groups:
       prod:
         dependency-type: production
@@ -25,6 +27,8 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     open-pull-requests-limit: 1
+    assignees:
+      - "lud"
     groups:
       github-actions:
         applies-to: version-updates
