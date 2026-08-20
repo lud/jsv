@@ -276,5 +276,17 @@ defmodule JSV.Generated.Draft7.BinaryKeys.UriTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "leading zero in an embedded IPv4 address is invalid", x do
+      data = "http://[::ffff:01.2.3.4]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "square brackets are not allowed in a path segment", x do
+      data = "http:/[::1]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

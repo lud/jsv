@@ -114,5 +114,59 @@ defmodule JSV.Generated.Draft202012.AtomKeys.IriTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "an IPv6 host whose embedded IPv4 has a leading zero is invalid", x do
+      data = "http://[::ffff:192.168.0.01]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid IRI with a compressed IPv6 host", x do
+      data = "http://[2001:db8::1]"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing newline after a valid IRI is invalid", x do
+      data = "http://ƒøø.ßår/\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an IPvFuture host with an uppercase version letter is valid", x do
+      data = "http://[V1.fe]"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid IRI with an IPv4 host", x do
+      data = "http://192.168.0.1/p"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid IRI with no authority and a rootless path", x do
+      data = "urn:example:resource"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid IRI with no authority and an absolute path", x do
+      data = "file:/etc/hosts"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid IRI with a supplementary-plane character in the path", x do
+      data = "http://ƒøø.ßår/𐌀"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid IRI with a supplementary-plane private-use char in query", x do
+      data = "http://ƒøø.ßår/?q=󰀀"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

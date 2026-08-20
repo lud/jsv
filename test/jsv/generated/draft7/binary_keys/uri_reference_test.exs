@@ -120,5 +120,71 @@ defmodule JSV.Generated.Draft7.BinaryKeys.UriReferenceTest do
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "an empty URI reference", x do
+      data = ""
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a query-only reference", x do
+      data = "?query=1"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a network-path reference with an empty authority", x do
+      data = "//"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an incomplete percent-encoding", x do
+      data = "/%zz"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a double quote in a path", x do
+      data = "/a\"b"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "square brackets outside an authority", x do
+      data = "/[::1]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a non-numeric port in a network-path reference", x do
+      data = "//example.com:abc/p"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "more than one at-sign in the authority", x do
+      data = "//a@b@example.com/"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a leading zero in the IPv4 part of an IPv6 literal", x do
+      data = "//[::ffff:192.168.0.01]/p"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a colon in the first segment of a relative-path reference", x do
+      data = "1:b"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a colon in the first segment preceded by a dot-segment", x do
+      data = "./this:that"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end
