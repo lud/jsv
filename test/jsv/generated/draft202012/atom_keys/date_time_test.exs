@@ -204,5 +204,65 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DateTimeTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "an invalid date-time string without seconds", x do
+      data = "1985-04-12T23:20Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an invalid date-time string with trailing content after the offset", x do
+      data = "1985-04-12T23:20:50Ztail"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an invalid minute in date-time string, with a numeric offset", x do
+      data = "1985-04-12T23:60:00+00:01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid date-time string with 28 days in February (normal)", x do
+      data = "2021-02-28T00:00:00Z"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an invalid date-time string with 30 days in February (leap)", x do
+      data = "2020-02-30T00:00:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "2021 is not a leap year", x do
+      data = "2021-02-29T00:00:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "2020 is a leap year", x do
+      data = "2020-02-29T00:00:00Z"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "century year 0100 is not a leap year", x do
+      data = "0100-02-29T00:00:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "century year 0400 is a leap year", x do
+      data = "0400-02-29T00:00:00Z"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "century year 2100 is not a leap year", x do
+      data = "2100-02-29T00:00:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

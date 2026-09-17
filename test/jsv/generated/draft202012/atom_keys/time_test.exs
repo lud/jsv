@@ -187,18 +187,6 @@ defmodule JSV.Generated.Draft202012.AtomKeys.TimeTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
-    test "an invalid time string with invalid leap second (wrong hour)", x do
-      data = "22:59:60Z"
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
-    test "an invalid time string with invalid leap second (wrong minute)", x do
-      data = "23:58:60Z"
-      expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
     test "an invalid time string with invalid time numoffset hour", x do
       data = "01:02:03+24:00"
       expected_valid = false
@@ -243,6 +231,66 @@ defmodule JSV.Generated.Draft202012.AtomKeys.TimeTest do
 
     test "an invalid time string in date-time format", x do
       data = "2020-11-28T23:55:45Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a numeric time-offset requires the colon separator", x do
+      data = "08:30:06+0130"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a numeric time-offset requires the minutes component", x do
+      data = "08:30:06+01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing newline after a valid time", x do
+      data = "08:30:06Z\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "hour 24 is invalid with a numeric time-offset", x do
+      data = "24:59:00+01:00"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "minute 60 is invalid with a numeric time-offset", x do
+      data = "23:60:00+00:01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid time string with a 15 digit second fraction", x do
+      data = "00:59:59.999999999999999Z"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a second fraction with no digits", x do
+      data = "08:30:06.Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "partial-time requires the seconds component", x do
+      data = "12:00Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a comma decimal separator with a time-offset", x do
+      data = "08:30:06,5Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "leading whitespace before a valid time", x do
+      data = " 08:30:06Z"
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end

@@ -186,5 +186,269 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EmailTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "a domain that looks like an IPv4 address without brackets is valid", x do
+      data = "test@255.255.255.255"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an empty quoted string in the local part is valid", x do
+      data = "\"\"@iana.org"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a quoted string containing only a space in the local part is valid", x do
+      data = "\" \"@iana.org"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "consecutive hyphens inside a domain label are valid", x do
+      data = "test@c--n.com"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a domain label starting with a digit is valid", x do
+      data = "test@123.com"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a non-ASCII character in the local part is not valid", x do
+      data = "aé@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a non-ASCII character in the domain is not valid", x do
+      data = "a@é.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a fullwidth commercial at is not a valid separator", x do
+      data = "a＠iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a non-ASCII character in a quoted pair is not valid", x do
+      data = "\"test\\©\"@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing line feed is not valid", x do
+      data = "test@iana.org\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing carriage return is not valid", x do
+      data = "test@iana.org\r"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing space is not valid", x do
+      data = "a@iana.org "
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a leading space is not valid", x do
+      data = " a@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a tab in the local part is not valid", x do
+      data = "a\tb@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a delete character in the local part is not valid", x do
+      data = "\d@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a quoted string with no special characters in the local part is valid", x do
+      data = "\"test\"@iana.org"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a quoted pair in the local part is valid", x do
+      data = "\"\\a\"@iana.org"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an escaped double quote in the local part is valid", x do
+      data = "\"\\\"\"@iana.org"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an escaped backslash in the local part is valid", x do
+      data = "\"\\\\\"@iana.org"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an unescaped double quote in an unquoted local part is not valid", x do
+      data = "test\"@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "text after the closing double quote in the local part is not valid", x do
+      data = "\"test\"test@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an unclosed double quote in the local part is not valid", x do
+      data = "\"test@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "two unquoted @ signs are not valid", x do
+      data = "a@b@c.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a backslash-escaped @ in an unquoted local part is not valid", x do
+      data = "test\\@test@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an address literal in the local part position is not valid", x do
+      data = "[1.2.3.4]@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an empty string is not valid", x do
+      data = ""
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a domain label starting with a hyphen is not valid", x do
+      data = "test@-iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a domain label ending with a hyphen is not valid", x do
+      data = "test@iana-.com"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a domain starting with a dot is not valid", x do
+      data = "test@.iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a domain ending with a dot is not valid", x do
+      data = "test@iana.org."
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "two subsequent dots inside the domain are not valid", x do
+      data = "test@iana..com"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a single-label domain is valid", x do
+      data = "test@io"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an unclosed address literal is not valid", x do
+      data = "test@[1.2.3.4"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "empty brackets after the @ are not valid", x do
+      data = "a@[]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an IPv4-address-literal with three octets is not valid", x do
+      data = "a@[1.2.3]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an IPv4-address-literal with five octets is not valid", x do
+      data = "a@[1.2.3.4.5]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "bracketed content that is not an address is not valid", x do
+      data = "test@[RFC-5322-domain-literal]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a domain label before the opening bracket is not valid", x do
+      data = "test@a[255.255.255.255]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a lowercase IPv6 tag in an address literal is valid", x do
+      data = "a@[ipv6:::1]"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a comma in an unquoted local part is not valid", x do
+      data = "a,b@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a semicolon in an unquoted local part is not valid", x do
+      data = "a;b@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a colon in an unquoted local part is not valid", x do
+      data = "a:b@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a parenthesis in an unquoted local part is not valid", x do
+      data = "test(comment)@iana.org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a parenthesis in the domain is not valid", x do
+      data = "a@b(c).org"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

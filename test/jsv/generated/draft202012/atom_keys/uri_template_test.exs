@@ -127,6 +127,24 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UriTemplateTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "a literal with a lone percent sign is invalid", x do
+      data = "a%"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a literal with an incomplete percent-encoded triplet is invalid", x do
+      data = "a%4"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a literal with non-hex percent encoding is invalid", x do
+      data = "a%GG"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "a supplementary plane character in a literal is valid", x do
       data = "a😀b"
       expected_valid = true
@@ -202,6 +220,24 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UriTemplateTest do
     test "a variable name may start with a percent-encoded triplet", x do
       data = "{%41}"
       expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a variable name with a lone percent sign is invalid", x do
+      data = "{%}"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a variable name with an incomplete percent-encoded triplet is invalid", x do
+      data = "{%4}"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a variable name with non-hex percent encoding is invalid", x do
+      data = "{%GG}"
+      expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 

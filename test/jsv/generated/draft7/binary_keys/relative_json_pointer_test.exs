@@ -85,6 +85,12 @@ defmodule JSV.Generated.Draft7.BinaryKeys.RelativeJsonPointerTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "a json-pointer part that does not start with a slash is invalid", x do
+      data = "1foo"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "negative prefix", x do
       data = "-1/foo/bar"
       expected_valid = false

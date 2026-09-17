@@ -321,8 +321,6 @@ defmodule JSV.FormatValidationTest do
         "time",
         # Valid time strings
         [
-          # Complete time with hours, minutes, seconds
-          "23:10:00",
           # Time with UTC designator
           "23:10:00Z",
           # Time with positive timezone offset
@@ -330,25 +328,29 @@ defmodule JSV.FormatValidationTest do
           # Time with negative timezone offset
           "23:10:00-05:00",
           # Time including milliseconds
-          "23:10:00.500",
-          # Time with comma as decimal separator for milliseconds
-          "23:10:00,500",
+          "23:10:00.500Z",
           # Incorrect milliseconds precision (too many digits) but Elixir parser will accept it
-          "23:10:00.5000",
-          # Incomplete timezone offset, Elixir accepts it because it discards the time offset in Time
-          "23:10:00+01"
+          "23:10:00.5000Z"
         ],
 
         # Invalid time strings
         [
           # Invalid hour (24)
-          "24:00:00",
+          "24:00:00Z",
           # Invalid minute (60)
-          "23:60:00",
+          "23:60:00Z",
           # Invalid second (60)
-          "23:10:60",
+          "23:10:60Z",
           # Missing seconds
-          "23:10",
+          "23:10Z",
+          # Missing timezone designator or offset
+          "23:10:00",
+          # Comma as decimal separator for milliseconds, rejected by RFC 3339
+          "23:10:00,500Z",
+          # Incomplete timezone offset, Elixir accepts it because it discards the time offset in Time
+          "23:10:00+01",
+          # Timezone offset without the colon separator
+          "23:10:00+0130",
           # Invalid timezone offset hour (25)
           "23:10:00+25:00",
           # Invalid timezone offset minute (61)

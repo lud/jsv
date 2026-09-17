@@ -258,5 +258,71 @@ defmodule JSV.Generated.Draft7.BinaryKeys.Ipv6Test do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "a bracketed address is invalid", x do
+      data = "[::1]"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a leading zero in the last IPv4 octet is invalid", x do
+      data = "::ffff:192.168.0.01"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "uppercase hex digits are valid", x do
+      data = "2001:DB8::1"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "leading zeros in every group are valid", x do
+      data = "2001:0db8:0000:0000:0000:0000:0000:0001"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "two groups before '::' and four groups after is valid", x do
+      data = "1:2::3:4:5:6"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "eight groups alongside '::' is invalid", x do
+      data = "1:2:3:4:5:6:7:8::"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "trailing newline is invalid", x do
+      data = "::1\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "an out-of-range first octet in the embedded IPv4 is invalid", x do
+      data = "::ffff:256.1.1.1"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "one group before '::' and five groups after is valid", x do
+      data = "1::2:3:4:5:6"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "'::' followed by six groups is valid", x do
+      data = "::1:2:3:4:5:6"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "leading '::' before five groups and an embedded IPv4 is valid", x do
+      data = "::1:2:3:4:5:1.2.3.4"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

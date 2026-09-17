@@ -73,6 +73,24 @@ defmodule JSV.Generated.Draft7.BinaryKeys.IriTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "invalid percent-encoding with non-hex digits", x do
+      data = "http://ƒøø.ßår/%6G"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "incomplete percent-encoding triplet", x do
+      data = "http://ƒøø.ßår/%A"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "lone percent sign is invalid", x do
+      data = "http://ƒøø.ßår/%"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "a valid IRI with many special characters", x do
       data = "http://-.~_!$&'()*+,;=:%40:80%2f::::::@example.com"
       expected_valid = true
@@ -124,12 +142,6 @@ defmodule JSV.Generated.Draft7.BinaryKeys.IriTest do
     test "a trailing newline after a valid IRI is invalid", x do
       data = "http://ƒøø.ßår/\n"
       expected_valid = false
-      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
-    end
-
-    test "an IPvFuture host with an uppercase version letter is valid", x do
-      data = "http://[V1.fe]"
-      expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 

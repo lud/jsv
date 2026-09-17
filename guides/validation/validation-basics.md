@@ -145,11 +145,11 @@ The listing below describe values returned when that option is enabled.
 ### time
 
 * **support**: Native.
-* **input**: `"20:20:08.378586"`
+* **input**: `"20:20:08.378586Z"`
 * **output**: `~T[20:20:08.378586]`
 * The format is implemented with the native `Time` module.
-* The native `Time` implementation will completely discard the time offset information. Invalid offsets will be valid.
-* Decimal precision is not capped to milliseconds. `23:10:00.500000001` will be valid.
+* The time offset is required, and is discarded when casting. `23:10:00+05:00` will be cast as `~T[23:10:00]`.
+* Decimal precision is not capped to milliseconds. `23:10:00.500000001Z` will be valid.
 * The RFC 3339 §4.3 unknown local offset (`-00:00`) is not supported. `12:34:56-00:00` will be invalid.
 * The native `Time` module does not support leap seconds. `23:59:60Z` will be invalid.
 

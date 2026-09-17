@@ -186,5 +186,11 @@ defmodule JSV.Generated.Draft7.BinaryKeys.UriReferenceTest do
       expected_valid = true
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "a trailing line feed", x do
+      data = "/p\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

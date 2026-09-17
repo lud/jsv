@@ -43,7 +43,7 @@ defmodule JSV.FormatValidator.Default do
   end
 
   # RFC 3339 requires the time offset to be "Z" or a full "+hh:mm"/"-hh:mm", but
-  # Elixir also accepts truncated forms such as "+01".
+  # Elixir also accepts truncated forms such as "+01" or "+0130".
   @rfc3339_offset ~r/(?:[Zz]|[-+][0-9]{2}:[0-9]{2})\z/
 
   @impl true
@@ -96,7 +96,11 @@ defmodule JSV.FormatValidator.Default do
   end
 
   def validate_cast("time", data) do
-    Time.from_iso8601(String.replace(data, "z", "Z"))
+    if Regex.match?(@rfc3339_offset, data) and not String.contains?(data, ",") do
+      Time.from_iso8601(String.replace(data, "z", "Z"))
+    else
+      {:error, :invalid_format}
+    end
   end
 
   def validate_cast("ipv4", data) do

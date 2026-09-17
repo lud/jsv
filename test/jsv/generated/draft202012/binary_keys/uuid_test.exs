@@ -163,6 +163,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UuidTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "a UUID wrapped in curly braces is invalid", x do
+      data = "{2eb8aa08-aa98-11ea-b4aa-73b441d16380}"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "trailing hyphen after a complete UUID is invalid", x do
       data = "2eb8aa08-aa98-11ea-b4aa-73b441d16380-"
       expected_valid = false

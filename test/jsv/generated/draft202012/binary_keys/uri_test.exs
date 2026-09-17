@@ -294,5 +294,11 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UriTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "a trailing newline after a valid URI is invalid", x do
+      data = "http://foo.bar/\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

@@ -102,5 +102,35 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IriReferenceTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "an embedded IPv4 with a leading zero is invalid", x do
+      data = "//[::ffff:192.168.0.01]/p"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid protocol-relative IRI Reference with a compressed IPv6 host", x do
+      data = "//[2001:db8::1]/p"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a valid relative IRI Reference with a supplementary-plane character", x do
+      data = "/âππ/𐌀"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a query-only IRI Reference with a supplementary private-use char", x do
+      data = "?q=󰀀"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a trailing newline after a valid IRI Reference is invalid", x do
+      data = "/âππ\n"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

@@ -495,4 +495,29 @@ defmodule JSV.Generated.Draft202012.AtomKeys.EnumTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
   end
+
+  describe "characters with the same visual representation, but different number of codepoints" do
+    setup do
+      json_schema = %JSV.Schema{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$comment": "U+00E4",
+        enum: ["ä"]
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "character uses the same codepoint", x do
+      data = "ä"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "character looks the same but uses combining marks", x do
+      data = "ä"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+  end
 end
