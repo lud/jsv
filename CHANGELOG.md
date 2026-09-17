@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.0] - 2026-09-17
+
+### 🚀 Features
+
+- Allow hiding intermediary errors in error formatter (_lud_)
+
+### 🐛 Bug Fixes
+
+- Accept compressed IPv6 and embedded IPv4 hosts in uri and iri formats (_lud_)
+- Fix propertyNames schemaLocation on errors (_lud_)
+
+### 🧪 Testing
+
+- Updated JSON Schema Test Suite (_lud_)
+
+### ⚙️ Miscellaneous Tasks
+
+- Limit justfile verbosity on mix.deps (_lud_)
+
 ## [0.22.0] - 2026-08-07
 
 ### 🚀 Features
