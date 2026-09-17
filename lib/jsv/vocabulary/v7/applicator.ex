@@ -1,5 +1,6 @@
 defmodule JSV.Vocabulary.V7.Applicator do
   alias JSV.Builder
+  alias JSV.ErrorFormatter
   alias JSV.Validator
   alias JSV.Vocabulary.V202012.Applicator, as: Fallback
   use JSV.Vocabulary, priority: 200
@@ -107,14 +108,30 @@ defmodule JSV.Vocabulary.V7.Applicator do
   end
 
   @impl true
+  def format_error(:additionalItems, %{index: index, boolean_schema_false: true}, _data) do
+    "additional items are not allowed but found item at index #{index}"
+  end
+
   def format_error(:additionalItems, args, _) do
     %{index: index} = args
-    "item at index #{index} does not validate the 'additionalItems' schema"
+
+    %{
+      message: "item at index #{index} does not validate the 'additionalItems' schema",
+      level: ErrorFormatter.level_intermediary()
+    }
+  end
+
+  def format_error(:items_as_prefix, %{index: index, boolean_schema_false: true}, _data) do
+    "item at index #{index} is not allowed"
   end
 
   def format_error(:items_as_prefix, args, _) do
     %{index: index} = args
-    "item at index #{index} does not validate the 'items[#{index}]' schema"
+
+    %{
+      message: "item at index #{index} does not validate the 'items[#{index}]' schema",
+      level: ErrorFormatter.level_intermediary()
+    }
   end
 
   defdelegate format_error(key, args, data), to: Fallback

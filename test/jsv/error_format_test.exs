@@ -427,46 +427,135 @@ defmodule JSV.ErrorFormatTest do
     assert_match_error(formatted_error, %{schemaLocation: "#/else/properties/guardianName"})
   end
 
-  test "error formatting for additionalProperties: false" do
-    schema = %{properties: %{a: %{type: :integer}}, additionalProperties: false}
-    root = JSV.build!(schema)
+  describe "error formatting for boolean schemas" do
+    # When a subschema is `false` we want a custom message naming the rejected
+    # property or item, so the keyword that descended into it must carry the
+    # info in the error (boolean_schema_false: true).
+    #
+    # The boolean schema error is still reported, at the parent_reported level,
+    # as it is the actual cause of the rejection.
 
-    assert {:ok, %{"a" => 1}} = JSV.validate(%{"a" => 1}, root)
-    assert {:error, err} = JSV.validate(%{"a" => 1, "b" => 2}, root)
+    defp assert_boolean_schema_pair(err, opts) do
+      assert %JSV.ValidationError{errors: [%JSV.Validator.Error{args: args}, _]} = err
+      assert opts[:args] == args
 
-    # In case additionalProperties is a boolean schema we want a custom message,
-    # so we must have the info in the error (boolean_schema_false: true) here:
+      assert %{
+               valid: false,
+               details: [
+                 %{
+                   errors: [%{message: "value was rejected from boolean schema: false", kind: :boolean_schema}],
+                   valid: false,
+                   schemaLocation: schema_location,
+                   evaluationPath: eval_path,
+                   instanceLocation: instance_location
+                 },
+                 %{
+                   errors: [%{message: message, kind: kind}],
+                   valid: false,
+                   schemaLocation: "#",
+                   evaluationPath: "#",
+                   instanceLocation: "#"
+                 }
+               ]
+             } = JSV.normalize_error(err, keys: :atoms)
 
-    assert %JSV.ValidationError{errors: [%JSV.Validator.Error{args: [key: "b", boolean_schema_false: true]}, _]} = err
+      assert opts[:schema_location] == schema_location
+      assert opts[:schema_location] == eval_path
+      assert opts[:instance_location] == instance_location
+      assert opts[:kind] == kind
+      assert opts[:message] == message
+    end
 
-    assert %{
-             valid: false,
-             details: [
-               %{
-                 errors: [%{message: "value was rejected from boolean schema: false", kind: :boolean_schema}],
-                 valid: false,
-                 schemaLocation: "#/additionalProperties",
-                 evaluationPath: "#/additionalProperties",
-                 instanceLocation: "#/b"
-               },
-               %{
-                 errors: [
-                   # Here is the custom message in that case
-                   %{
-                     message: message,
-                     kind: :additionalProperties
-                   }
-                 ],
-                 valid: false,
-                 schemaLocation: "#",
-                 evaluationPath: "#",
-                 instanceLocation: "#"
-               }
-             ]
-           } =
-             JSV.normalize_error(err, keys: :atoms)
+    test "additionalProperties: false" do
+      root = JSV.build!(%{properties: %{a: %{type: :integer}}, additionalProperties: false})
 
-    assert "additional properties are not allowed but found property 'b'" == message
+      assert {:ok, %{"a" => 1}} = JSV.validate(%{"a" => 1}, root)
+      assert {:error, err} = JSV.validate(%{"a" => 1, "b" => 2}, root)
+
+      assert_boolean_schema_pair(err,
+        args: [key: "b", boolean_schema_false: true],
+        schema_location: "#/additionalProperties",
+        instance_location: "#/b",
+        kind: :additionalProperties,
+        message: "additional properties are not allowed but found property 'b'"
+      )
+    end
+
+    test "properties with a false schema" do
+      root = JSV.build!(%{properties: %{a: false}})
+
+      assert {:ok, %{"b" => 1}} = JSV.validate(%{"b" => 1}, root)
+      assert {:error, err} = JSV.validate(%{"a" => 1}, root)
+
+      assert_boolean_schema_pair(err,
+        args: [key: "a", boolean_schema_false: true],
+        schema_location: "#/properties/a",
+        instance_location: "#/a",
+        kind: :properties,
+        message: "property 'a' is not allowed"
+      )
+    end
+
+    test "patternProperties with a false schema" do
+      root = JSV.build!(%{patternProperties: %{"^f": false}})
+
+      assert {:ok, %{"bar" => 1}} = JSV.validate(%{"bar" => 1}, root)
+      assert {:error, err} = JSV.validate(%{"foo" => 1}, root)
+
+      assert_boolean_schema_pair(err,
+        args: [pattern: "^f", key: "foo", boolean_schema_false: true],
+        schema_location: "#/patternProperties/^f",
+        instance_location: "#/foo",
+        kind: :patternProperties,
+        message: "properties matching /^f/ are not allowed but found property 'foo'"
+      )
+    end
+
+    test "items: false" do
+      root = JSV.build!(%{prefixItems: [%{}], items: false})
+
+      assert {:ok, [1]} = JSV.validate([1], root)
+      assert {:error, err} = JSV.validate([1, 2], root)
+
+      assert_boolean_schema_pair(err,
+        args: [index: 1, boolean_schema_false: true],
+        schema_location: "#/items",
+        instance_location: "#/1",
+        kind: :items,
+        message: "items are not allowed but found item at index 1"
+      )
+    end
+
+    test "prefixItems with a false schema" do
+      root = JSV.build!(%{prefixItems: [%{}, false]})
+
+      assert {:ok, [1]} = JSV.validate([1], root)
+      assert {:error, err} = JSV.validate([1, 2], root)
+
+      assert_boolean_schema_pair(err,
+        args: [index: 1, boolean_schema_false: true],
+        schema_location: "#/prefixItems/1",
+        instance_location: "#/1",
+        kind: :prefixItems,
+        message: "item at index 1 is not allowed"
+      )
+    end
+
+    test "additionalItems: false" do
+      root =
+        build_schema!(%{"$schema": "http://json-schema.org/draft-07/schema#", items: [%{}], additionalItems: false})
+
+      assert {:ok, [1]} = JSV.validate([1], root)
+      assert {:error, err} = JSV.validate([1, 2], root)
+
+      assert_boolean_schema_pair(err,
+        args: [index: 1, boolean_schema_false: true],
+        schema_location: "#/additionalItems",
+        instance_location: "#/1",
+        kind: :additionalItems,
+        message: "additional items are not allowed but found item at index 1"
+      )
+    end
   end
 
   test "dynamic anchor schema location" do

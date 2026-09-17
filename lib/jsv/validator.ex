@@ -2,6 +2,7 @@ defmodule JSV.Validator do
   alias JSV
   alias JSV.BooleanSchema
   alias JSV.Builder
+  alias JSV.ErrorFormatter
   alias JSV.Key
   alias JSV.Subschema
   alias JSV.ValidationError
@@ -97,10 +98,7 @@ defmodule JSV.Validator do
   def validate(data, subschema, vctx)
 
   def validate(data, %BooleanSchema{} = bs, vctx) do
-    case bs.valid? do
-      true -> return(data, vctx)
-      false -> {:error, add_error(vctx, boolean_schema_error(vctx, bs, data))}
-    end
+    validate_boolean_schema(bs, data, vctx, ErrorFormatter.level_default())
   end
 
   def validate(data, {:alias_of, key}, vctx) do
@@ -305,9 +303,16 @@ defmodule JSV.Validator do
 
   See `validate_as/4` to validate the same data point with a nested keyword. For
   instance `if`, `then` or `else`.
+
+  The `boolean_schema_level` argument sets the level of the error returned when
+  `subvalidators` is the `false` schema. Keywords that report their own error
+  for the rejected property or item, with a message naming it, should lower it
+  to `JSV.ErrorFormatter.level_parent_reported/0`.
   """
-  @spec validate_in(term, Builder.path_segment(), eval_sub_path, validator, context) :: result
-  def validate_in(data, key, add_eval_path, subvalidators, vctx)
+  @spec validate_in(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) :: result
+  def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_default())
+
+  def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level)
       when is_binary(key)
       when is_integer(key) do
     %ValidationContext{
@@ -329,7 +334,13 @@ defmodule JSV.Validator do
         seen_refs: []
     }
 
-    case validate(data, subvalidators, sub_vctx) do
+    result =
+      case subvalidators do
+        %BooleanSchema{} = bs -> validate_boolean_schema(bs, data, sub_vctx, boolean_schema_level)
+        _ -> validate(data, subvalidators, sub_vctx)
+      end
+
+    case result do
       {:ok, data, sub_vctx} ->
         # There should not be errors in sub at this point ?
         new_vctx = vctx |> add_evaluated(key) |> merge_errors(sub_vctx)
@@ -575,7 +586,14 @@ defmodule JSV.Validator do
     :error
   end
 
-  defp boolean_schema_error(vctx, %BooleanSchema{valid?: false} = bs, data) do
+  defp validate_boolean_schema(%BooleanSchema{} = bs, data, vctx, level) do
+    case bs.valid? do
+      true -> return(data, vctx)
+      false -> {:error, add_error(vctx, boolean_schema_error(vctx, bs, data, level))}
+    end
+  end
+
+  defp boolean_schema_error(vctx, %BooleanSchema{valid?: false} = bs, data, level) do
     %Error{
       kind: :boolean_schema,
       data: data,
@@ -583,7 +601,7 @@ defmodule JSV.Validator do
       eval_path: vctx.eval_path,
       schema_path: bs.schema_path,
       formatter: __MODULE__,
-      args: []
+      args: [level: level]
     }
   end
 
@@ -691,8 +709,11 @@ defmodule JSV.Validator do
 
   @doc false
   # error formatter implementation for the boolean schema
-  @spec format_error(:boolean_schema, term, term) :: binary
-  def format_error(:boolean_schema, %{}, _data) do
-    "value was rejected from boolean schema: false"
+  @spec format_error(:boolean_schema, term, term) :: map
+  def format_error(:boolean_schema, args, _data) do
+    %{
+      message: "value was rejected from boolean schema: false",
+      level: Map.get(args, :level, ErrorFormatter.level_default())
+    }
   end
 end

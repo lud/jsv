@@ -207,6 +207,7 @@ Future changes:
   `https://json-schema.org/draft/2020-12/schema`.
 * [ ] Move `defschema` and `defcast` to `JSV.Schema`
 * [ ] Remove support for legacy `jsv-cast` keyword.
+* [ ] Default error level of 10.
 
 ## Contributing
 

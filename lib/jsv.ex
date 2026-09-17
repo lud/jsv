@@ -616,7 +616,7 @@ defmodule JSV do
 
   If your schema does not define `additionalProperties: false`, the validation
   will accept a map with additional properties, but the keys will not be added
-  to the resulting struct as it would make an invalid struct.
+  to the resulting struct (it would create an invalid struct).
 
       iex> {:ok, root} = JSV.build(MyApp.UserSchema)
       iex> data = %{"name" => "Alice", "extra" => "hello!"}

@@ -7,6 +7,10 @@ defmodule JSV.ErrorFormatter do
   alias JSV.Validator
   alias JSV.Validator.Error
 
+  @level_intermediary 5
+  @level_parent_reported 8
+  @level_default 10
+
   @moduledoc """
   Error formatting helpers.
 
@@ -15,6 +19,25 @@ defmodule JSV.ErrorFormatter do
   * Instance location: the bit of data that was invalidated
   * Schema location: the part of the schema that invalidated it
   * Evaluation path: the path followed from the root to this schema location
+
+  ## Error levels
+
+  Each error carries a level, an integer describing how much information the
+  error message adds on its own. Consumers that only want actionable messages
+  can pass `:min_error_level` to `normalize_error/2` instead of blacklisting
+  keywords.
+
+  The levels used by the vocabularies shipped with this library are:
+
+  | Level | Meaning | Example |
+  | ----- | ------- | ------- |
+  | `#{@level_intermediary}` | The message only points at a deeper error. | `property 'name' did not conform to the property schema` |
+  | `#{@level_parent_reported}` | The data is rejected by a rule that belongs to the parent, and the error on the parent reports it. | `value was rejected from boolean schema: false`, under a schema that already reported `additional properties are not allowed but found property 'extra'` |
+  | `#{@level_default}` | The error states why the data was rejected. | `value is not of type string` |
+
+  Errors are assigned `#{@level_default}` when `c:JSV.Vocabulary.format_error/3`
+  does not return a `:level` key. Custom vocabularies can return any integer,
+  including values between or below the ones listed above.
   """
 
   @type error_unit :: %{
@@ -31,6 +54,36 @@ defmodule JSV.ErrorFormatter do
           optional(:details) => [error_unit]
         }
 
+  @type level :: integer
+
+  @doc """
+  Returns `#{@level_intermediary}`, the level given to errors whose message only
+  points at a deeper error.
+  """
+  @spec level_intermediary :: level
+  def level_intermediary do
+    @level_intermediary
+  end
+
+  @doc """
+  Returns `#{@level_parent_reported}`, the level given to errors describing a
+  rejection that belongs to the parent data, and that an error on the parent
+  already reports.
+  """
+  @spec level_parent_reported :: level
+  def level_parent_reported do
+    @level_parent_reported
+  end
+
+  @doc """
+  Returns `#{@level_default}`, the level given to errors that do not define
+  their own level.
+  """
+  @spec level_default :: level
+  def level_default do
+    @level_default
+  end
+
   @type raw_path :: [raw_path] | binary | integer | atom
 
   @doc false
@@ -39,9 +92,9 @@ defmodule JSV.ErrorFormatter do
     __MODULE__.ValidationErrorSchema
   end
 
-  @type normalize_opt :: {:sort, :asc | :desc} | {:keys, :atoms | :strings}
+  @type normalize_opt :: {:sort, :asc | :desc} | {:keys, :atoms | :strings} | {:min_error_level, level}
 
-  @default_normalize_options %{sort: :desc, keys: :atoms}
+  @default_normalize_options %{sort: :desc, keys: :atoms, min_error_level: 0}
 
   @doc """
   Returns a JSON-able version of the errors contained in the ValidationError.
@@ -59,12 +112,21 @@ defmodule JSV.ErrorFormatter do
 
     While truly "normalized" JSON data should not have atom keys, this option
     defaults to :atoms for backward compatibility reasons.
+
+  * `:min_error_level` (integer) - Drops the errors whose level is below the
+    given value, as well as the error units left without any error. See the
+    "Error levels" section in `#{inspect(__MODULE__)}`. The default value is
+    `0`, which keeps all errors defined by this library.
+
+    Passing `#{@level_parent_reported}` drops the errors that only point at a
+    deeper error, and `#{@level_default}` also drops the errors reported by an
+    error on the parent data.
   """
   @spec normalize_error(ValidationError.t(), keyword) :: map()
   def normalize_error(%ValidationError{} = e, opts \\ []) do
     opts = OptsValidator.validate(opts, @default_normalize_options, &validate_normalize_opts/2)
 
-    top = %{valid: false, details: normalize_errors(e.errors, opts)}
+    top = %{valid: false, details: filter_units(normalize_errors(e.errors, opts), opts.min_error_level)}
     normalize_keys(top, opts)
   end
 
@@ -84,8 +146,53 @@ defmodule JSV.ErrorFormatter do
     OptsValidator.invalid_option!(:keys, value, ":atoms or :strings")
   end
 
+  defp validate_normalize_opts(:min_error_level, value) when is_integer(value) do
+    value
+  end
+
+  defp validate_normalize_opts(:min_error_level, value) do
+    OptsValidator.invalid_option!(:min_error_level, value, "an integer")
+  end
+
   defp validate_normalize_opts(key, _value) do
     OptsValidator.unknown_option!(key)
+  end
+
+  # Levels are an implementation detail of the filtering, they are not part of
+  # the normalized output, so this pass always runs to strip them.
+  defp filter_units(units, min_level) do
+    Enum.flat_map(units, &filter_unit(&1, min_level))
+  end
+
+  defp filter_unit(%{errors: errors} = unit, min_level) do
+    case Enum.flat_map(errors, &filter_keyword_error(&1, min_level)) do
+      [] -> []
+      kept -> [%{unit | errors: kept}]
+    end
+  end
+
+  defp filter_unit(unit, _min_level) do
+    [unit]
+  end
+
+  defp filter_keyword_error(%{level: level}, min_level) when level < min_level do
+    []
+  end
+
+  # level >= min_level or no level
+  defp filter_keyword_error(error, min_level) do
+    error = Map.delete(error, :level)
+
+    case error do
+      %{details: details} ->
+        case filter_units(details, min_level) do
+          [] -> [Map.delete(error, :details)]
+          kept -> [%{error | details: kept}]
+        end
+
+      _ ->
+        [error]
+    end
   end
 
   defp normalize_keys(with_atoms, opts) do
@@ -142,13 +249,13 @@ defmodule JSV.ErrorFormatter do
 
     case formatter.format_error(kind, args_map, data) do
       message when is_binary(message) ->
-        %{message: message, kind: kind}
+        %{message: message, kind: kind, level: @level_default}
 
       tuple when is_tuple(tuple) ->
         cast_deprecated_error_format(tuple, kind, opts, formatter)
 
       %{message: message} = map when is_binary(message) ->
-        build_error(Map.delete(map, :message), %{message: message, kind: kind}, formatter, opts)
+        build_error(Map.delete(map, :message), %{message: message, kind: kind, level: @level_default}, formatter, opts)
     end
   end
 
@@ -160,7 +267,10 @@ defmodule JSV.ErrorFormatter do
       {:kind, kind}, acc when is_binary(kind) when is_atom(kind) ->
         Map.put(acc, :kind, kind)
 
-      {k, v}, _ when k in [:annots, :kind] ->
+      {:level, level}, acc when is_integer(level) ->
+        Map.put(acc, :level, level)
+
+      {k, v}, _ when k in [:annots, :kind, :level] ->
         raise "invalid format_error value for key #{inspect(k)} from formatter #{inspect(formatter)}: #{inspect(v)}"
 
       {k, v}, _ ->
@@ -174,13 +284,18 @@ defmodule JSV.ErrorFormatter do
 
     case tuple do
       {new_kind, message} when is_atom(new_kind) and is_binary(message) ->
-        %{message: message, kind: new_kind}
+        %{message: message, kind: new_kind, level: @level_default}
 
       {message, sub_errors} when is_binary(message) and is_list(sub_errors) ->
-        %{message: message, kind: kind, details: normalize_errors(sub_errors, formatter, opts)}
+        %{message: message, kind: kind, level: @level_default, details: normalize_errors(sub_errors, formatter, opts)}
 
       {new_kind, message, sub_errors} when is_atom(new_kind) and is_binary(message) and is_list(sub_errors) ->
-        %{message: message, kind: new_kind, details: normalize_errors(sub_errors, formatter, opts)}
+        %{
+          message: message,
+          kind: new_kind,
+          level: @level_default,
+          details: normalize_errors(sub_errors, formatter, opts)
+        }
     end
   end
 

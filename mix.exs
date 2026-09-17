@@ -150,7 +150,7 @@ defmodule JSV.MixProject do
       "Main API": [JSV],
       "Schema Definition": [JSV.Schema, JSV.Schema.Helpers],
       Build: [JSV.FormatValidator, JSV.BuildError],
-      Validation: [JSV.Root, JSV.ValidationError],
+      Validation: [JSV.Root, JSV.ValidationError, JSV.ErrorFormatter],
       Resolvers: [JSV.Resolver, JSV.Resolver.Httpc, JSV.Resolver.Embedded, JSV.Resolver.Internal, JSV.Resolver.Local],
       Vocabulary: [JSV.Vocabulary, ~r/^JSV\.Vocabulary\./],
       Utilities: [
