@@ -315,6 +315,24 @@ defmodule JSV.Validator do
   def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level)
       when is_binary(key)
       when is_integer(key) do
+    validate_sub_term(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level, _flag_evaluated? = true)
+  end
+
+  @doc """
+  Validates a property name of the data, as `validate_in/6` does for property
+  values, but without flagging the property as evaluated.
+
+  This is used by the `propertyNames` keyword, which does not evaluate the
+  property values and must not affect `unevaluatedProperties`.
+  """
+  @spec validate_key(binary, eval_sub_path, validator, context, ErrorFormatter.level()) :: result
+  def validate_key(key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_default())
+
+  def validate_key(key, add_eval_path, subvalidators, vctx, boolean_schema_level) when is_binary(key) do
+    validate_sub_term(key, key, add_eval_path, subvalidators, vctx, boolean_schema_level, _flag_evaluated? = false)
+  end
+
+  defp validate_sub_term(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level, flag_evaluated?) do
     %ValidationContext{
       data_path: data_path,
       evaluated: evaluated,
@@ -342,8 +360,15 @@ defmodule JSV.Validator do
 
     case result do
       {:ok, data, sub_vctx} ->
+        vctx =
+          if flag_evaluated? do
+            add_evaluated(vctx, key)
+          else
+            vctx
+          end
+
         # There should not be errors in sub at this point ?
-        new_vctx = vctx |> add_evaluated(key) |> merge_errors(sub_vctx)
+        new_vctx = merge_errors(vctx, sub_vctx)
         {:ok, data, new_vctx}
 
       {:error, %ValidationContext{errors: [_ | _]} = sub_vctx} ->
@@ -361,11 +386,13 @@ defmodule JSV.Validator do
   def validate_as(data, add_eval_path, subvalidators, vctx) do
     %ValidationContext{evaluated: evaluated, eval_path: eval_path, schema_path: schema_path} = vctx
 
+    # The cast stacks are kept as-is: the sub part validates the same data point
+    # as its parent, so a cast defined in it belongs to the same stack and must
+    # still be applied by the topmost validator for that data path.
     sub_vctx = %{
       vctx
       | eval_path: append_eval_path(eval_path, add_eval_path),
         schema_path: append_schema_path(schema_path, add_eval_path),
-        cast_stacks: %{},
         errors: [],
         evaluated: push_evaluated(vctx, evaluated)
     }

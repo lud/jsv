@@ -91,6 +91,18 @@ defmodule JSV.ErrorLevelTest do
              ] = findings(schema, %{"foo" => 1}, min_error_level: ErrorFormatter.level_default())
     end
 
+    test "a false propertyNames schema is reported on the parent" do
+      schema = %{properties: %{x: %{propertyNames: false}}}
+
+      assert [
+               {"#/x", :propertyNames, "properties are not allowed but found property 'k'"},
+               {"#/x/k", :boolean_schema, _}
+             ] = findings(schema, %{"x" => %{"k" => 1}}, min_error_level: ErrorFormatter.level_parent_reported())
+
+      assert [{"#/x", :propertyNames, "properties are not allowed but found property 'k'"}] =
+               findings(schema, %{"x" => %{"k" => 1}}, min_error_level: ErrorFormatter.level_default())
+    end
+
     test "one error per rejected key under the same pattern" do
       schema = %{patternProperties: %{"^f" => false}}
 
@@ -109,7 +121,6 @@ defmodule JSV.ErrorLevelTest do
       cases = [
         {%{prefixItems: [%{}], unevaluatedItems: false}, [1, 2], "#/1"},
         {%{properties: %{a: %{}}, unevaluatedProperties: false}, %{"a" => 1, "b" => 2}, "#/b"},
-        {%{properties: %{x: %{propertyNames: false}}}, %{"x" => %{"k" => 1}}, "#/x"},
         {%{"$defs": %{f: false}, properties: %{a: %{"$ref": "#/$defs/f"}}}, %{"a" => 1}, "#/a"},
         {%{dependentSchemas: %{a: false}}, %{"a" => 1}, "#"},
         {false, 1, "#"}

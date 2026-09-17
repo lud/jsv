@@ -128,18 +128,18 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   take_keyword :dependentSchemas, dependent_schemas when is_map(dependent_schemas), acc, builder, _ do
-    {built_dependent, builder} = build_dependent_schemas(dependent_schemas, builder)
+    {built_dependent, builder} = build_dependent_schemas(:dependentSchemas, dependent_schemas, builder)
     {[{:dependentSchemas, built_dependent} | acc], builder}
   end
 
-  defp build_dependent_schemas(dependent_schemas, builder) do
+  defp build_dependent_schemas(keyword, dependent_schemas, builder) do
     {built_dependent, builder} =
       Enum.map_reduce(dependent_schemas, builder, fn {k, depschema}, builder ->
-        {subvalidators, builder} = Builder.build_sub!(depschema, [k], builder)
+        {subvalidators, builder} = Builder.build_sub!(depschema, [{keyword, k}], builder)
         {{k, subvalidators}, builder}
       end)
 
-    {Map.new(built_dependent), builder}
+    {{keyword, Map.new(built_dependent)}, builder}
   end
 
   # dependencies is an old keyword. It is a map of prop-name (parent) to a list
@@ -183,7 +183,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
           {acc, builder}
 
         list ->
-          {built_dependent, builder} = build_dependent_schemas(list, builder)
+          {built_dependent, builder} = build_dependent_schemas(:dependencies, list, builder)
           {[{:dependentSchemas, built_dependent} | acc], builder}
       end
   end
@@ -472,10 +472,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   pass validate_keyword({:jsv@contains, _})
 
-  def validate_keyword({:dependentSchemas, schemas_map}, data, vctx) when is_map(data) do
+  def validate_keyword({:dependentSchemas, {keyword, schemas_map}}, data, vctx) when is_map(data) do
     Validator.reduce(schemas_map, data, vctx, fn
       {parent_key, subschema}, data, vctx when is_map_key(data, parent_key) ->
-        Validator.validate(data, subschema, vctx)
+        Validator.validate_as(data, {keyword, parent_key}, subschema, vctx)
 
       {_, _}, data, vctx ->
         {:ok, data, vctx}
@@ -496,12 +496,14 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def validate_keyword({:propertyNames, subschema}, data, vctx) when is_map(data) do
+    level = boolean_schema_level(subschema)
+
     data
     |> Map.keys()
     |> Validator.reduce(data, vctx, fn key, data, vctx ->
-      case Validator.validate(key, subschema, vctx) do
+      case Validator.validate_key(key, :propertyNames, subschema, vctx, level) do
         {:ok, _, vctx} -> {:ok, data, vctx}
-        {:error, _} = err -> err
+        {:error, vctx} -> {:error, with_property_error(vctx, data, {:propertyNames, key, subschema, nil})}
       end
     end)
   end
@@ -673,6 +675,14 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   def format_error(:additionalProperties, %{key: key}, _data) do
     intermediary("property '#{key}' did not conform to the additionalProperties schema")
+  end
+
+  def format_error(:propertyNames, %{key: key, boolean_schema_false: true}, _data) do
+    "properties are not allowed but found property '#{key}'"
+  end
+
+  def format_error(:propertyNames, %{key: key}, _data) do
+    intermediary("property name '#{key}' did not conform to the propertyNames schema")
   end
 
   def format_error(:patternProperties, %{pattern: pattern, key: key, boolean_schema_false: true}, _data) do

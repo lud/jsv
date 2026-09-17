@@ -511,6 +511,21 @@ defmodule JSV.ErrorFormatTest do
       )
     end
 
+    test "propertyNames: false" do
+      root = JSV.build!(%{propertyNames: false})
+
+      assert {:ok, %{}} = JSV.validate(%{}, root)
+      assert {:error, err} = JSV.validate(%{"a" => 1}, root)
+
+      assert_boolean_schema_pair(err,
+        args: [key: "a", boolean_schema_false: true],
+        schema_location: "#/propertyNames",
+        instance_location: "#/a",
+        kind: :propertyNames,
+        message: "properties are not allowed but found property 'a'"
+      )
+    end
+
     test "items: false" do
       root = JSV.build!(%{prefixItems: [%{}], items: false})
 
@@ -556,6 +571,90 @@ defmodule JSV.ErrorFormatTest do
         message: "additional items are not allowed but found item at index 1"
       )
     end
+  end
+
+  test "error formatting for propertyNames" do
+    # The rejected key must be identifiable: the errors of the propertyNames
+    # subschema point at the key with their instanceLocation, and the parent
+    # error names it. The evaluationPath also gets its 'propertyNames' segment.
+
+    root = JSV.build!(%{properties: %{tags: %{propertyNames: %{maxLength: 3}}}})
+
+    assert {:ok, _} = JSV.validate(%{"tags" => %{"ok" => 1}}, root)
+    assert {:error, err} = JSV.validate(%{"tags" => %{"toolong" => 1, "ok" => 2}}, root)
+
+    formatted_error = JSV.normalize_error(err, keys: :atoms)
+    assert_output_schema(formatted_error)
+
+    assert %{
+             valid: false,
+             details: [
+               %{
+                 errors: [%{kind: :maxLength, message: "value length must be at most 3 but is 7"}],
+                 valid: false,
+                 instanceLocation: "#/tags/toolong",
+                 evaluationPath: "#/properties/tags/propertyNames",
+                 schemaLocation: "#/properties/tags/propertyNames"
+               },
+               %{
+                 errors: [%{kind: :propertyNames, message: property_names_message}],
+                 valid: false,
+                 instanceLocation: "#/tags",
+                 evaluationPath: "#/properties/tags",
+                 schemaLocation: "#/properties/tags"
+               },
+               %{
+                 errors: [%{kind: :properties}],
+                 valid: false,
+                 instanceLocation: "#",
+                 evaluationPath: "#",
+                 schemaLocation: "#"
+               }
+             ]
+           } = formatted_error
+
+    assert "property name 'toolong' did not conform to the propertyNames schema" == property_names_message
+  end
+
+  test "error formatting for dependentSchemas" do
+    # The evaluationPath and the schemaLocation carry the keyword and the parent
+    # property name.
+
+    root = JSV.build!(%{dependentSchemas: %{a: %{required: ["b"]}}})
+
+    assert {:ok, _} = JSV.validate(%{"a" => 1, "b" => 2}, root)
+    assert {:error, err} = JSV.validate(%{"a" => 1}, root)
+
+    assert %{
+             valid: false,
+             details: [
+               %{
+                 errors: [%{kind: :required, message: "property 'b' is required"}],
+                 valid: false,
+                 instanceLocation: "#",
+                 evaluationPath: "#/dependentSchemas/a",
+                 schemaLocation: "#/dependentSchemas/a"
+               }
+             ]
+           } = JSV.normalize_error(err, keys: :atoms)
+  end
+
+  test "error formatting for draft 7 dependencies" do
+    root =
+      build_schema!(%{"$schema": "http://json-schema.org/draft-07/schema#", dependencies: %{a: %{required: ["b"]}}})
+
+    assert {:ok, _} = JSV.validate(%{"a" => 1, "b" => 2}, root)
+    assert {:error, err} = JSV.validate(%{"a" => 1}, root)
+
+    assert %{
+             details: [
+               %{
+                 errors: [%{kind: :required}],
+                 evaluationPath: "#/dependencies/a",
+                 schemaLocation: "#/dependencies/a"
+               }
+             ]
+           } = JSV.normalize_error(err, keys: :atoms)
   end
 
   test "dynamic anchor schema location" do
