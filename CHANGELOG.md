@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.1] - 2026-09-21
+
+### 🐛 Bug Fixes
+
+- Rename 'default' error level to 'cause' (_lud_)
+
 ## [0.23.0] - 2026-09-17
 
 ### 🚀 Features
