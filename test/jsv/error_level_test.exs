@@ -58,7 +58,7 @@ defmodule JSV.ErrorLevelTest do
              {"#/user", :additionalProperties, "additional properties are not allowed but found property 'extra'"},
              {"#/user/name", :type, "value is not of type string"},
              {"#/user/role", :enum, "value must be one of the enum values: \"admin\" or \"user\""}
-           ] = findings(@issue_schema, @issue_data, min_error_level: ErrorFormatter.level_default())
+           ] = findings(@issue_schema, @issue_data, min_error_level: ErrorFormatter.level_cause())
   end
 
   test "levels are not part of the normalized output" do
@@ -80,7 +80,7 @@ defmodule JSV.ErrorLevelTest do
              ] = findings(schema, %{"a" => 1}, [])
 
       assert [{"#", :properties, "property 'a' is not allowed"}] =
-               findings(schema, %{"a" => 1}, min_error_level: ErrorFormatter.level_default())
+               findings(schema, %{"a" => 1}, min_error_level: ErrorFormatter.level_cause())
     end
 
     test "a false patternProperties schema is reported on the parent" do
@@ -88,7 +88,7 @@ defmodule JSV.ErrorLevelTest do
 
       assert [
                {"#", :patternProperties, "properties matching /^f/ are not allowed but found property 'foo'"}
-             ] = findings(schema, %{"foo" => 1}, min_error_level: ErrorFormatter.level_default())
+             ] = findings(schema, %{"foo" => 1}, min_error_level: ErrorFormatter.level_cause())
     end
 
     test "a false propertyNames schema is reported on the parent" do
@@ -100,7 +100,7 @@ defmodule JSV.ErrorLevelTest do
              ] = findings(schema, %{"x" => %{"k" => 1}}, min_error_level: ErrorFormatter.level_parent_reported())
 
       assert [{"#/x", :propertyNames, "properties are not allowed but found property 'k'"}] =
-               findings(schema, %{"x" => %{"k" => 1}}, min_error_level: ErrorFormatter.level_default())
+               findings(schema, %{"x" => %{"k" => 1}}, min_error_level: ErrorFormatter.level_cause())
     end
 
     test "one error per rejected key under the same pattern" do
@@ -111,7 +111,7 @@ defmodule JSV.ErrorLevelTest do
                {"#", :patternProperties, "properties matching /^f/ are not allowed but found property 'foo'"}
              ] =
                schema
-               |> findings(%{"foo" => 1, "fob" => 2}, min_error_level: ErrorFormatter.level_default())
+               |> findings(%{"foo" => 1, "fob" => 2}, min_error_level: ErrorFormatter.level_cause())
                |> Enum.sort()
     end
 
@@ -128,7 +128,7 @@ defmodule JSV.ErrorLevelTest do
 
       for {schema, data, location} <- cases do
         assert [{^location, :boolean_schema, _}] =
-                 findings(schema, data, min_error_level: ErrorFormatter.level_default()),
+                 findings(schema, data, min_error_level: ErrorFormatter.level_cause()),
                "expected a boolean schema error for #{inspect(schema)}"
       end
     end
@@ -141,7 +141,7 @@ defmodule JSV.ErrorLevelTest do
     assert {:error, err} = JSV.validate(%{"a" => %{"b" => 1}}, root)
 
     assert %{details: [%{errors: [%{kind: :anyOf, details: details}]}]} =
-             JSV.normalize_error(err, min_error_level: ErrorFormatter.level_default())
+             JSV.normalize_error(err, min_error_level: ErrorFormatter.level_cause())
 
     assert [
              %{instanceLocation: "#/a/b", errors: [%{kind: :type}]},

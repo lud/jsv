@@ -9,7 +9,7 @@ defmodule JSV.ErrorFormatter do
 
   @level_intermediary 5
   @level_parent_reported 8
-  @level_default 10
+  @level_cause 10
 
   @moduledoc """
   Error formatting helpers.
@@ -33,9 +33,9 @@ defmodule JSV.ErrorFormatter do
   | ----- | ------- | ------- |
   | `#{@level_intermediary}` | The message only points at a deeper error. | `property 'name' did not conform to the property schema` |
   | `#{@level_parent_reported}` | The data is rejected by a rule that belongs to the parent, and the error on the parent reports it. | `value was rejected from boolean schema: false`, under a schema that already reported `additional properties are not allowed but found property 'extra'` |
-  | `#{@level_default}` | The error states why the data was rejected. | `value is not of type string` |
+  | `#{@level_cause}` | The error states why the data was rejected. | `value is not of type string` |
 
-  Errors are assigned `#{@level_default}` when `c:JSV.Vocabulary.format_error/3`
+  Errors are assigned `#{@level_cause}` when `c:JSV.Vocabulary.format_error/3`
   does not return a `:level` key. Custom vocabularies can return any integer,
   including values between or below the ones listed above.
   """
@@ -76,12 +76,24 @@ defmodule JSV.ErrorFormatter do
   end
 
   @doc """
-  Returns `#{@level_default}`, the level given to errors that do not define
-  their own level.
+  Returns `#{@level_cause}`, the level given to errors that state why the data
+  was rejected.
+
+  Errors are assigned this level when `c:JSV.Vocabulary.format_error/3` does not
+  return a `:level` key.
   """
+  @spec level_cause :: level
+  def level_cause do
+    @level_cause
+  end
+
+  @doc """
+  Returns `#{@level_cause}`.
+  """
+  @deprecated "Use `level_cause/0` instead."
   @spec level_default :: level
   def level_default do
-    @level_default
+    @level_cause
   end
 
   @type raw_path :: [raw_path] | binary | integer | atom
@@ -119,7 +131,7 @@ defmodule JSV.ErrorFormatter do
     `0`, which keeps all errors defined by this library.
 
     Passing `#{@level_parent_reported}` drops the errors that only point at a
-    deeper error, and `#{@level_default}` also drops the errors reported by an
+    deeper error, and `#{@level_cause}` also drops the errors reported by an
     error on the parent data.
   """
   @spec normalize_error(ValidationError.t(), keyword) :: map()
@@ -249,13 +261,13 @@ defmodule JSV.ErrorFormatter do
 
     case formatter.format_error(kind, args_map, data) do
       message when is_binary(message) ->
-        %{message: message, kind: kind, level: @level_default}
+        %{message: message, kind: kind, level: @level_cause}
 
       tuple when is_tuple(tuple) ->
         cast_deprecated_error_format(tuple, kind, opts, formatter)
 
       %{message: message} = map when is_binary(message) ->
-        build_error(Map.delete(map, :message), %{message: message, kind: kind, level: @level_default}, formatter, opts)
+        build_error(Map.delete(map, :message), %{message: message, kind: kind, level: @level_cause}, formatter, opts)
     end
   end
 
@@ -284,16 +296,16 @@ defmodule JSV.ErrorFormatter do
 
     case tuple do
       {new_kind, message} when is_atom(new_kind) and is_binary(message) ->
-        %{message: message, kind: new_kind, level: @level_default}
+        %{message: message, kind: new_kind, level: @level_cause}
 
       {message, sub_errors} when is_binary(message) and is_list(sub_errors) ->
-        %{message: message, kind: kind, level: @level_default, details: normalize_errors(sub_errors, formatter, opts)}
+        %{message: message, kind: kind, level: @level_cause, details: normalize_errors(sub_errors, formatter, opts)}
 
       {new_kind, message, sub_errors} when is_atom(new_kind) and is_binary(message) and is_list(sub_errors) ->
         %{
           message: message,
           kind: new_kind,
-          level: @level_default,
+          level: @level_cause,
           details: normalize_errors(sub_errors, formatter, opts)
         }
     end

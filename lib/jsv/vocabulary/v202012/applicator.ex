@@ -559,7 +559,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   defp boolean_schema_level(_) do
-    ErrorFormatter.level_default()
+    ErrorFormatter.level_cause()
   end
 
   defp item_error_args(index, %JSV.BooleanSchema{valid?: false}) do

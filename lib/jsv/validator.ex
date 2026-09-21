@@ -98,7 +98,7 @@ defmodule JSV.Validator do
   def validate(data, subschema, vctx)
 
   def validate(data, %BooleanSchema{} = bs, vctx) do
-    validate_boolean_schema(bs, data, vctx, ErrorFormatter.level_default())
+    validate_boolean_schema(bs, data, vctx, ErrorFormatter.level_cause())
   end
 
   def validate(data, {:alias_of, key}, vctx) do
@@ -310,7 +310,7 @@ defmodule JSV.Validator do
   to `JSV.ErrorFormatter.level_parent_reported/0`.
   """
   @spec validate_in(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) :: result
-  def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_default())
+  def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_cause())
 
   def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level)
       when is_binary(key)
@@ -326,7 +326,7 @@ defmodule JSV.Validator do
   property values and must not affect `unevaluatedProperties`.
   """
   @spec validate_key(binary, eval_sub_path, validator, context, ErrorFormatter.level()) :: result
-  def validate_key(key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_default())
+  def validate_key(key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_cause())
 
   def validate_key(key, add_eval_path, subvalidators, vctx, boolean_schema_level) when is_binary(key) do
     validate_sub_term(key, key, add_eval_path, subvalidators, vctx, boolean_schema_level, _flag_evaluated? = false)
@@ -740,7 +740,7 @@ defmodule JSV.Validator do
   def format_error(:boolean_schema, args, _data) do
     %{
       message: "value was rejected from boolean schema: false",
-      level: Map.get(args, :level, ErrorFormatter.level_default())
+      level: Map.get(args, :level, ErrorFormatter.level_cause())
     }
   end
 end
