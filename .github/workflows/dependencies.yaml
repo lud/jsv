@@ -18,5 +18,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: erlef/mix-dependency-submission@v1
-        
+
+      # The action fetches its binary from the release CDN and verifies it
+      # through the attestations API. Both fail transiently.
+      - id: submit_1
+        uses: erlef/mix-dependency-submission@v1
+        continue-on-error: true
+
+      - if: steps.submit_1.outcome == 'failure'
+        run: sleep 30
+      - id: submit_2
+        if: steps.submit_1.outcome == 'failure'
+        uses: erlef/mix-dependency-submission@v1
+        continue-on-error: true
+
+      - if: steps.submit_2.outcome == 'failure'
+        run: sleep 60
+      - id: submit_3
+        if: steps.submit_2.outcome == 'failure'
+        uses: erlef/mix-dependency-submission@v1
