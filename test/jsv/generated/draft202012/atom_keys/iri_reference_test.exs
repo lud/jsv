@@ -132,5 +132,23 @@ defmodule JSV.Generated.Draft202012.AtomKeys.IriReferenceTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "invalid percent-encoding with non-hex digits", x do
+      data = "/%6G"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "incomplete percent-encoding triplet", x do
+      data = "/%A"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "lone percent sign is invalid", x do
+      data = "/%"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

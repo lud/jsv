@@ -145,6 +145,18 @@ defmodule JSV.Generated.Draft7.BinaryKeys.UriTemplateTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "a private-use character in a literal is valid", x do
+      data = "ab"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a supplementary private-use character in a literal is valid", x do
+      data = "a󰀀b"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "reserved expansion operator", x do
       data = "{+var}"
       expected_valid = true
@@ -190,6 +202,12 @@ defmodule JSV.Generated.Draft7.BinaryKeys.UriTemplateTest do
     test "the explode modifier is valid", x do
       data = "{var*}"
       expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "combined prefix and explode modifiers are invalid", x do
+      data = "{var:1*}"
+      expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 

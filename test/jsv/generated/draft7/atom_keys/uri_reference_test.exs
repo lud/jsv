@@ -145,6 +145,18 @@ defmodule JSV.Generated.Draft7.AtomKeys.UriReferenceTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "incomplete percent-encoding triplet", x do
+      data = "/%A"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "lone percent sign is invalid", x do
+      data = "/%"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "a double quote in a path", x do
       data = "/a\"b"
       expected_valid = false
