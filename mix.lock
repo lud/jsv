@@ -27,5 +27,5 @@
   "patch": {:hex, :patch, "0.16.0", "dfa2e1c381959d821ab1ddf4acd55f42d1c798003f0fef270154c0c5bd139b08", [:mix], [], "hexpm", "50e06ef77a9b4987edfc717a9bf047429f3d69af397a42d9ff311f27ccb23408"},
   "readmix": {:hex, :readmix, "0.8.1", "ab3a5d5b92b1fccc4bb724b298287947c801cf34c2d7ba72a4bbc38d754cb8d5", [:mix], [{:cli_mate, "~> 0.10", [hex: :cli_mate, repo: "hexpm", optional: false]}, {:nimble_options, "~> 1.0", [hex: :nimble_options, repo: "hexpm", optional: false]}], "hexpm", "b1f8f0b7e35871a0d93a57cf54afe0030c025942543f21e65e36063cdc3fd970"},
   "sobelow": {:hex, :sobelow, "0.15.0", "b067d7f8522a9d758fa89cb2bfcbab7ad72c45a0993cb958c989c6fd956fdd56", [:mix], [{:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "24a800e2d7fa8c3bd21561b6ad8ad4745ed726a09fd606598981d9048708da98"},
-  "texture": {:hex, :texture, "1.2.1", "ae8d875fb099bcc1ccb0269296bf6c4590116eff9a44895049379359a14d5fca", [:mix], [{:abnf_parsec, "~> 2.0", [hex: :abnf_parsec, repo: "hexpm", optional: false]}], "hexpm", "925b1938891ce5c1d589df408faa7ed57dd872e4aac9521b32495a29b265cb17"},
+  "texture": {:hex, :texture, "2.0.0", "26d1d2fcb45ddedef200695d4bcc3b994461ddc1f8bba7a3e0d7fa0a7dac55c5", [:mix], [{:abnf_parsec, "~> 2.0", [hex: :abnf_parsec, repo: "hexpm", optional: false]}], "hexpm", "c85cbac5f456f4c9867deb0f70c45daa8a536142a8c8c5403401bd51962660bc"},
 }
