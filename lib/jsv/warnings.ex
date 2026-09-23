@@ -38,6 +38,19 @@ defmodule JSV.Warnings do
     OptsValidator.invalid_option!(key, value, ":emit, :silence or {:silence, [atom | {atom, term}]}")
   end
 
+  @spec validate_stacktrace!(atom, term) :: Exception.stacktrace() | nil
+  def validate_stacktrace!(_key, nil) do
+    nil
+  end
+
+  def validate_stacktrace!(key, value) do
+    if is_list(value) and Enum.all?(value, &is_tuple/1) do
+      value
+    else
+      OptsValidator.invalid_option!(key, value, "a stacktrace")
+    end
+  end
+
   @spec emit([warning], config, Exception.stacktrace()) :: :ok
   def emit(warnings, config, stacktrace)
 

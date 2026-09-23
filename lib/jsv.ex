@@ -97,7 +97,8 @@ defmodule JSV do
     formats: nil,
     vocabularies: %{},
     atoms: nil,
-    warnings: :emit
+    warnings: :emit,
+    stacktrace: nil
   }
 
   @type normal_schema :: boolean() | %{binary => normal_schema() | [normal_schema()]}
@@ -114,6 +115,7 @@ defmodule JSV do
           | {:vocabularies, %{optional(binary()) => module() | {module(), term()}}}
           | {:atoms, boolean()}
           | {:warnings, :emit | :silence | {:silence, [atom | {atom, term}]}}
+          | {:stacktrace, Exception.stacktrace()}
 
   @type validate_opt ::
           {:cast, boolean()}
@@ -248,6 +250,11 @@ defmodule JSV do
     Warnings are always returned in the built root.
 
     The default value is `:emit`.
+
+  * `:stacktrace` (`t:Exception.stacktrace/0`) - The stacktrace given to
+    `IO.warn/2` when emitting warnings. Useful when building schemas at compile
+    time, for instance with `Macro.Env.stacktrace/1`. Defaults to the stacktrace
+    of the caller.
   """
   @doc group: @doc_group
   @spec build(native_schema(), [build_opt]) :: {:ok, Root.t()} | {:error, Exception.t()}
@@ -1543,6 +1550,10 @@ defmodule JSV do
     JSV.Warnings.validate_config!(:warnings, value)
   end
 
+  defp validate_build_opts(:stacktrace, value) do
+    JSV.Warnings.validate_stacktrace!(:stacktrace, value)
+  end
+
   defp validate_build_opts(key, _value) do
     OptsValidator.unknown_option!(key)
   end
@@ -1608,11 +1619,15 @@ defmodule JSV do
 
   defp emit_new_warnings(builder) do
     {warnings, builder} = Builder.take_pending_warnings(builder)
-    :ok = JSV.Warnings.emit(warnings, builder.opts.warnings, warning_stacktrace())
+    :ok = JSV.Warnings.emit(warnings, builder.opts.warnings, warning_stacktrace(builder.opts.stacktrace))
     builder
   end
 
-  defp warning_stacktrace do
+  defp warning_stacktrace(stacktrace) when is_list(stacktrace) do
+    stacktrace
+  end
+
+  defp warning_stacktrace(nil) do
     {:current_stacktrace, stacktrace} = :erlang.process_info(self(), :current_stacktrace)
     Enum.drop(stacktrace, 2)
   end

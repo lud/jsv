@@ -518,6 +518,8 @@ defmodule JSV.Schema do
     the `:warnings` option of `JSV.build/2`, with `:emit` as the default. The
     `:return` value returns the warnings with the result as a
     `{normal, warnings}` tuple.
+  - `:stacktrace` - The stacktrace given to `IO.warn/2` when emitting
+    warnings, see `JSV.build/2`.
 
   ### Examples
 
@@ -539,6 +541,7 @@ defmodule JSV.Schema do
         when normal_result: %{optional(binary) => schema_data} | [schema_data] | number | binary | boolean | nil
   def normalize(term, opts \\ []) do
     warnings_config = validate_normalize_warnings(opts)
+    stacktrace = validate_normalize_stacktrace(opts)
 
     normalize_opts = [
       on_general_atom: fn atom, warnings ->
@@ -552,7 +555,7 @@ defmodule JSV.Schema do
 
     {normal, warnings} = JSV.Normalizer.normalize(term, [], normalize_opts)
 
-    handle_normalize_warnings(normal, :lists.reverse(warnings), warnings_config)
+    handle_normalize_warnings(normal, :lists.reverse(warnings), warnings_config, stacktrace)
   end
 
   defp atom_to_string(atom, warnings) do
@@ -580,12 +583,24 @@ defmodule JSV.Schema do
     end
   end
 
-  defp handle_normalize_warnings(normal, warnings, :return) do
+  defp validate_normalize_stacktrace(opts) do
+    case Keyword.fetch(opts, :stacktrace) do
+      :error -> nil
+      {:ok, value} -> JSV.Warnings.validate_stacktrace!(:stacktrace, value)
+    end
+  end
+
+  defp handle_normalize_warnings(normal, warnings, :return, _stacktrace) do
     {normal, warnings}
   end
 
-  defp handle_normalize_warnings(normal, warnings, config) do
+  defp handle_normalize_warnings(normal, warnings, config, nil) do
     {:current_stacktrace, [_ | stacktrace]} = :erlang.process_info(self(), :current_stacktrace)
+    :ok = JSV.Warnings.emit(warnings, config, stacktrace)
+    normal
+  end
+
+  defp handle_normalize_warnings(normal, warnings, config, stacktrace) do
     :ok = JSV.Warnings.emit(warnings, config, stacktrace)
     normal
   end
@@ -611,6 +626,7 @@ defmodule JSV.Schema do
     instead of being wrapped in a definition. This will overwrite any `$defs`
     present in the schema.
   - `:warnings` - Controls normalization warnings, see `normalize/2`.
+  - `:stacktrace` - The stacktrace used to emit warnings, see `normalize/2`.
   """
   @spec normalize_collect(term, keyword()) ::
           normal_result | {normal_result, [map]}
@@ -631,8 +647,9 @@ defmodule JSV.Schema do
 
   defp do_normalize_collect(term, opts) when is_atom(term) when is_map(term) do
     warnings_config = validate_normalize_warnings(opts)
+    stacktrace = validate_normalize_stacktrace(opts)
     {normal, warnings} = collect_normal(term)
-    handle_normalize_warnings(normal, warnings, warnings_config)
+    handle_normalize_warnings(normal, warnings, warnings_config, stacktrace)
   end
 
   defp collect_normal(term) do

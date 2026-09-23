@@ -658,6 +658,29 @@ defmodule JSV.BuilderTest do
       assert "" == emit.(:silent)
     end
 
+    test "warnings are emitted with the given stacktrace" do
+      stacktrace = [{SomeCaller, :__MODULE__, 0, [file: ~c"lib/some_caller.ex", line: 123]}]
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          JSV.build!(%{enum: [NotASchema.A]}, stacktrace: stacktrace)
+        end)
+
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "lib/some_caller.ex:123"
+
+      assert "" ==
+               ExUnit.CaptureIO.capture_io(:stderr, fn ->
+                 JSV.build!(%{enum: [NotASchema.A]}, stacktrace: stacktrace, warnings: :silence)
+               end)
+    end
+
+    test "invalid stacktrace option" do
+      assert_raise ArgumentError, ~r/invalid value for option :stacktrace/, fn ->
+        JSV.build!(%{}, stacktrace: :nope)
+      end
+    end
+
     test "invalid warnings option" do
       assert_raise ArgumentError, ~r/invalid value for option :warnings/, fn ->
         JSV.build!(%{}, warnings: :return)

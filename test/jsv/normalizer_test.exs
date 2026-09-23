@@ -27,6 +27,36 @@ defmodule JSV.NormalizerTest do
       assert "" == stderr
     end
 
+    test "warnings are emitted with the given stacktrace" do
+      stacktrace = [{SomeCaller, :__MODULE__, 0, [file: ~c"lib/some_caller.ex", line: 123]}]
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Schema.normalize(%{enum: [NotASchema.A]}, stacktrace: stacktrace)
+        end)
+
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "lib/some_caller.ex:123"
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Schema.normalize_collect(%{enum: [NotASchema.B]}, stacktrace: stacktrace)
+        end)
+
+      assert stderr =~ "NotASchema.B"
+      assert stderr =~ "lib/some_caller.ex:123"
+    end
+
+    test "invalid stacktrace option" do
+      assert_raise ArgumentError, ~r/invalid value for option :stacktrace/, fn ->
+        Schema.normalize(%{}, stacktrace: :nope)
+      end
+
+      assert_raise ArgumentError, ~r/invalid value for option :stacktrace/, fn ->
+        Schema.normalize_collect(%{}, stacktrace: [:nope])
+      end
+    end
+
     test "warnings can be returned" do
       assert {%{"enum" => ["Elixir.NotASchema.A", "not_a_module", true]},
               [%{key: :unresolved_module, module: NotASchema.A}]} =
