@@ -436,7 +436,7 @@ defmodule JSV.Schema do
       when is_atom(caster)
       when is_binary(hd(caster))
       when is_atom(hd(caster)) do
-    normal = JSV.Schema.normalize(caster)
+    normal = JSV.Normalizer.normalize(caster)
 
     case schema do
       %{:"x-jsv-cast" => _, "x-jsv-cast" => _} ->
@@ -508,8 +508,16 @@ defmodule JSV.Schema do
   * Modules names that export a schema will be converted to a raw schema with a
     reference to that module that can be resolved automatically by
     `JSV.Resolver.Internal`.
-  * Other atoms will be checked to see if they correspond to a module name that
-    exports a `json_schema/0` function.
+  * Other atoms are converted to strings. An atom starting with `Elixir.` is
+    most likely an unresolved module reference, such as a typo or a missing
+    alias, so it also produces an `:unresolved_module` warning.
+
+  ### Options
+
+  - `:warnings` - Controls normalization warnings. Accepts the same values as
+    the `:warnings` option of `JSV.build/2`, with `:emit` as the default. The
+    `:return` value returns the warnings with the result as a
+    `{normal, warnings}` tuple.
 
   ### Examples
 
@@ -524,23 +532,61 @@ defmodule JSV.Schema do
         def hello, do: "world"
       end
 
-      iex> JSV.Schema.normalize(AModuleWithoutExportedSchema)
+      iex> JSV.Schema.normalize(AModuleWithoutExportedSchema, warnings: :silence)
       "Elixir.AModuleWithoutExportedSchema"
   """
-  @spec normalize(term) :: %{optional(binary) => schema_data} | [schema_data] | number | binary | boolean | nil
-  def normalize(term) do
+  @spec normalize(term, keyword) :: normal_result | {normal_result, [map]}
+        when normal_result: %{optional(binary) => schema_data} | [schema_data] | number | binary | boolean | nil
+  def normalize(term, opts \\ []) do
+    warnings_config = validate_normalize_warnings(opts)
+
     normalize_opts = [
-      on_general_atom: fn atom, acc ->
+      on_general_atom: fn atom, warnings ->
         if schema_module?(atom) do
-          {%{"$ref" => Internal.module_to_uri(atom)}, acc}
+          {%{"$ref" => Internal.module_to_uri(atom)}, warnings}
         else
-          {Atom.to_string(atom), acc}
+          atom_to_string(atom, warnings)
         end
       end
     ]
 
-    {normal, _acc} = JSV.Normalizer.normalize(term, [], normalize_opts)
+    {normal, warnings} = JSV.Normalizer.normalize(term, [], normalize_opts)
 
+    handle_normalize_warnings(normal, :lists.reverse(warnings), warnings_config)
+  end
+
+  defp atom_to_string(atom, warnings) do
+    case Atom.to_string(atom) do
+      "Elixir." <> _ = string -> {string, [unresolved_module_warning(atom) | warnings]}
+      string -> {string, warnings}
+    end
+  end
+
+  defp unresolved_module_warning(module) do
+    %{
+      key: :unresolved_module,
+      module: module,
+      message:
+        "Module #{inspect(module)} found in schema does not exist or does not export json_schema/0, " <>
+          "it was normalized as #{inspect(Atom.to_string(module))}"
+    }
+  end
+
+  defp validate_normalize_warnings(opts) do
+    case Keyword.fetch(opts, :warnings) do
+      :error -> :emit
+      {:ok, :return} -> :return
+      {:ok, value} -> JSV.Warnings.validate_config!(:warnings, value)
+    end
+  end
+
+  defp handle_normalize_warnings(normal, warnings, :return) do
+    {normal, warnings}
+  end
+
+  defp handle_normalize_warnings(normal, warnings, config) do
+    {:current_stacktrace, [_ | stacktrace]} = :erlang.process_info(self(), :current_stacktrace)
+    :ok = JSV.Warnings.emit(warnings, config, stacktrace)
     normal
   end
 
@@ -564,8 +610,11 @@ defmodule JSV.Schema do
     module-based schema, that module's schema will be kept as the root schema
     instead of being wrapped in a definition. This will overwrite any `$defs`
     present in the schema.
+  - `:warnings` - Controls normalization warnings, see `normalize/2`.
   """
-  @spec normalize_collect(term, keyword()) :: %{optional(binary) => schema_data} | atom
+  @spec normalize_collect(term, keyword()) ::
+          normal_result | {normal_result, [map]}
+        when normal_result: %{optional(binary) => schema_data} | binary
   def normalize_collect(term, opts \\ [])
 
   def normalize_collect(term, opts) when is_atom(term) do
@@ -580,7 +629,13 @@ defmodule JSV.Schema do
     do_normalize_collect(term, opts)
   end
 
-  defp do_normalize_collect(term, _opts) when is_atom(term) when is_map(term) do
+  defp do_normalize_collect(term, opts) when is_atom(term) when is_map(term) do
+    warnings_config = validate_normalize_warnings(opts)
+    {normal, warnings} = collect_normal(term)
+    handle_normalize_warnings(normal, warnings, warnings_config)
+  end
+
+  defp collect_normal(term) do
     # We will have to run several loops. We call the normalizer, replacing
     # modules with a reference, collecting the module in the acc.
     #
@@ -597,7 +652,8 @@ defmodule JSV.Schema do
 
       # modules for which we generated a reference and we need to normalize into
       # a definition.
-      pending: []
+      pending: [],
+      warnings: []
     }
 
     normalize_opts = [
@@ -618,7 +674,8 @@ defmodule JSV.Schema do
               {%{"$ref" => ref}, acc}
           end
         else
-          {Atom.to_string(atom), acc}
+          {string, warnings} = atom_to_string(atom, acc.warnings)
+          {string, %{acc | warnings: warnings}}
         end
       end
     ]
@@ -628,15 +685,18 @@ defmodule JSV.Schema do
       {root_schema, acc} when is_map(root_schema) ->
         {pending, acc} = get_and_update_in(acc.pending, &{&1, []})
 
-        defs = normalize_collect_defs(pending, acc, normalize_opts)
+        {defs, acc} = normalize_collect_defs(pending, acc, normalize_opts)
 
-        case map_size(defs) do
-          0 -> root_schema
-          _ -> Map.put(root_schema, "$defs", defs)
-        end
+        root_schema =
+          case map_size(defs) do
+            0 -> root_schema
+            _ -> Map.put(root_schema, "$defs", defs)
+          end
 
-      {other, _} ->
-        other
+        {root_schema, :lists.reverse(acc.warnings)}
+
+      {other, acc} ->
+        {other, :lists.reverse(acc.warnings)}
     end
   end
 
@@ -650,7 +710,7 @@ defmodule JSV.Schema do
   defp normalize_collect_defs([], acc, normalize_opts) do
     case acc.pending do
       [] ->
-        acc.defs
+        {acc.defs, acc}
 
       more ->
         acc = Map.put(acc, :pending, [])
@@ -773,6 +833,7 @@ defmodule JSV.Schema do
   defimpl JSV.Normalizer.Normalize do
     alias JSV.Helpers.MapExt
 
+    @impl true
     def normalize(schema) do
       MapExt.from_struct_no_nils(schema)
     end

@@ -17,6 +17,7 @@ defmodule JSV.Builder do
   @derive {Inspect, Application.compile_env(:jsv, :builder_inspect_derive, only: [:ns, :current_rev_path, :resolver])}
   @enforce_keys [:resolver]
   defstruct current_rev_path: [],
+            emitted_warnings: [],
             has_casts: false,
             has_unevaluated: false,
             ns: nil,
@@ -29,6 +30,7 @@ defmodule JSV.Builder do
             warnings: []
 
   @type t :: %__MODULE__{
+          emitted_warnings: [[term]],
           has_casts: boolean,
           has_unevaluated: boolean,
           resolver: term,
@@ -52,6 +54,28 @@ defmodule JSV.Builder do
     warning = %{key: key, message: message, rev_path: builder.current_rev_path}
 
     %{builder | warnings: [warning | warnings]}
+  end
+
+  @doc false
+  @spec add_warnings(t, [JSV.Warnings.warning()]) :: t
+  def add_warnings(%__MODULE__{} = builder, []) do
+    builder
+  end
+
+  def add_warnings(%__MODULE__{warnings: warnings} = builder, new_warnings) do
+    %{builder | warnings: :lists.reverse(new_warnings, warnings)}
+  end
+
+  @doc false
+  @spec take_pending_warnings(t) :: {[JSV.Warnings.warning()], t}
+  def take_pending_warnings(%__MODULE__{warnings: warnings, emitted_warnings: emitted} = builder) do
+    {:lists.reverse(warnings), %{builder | warnings: [], emitted_warnings: [warnings | emitted]}}
+  end
+
+  @doc false
+  @spec all_warnings(t) :: [JSV.Warnings.warning()]
+  def all_warnings(%__MODULE__{warnings: warnings, emitted_warnings: emitted}) do
+    :lists.reverse(:lists.append([warnings | emitted]))
   end
 
   @doc false
@@ -158,7 +182,8 @@ defmodule JSV.Builder do
   @spec ensure_resolved!(t, resolvable) :: t
   def ensure_resolved!(%__MODULE__{resolver: resolver} = builder, resolvable) do
     resolver = unwrap_ok_resolver(Resolver.resolve(resolver, resolvable))
-    %{builder | resolver: resolver}
+    {warnings, resolver} = Resolver.take_warnings(resolver)
+    add_warnings(%{builder | resolver: resolver}, warnings)
   end
 
   @doc """

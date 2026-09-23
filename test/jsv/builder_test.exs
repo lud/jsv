@@ -485,7 +485,7 @@ defmodule JSV.BuilderTest do
         "x-jsv-cast": [[to_string(WarningCaster), "warn"]]
       }
 
-      root = JSV.build!(schema, warnings: :silent)
+      root = JSV.build!(schema, warnings: :silence)
       assert [%{key: :first_warning, message: "hello", rev_path: [:root]}] = root.warnings
     end
 
@@ -499,7 +499,7 @@ defmodule JSV.BuilderTest do
         ]
       }
 
-      root = JSV.build!(schema, warnings: :silent)
+      root = JSV.build!(schema, warnings: :silence)
 
       assert [
                %{key: :first_warning, message: "hello", rev_path: [:root]},
@@ -509,7 +509,7 @@ defmodule JSV.BuilderTest do
 
     test "jsv cast string_to_atom emits a warning when the :atoms option is not set" do
       schema = Helpers.string_to_atom()
-      root = JSV.build!(schema, warnings: :silent)
+      root = JSV.build!(schema, warnings: :silence)
 
       assert [
                %{
@@ -522,7 +522,7 @@ defmodule JSV.BuilderTest do
 
     test "jsv cast string_enum_to_atom emits a warning when the :atoms option is not set" do
       schema = Helpers.string_enum_to_atom([:foo, :bar])
-      root = JSV.build!(schema, warnings: :silent)
+      root = JSV.build!(schema, warnings: :silence)
 
       assert [
                %{
@@ -535,7 +535,7 @@ defmodule JSV.BuilderTest do
 
     test "jsv cast string_enum_to_atom_or_nil emits a warning when the :atoms option is not set" do
       schema = Helpers.string_enum_to_atom_or_nil([:foo, :bar])
-      root = JSV.build!(schema, warnings: :silent)
+      root = JSV.build!(schema, warnings: :silence)
 
       assert [
                %{
@@ -574,7 +574,7 @@ defmodule JSV.BuilderTest do
           _other, _opts -> {:error, :not_found}
         end)
 
-      root = JSV.build!(schema_local, warnings: :silent, resolver: [resolver, JSV.Resolver.Embedded])
+      root = JSV.build!(schema_local, warnings: :silence, resolver: [resolver, JSV.Resolver.Embedded])
 
       assert [
                %{
@@ -590,6 +590,82 @@ defmodule JSV.BuilderTest do
                  rev_path: [:items, {:properties, "bar"}, "https://bar.com/schema"]
                }
              ] = root.warnings
+    end
+
+    test "warnings are emitted once when building multiple keys with the same context" do
+      schema = %{
+        "$defs" => %{
+          "first" => %{"type" => "string", "x-jsv-cast" => [[to_string(WarningCaster), "warn"]]},
+          "second" => %{"type" => "string", "x-jsv-cast" => [[to_string(WarningCaster), "warn2"]]}
+        }
+      }
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          {:ok, ctx} = JSV.build_init(warnings: :emit)
+          {:ok, :root, _, ctx} = JSV.build_add(ctx, schema)
+          {:ok, _, ctx} = JSV.build_key(ctx, Ref.parse!("#/$defs/first", :root))
+          {:ok, _, _ctx} = JSV.build_key(ctx, Ref.parse!("#/$defs/second", :root))
+        end)
+
+      assert 1 == length(Regex.scan(~r{#/\$defs/first}, stderr))
+      assert 1 == length(Regex.scan(~r{#/\$defs/second}, stderr))
+    end
+
+    test "normalization warnings are collected on the built Root" do
+      root = JSV.build!(%{enum: [NotASchema.A]}, warnings: :silence)
+
+      assert [%{key: :unresolved_module, module: NotASchema.A} = warning] = root.warnings
+      refute is_map_key(warning, :rev_path)
+    end
+
+    test "normalization warnings of resolved schemas are collected on the built Root" do
+      resolver =
+        JSV.Resolver
+        |> mock_for()
+        |> stub(:resolve, fn
+          "https://bar.com/schema", _opts -> {:ok, %{enum: [NotASchema.A]}}
+          _other, _opts -> {:error, :not_found}
+        end)
+
+      root =
+        JSV.build!(%{"$ref" => "https://bar.com/schema"},
+          warnings: :silence,
+          resolver: [resolver, JSV.Resolver.Embedded]
+        )
+
+      assert [%{key: :unresolved_module, module: NotASchema.A}] = root.warnings
+    end
+
+    test "warnings can be silenced by kind or by specific clause" do
+      schema = %{enum: [NotASchema.A, NotASchema.B]}
+
+      emit = fn warnings_opt ->
+        ExUnit.CaptureIO.capture_io(:stderr, fn -> JSV.build!(schema, warnings: warnings_opt) end)
+      end
+
+      stderr = emit.(:emit)
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "NotASchema.B"
+
+      stderr = emit.({:silence, [unresolved_module: NotASchema.A]})
+      refute stderr =~ "NotASchema.A"
+      assert stderr =~ "NotASchema.B"
+
+      assert "" == emit.({:silence, [:unresolved_module]})
+      assert "" == emit.({:silence, [unresolved_module: NotASchema.A, unresolved_module: NotASchema.B]})
+      assert "" == emit.(:silence)
+      assert "" == emit.(:silent)
+    end
+
+    test "invalid warnings option" do
+      assert_raise ArgumentError, ~r/invalid value for option :warnings/, fn ->
+        JSV.build!(%{}, warnings: :return)
+      end
+
+      assert_raise ArgumentError, ~r/invalid value for option :warnings/, fn ->
+        JSV.build!(%{}, warnings: {:silence, ["unresolved_module"]})
+      end
     end
   end
 

@@ -54,7 +54,8 @@ defmodule JSV.Resolver do
             # caching of remote resources should be done in each resolver
             # implementation.
             fetch_cache: %{},
-            resolved: %{}
+            resolved: %{},
+            warnings: []
 
   @opaque t :: %__MODULE__{}
   @type resolvable :: Key.ns() | Key.pointer() | Ref.t()
@@ -77,6 +78,12 @@ defmodule JSV.Resolver do
       %{^ext_id => _} -> {:error, {:key_exists, ext_id}}
       fetch_cache -> {:ok, %{rsv | fetch_cache: Map.put(fetch_cache, ext_id, raw_schema)}}
     end
+  end
+
+  @doc false
+  @spec take_warnings(t) :: {[JSV.Warnings.warning()], t}
+  def take_warnings(%__MODULE__{warnings: warnings} = rsv) do
+    {:lists.reverse(warnings), %{rsv | warnings: []}}
   end
 
   @doc """
@@ -482,9 +489,9 @@ defmodule JSV.Resolver do
 
   defp ensure_fetched(rsv, fetchable) do
     with :unfetched <- check_fetched(rsv, fetchable),
-         {:ok, ext_id, raw_schema} <- fetch_raw_schema(rsv, fetchable),
+         {:ok, ext_id, raw_schema, warnings} <- fetch_raw_schema(rsv, fetchable),
          {:ok, rsv} <- put_cached(rsv, ext_id, raw_schema) do
-      {:ok, raw_schema, rsv}
+      {:ok, raw_schema, %{rsv | warnings: :lists.reverse(warnings, rsv.warnings)}}
     else
       {:already_fetched, raw_schema} -> {:ok, raw_schema, rsv}
       {:error, _} = err -> err
@@ -502,7 +509,8 @@ defmodule JSV.Resolver do
     end
   end
 
-  @spec fetch_raw_schema(t, binary | {:meta, binary} | Ref.t()) :: {:ok, binary, JSV.normal_schema()} | {:error, term}
+  @spec fetch_raw_schema(t, binary | {:meta, binary} | Ref.t()) ::
+          {:ok, binary, JSV.normal_schema(), [JSV.Warnings.warning()]} | {:error, term}
   defp fetch_raw_schema(rsv, {:meta, url}) do
     fetch_raw_schema(rsv, url)
   end
@@ -522,10 +530,11 @@ defmodule JSV.Resolver do
   defp call_chain([{module, opts} | chain], url, err_acc) do
     case module.resolve(url, opts) do
       {:ok, resolved} when is_map(resolved) ->
-        {:ok, url, normalize_resolved(resolved)}
+        {normal, warnings} = normalize_resolved(resolved)
+        {:ok, url, normal, warnings}
 
       {:normal, resolved} when is_map(resolved) ->
-        {:ok, url, resolved}
+        {:ok, url, resolved, []}
 
       {:error, reason} ->
         call_chain(chain, url, [{module, reason} | err_acc])
@@ -540,7 +549,7 @@ defmodule JSV.Resolver do
   end
 
   defp normalize_resolved(map) when is_map(map) do
-    JSV.Schema.normalize(map)
+    JSV.Schema.normalize(map, warnings: :return)
   end
 
   defp merge_id(parent, child) do

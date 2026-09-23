@@ -503,7 +503,9 @@ defmodule JSV.NormalizerCollectTest do
       assert false == Schema.normalize_collect(false)
       assert nil == Schema.normalize_collect(nil)
       assert "nope" == Schema.normalize_collect(:nope)
-      assert "Elixir.NotAModule" == Schema.normalize_collect(NotAModule)
+
+      assert {"Elixir.NotAModule", [%{key: :unresolved_module, module: NotAModule}]} =
+               Schema.normalize_collect(NotAModule, warnings: :return)
     end
 
     test "supports schemas in lists" do

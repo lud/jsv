@@ -113,7 +113,7 @@ defmodule JSV do
           | {:formats, boolean() | nil | [module()]}
           | {:vocabularies, %{optional(binary()) => module() | {module(), term()}}}
           | {:atoms, boolean()}
-          | {:warnings, :emit | :silent}
+          | {:warnings, :emit | :silence | {:silence, [atom | {atom, term}]}}
 
   @type validate_opt ::
           {:cast, boolean()}
@@ -236,11 +236,14 @@ defmodule JSV do
     The current default value is `true` for compatibility reasons. In future
     releases, this option will default to false.
 
-  * `:warnings` (`:emit | :silent`) - Controls schema build warnings.
+  * `:warnings` (`:emit | :silence | {:silence, silences}`) - Controls schema
+    build warnings.
 
-    - `:emit` - Warnings will be emitted when a schema is built with
-      `IO.warn/2`.
-    - `:silent` - Warnings will not be emitted.
+    - `:emit` - Emits warnings with `IO.warn/2` when a schema is built.
+    - `:silence` - Silences all warnings.
+    - `{:silence, silences}` - Silences the warnings matching any of the given
+      silences and emits the others. A silence is either a warning key like
+      `:unsafe_atoms`, or a tuple like `{:unresolved_module, MyApp.Schema}`.
 
     Warnings are always returned in the built root.
 
@@ -282,7 +285,7 @@ defmodule JSV do
       root_key: root_key,
       has_casts: builder.has_casts,
       has_unevaluated: builder.has_unevaluated,
-      warnings: :lists.reverse(builder.warnings)
+      warnings: Builder.all_warnings(builder)
     }
   end
 
@@ -1038,6 +1041,8 @@ defmodule JSV do
             d when is_binary(d) -> %{title: title, description: d}
           end
 
+        # TODO evaluate an @after_verify check of property values: atoms that
+        # are not schema modules are most likely unresolved module references.
         schema = JSV.StructSupport.props_to_schema(props, overrides)
         serialization_skips = JSV.StructSupport.serialization_skips(props)
         {schema, serialization_skips}
@@ -1534,12 +1539,8 @@ defmodule JSV do
     OptsValidator.invalid_option!(:vocabularies, value, "a map of %{URI (as string) => module | {module, arg}")
   end
 
-  defp validate_build_opts(:warnings, value) when value in [:emit, :silent] do
-    value
-  end
-
-  defp validate_build_opts(:warnings, other) do
-    OptsValidator.invalid_option!(:warnings, other, ":emit or :silent")
+  defp validate_build_opts(:warnings, value) do
+    JSV.Warnings.validate_config!(:warnings, value)
   end
 
   defp validate_build_opts(key, _value) do
@@ -1553,9 +1554,10 @@ defmodule JSV do
 
   def build_add!(build_ctx(builder: builder) = ctx, raw_schema) do
     raw_schema = ensure_map_schema(raw_schema)
-    normal_schema = Schema.normalize(raw_schema)
+    {normal_schema, warnings} = Schema.normalize(raw_schema, warnings: :return)
     key = schema_to_key(normal_schema)
     builder = Builder.add_schema!(builder, key, normal_schema)
+    builder = Builder.add_warnings(builder, warnings)
     {key, normal_schema, build_ctx(ctx, builder: builder)}
   end
 
@@ -1595,47 +1597,24 @@ defmodule JSV do
     key = Key.of(ref_or_ns)
 
     {new_vds, builder} = Builder.build!(builder, ref_or_ns, vds)
-    maybe_emit_warnings(builder)
+    builder = emit_new_warnings(builder)
 
     {key, build_ctx(ctx, builder: builder, validators: new_vds)}
   end
 
-  defp maybe_emit_warnings(%{warnings: []}) do
-    :ok
+  defp emit_new_warnings(%{warnings: []} = builder) do
+    builder
   end
 
-  defp maybe_emit_warnings(%{warnings: warnings} = builder) do
-    case builder.opts.warnings do
-      :emit ->
-        stacktrace = warning_stacktrace()
-
-        Enum.each(warnings, fn w -> emit_warning(w, stacktrace) end)
-
-      :silent ->
-        :ok
-    end
+  defp emit_new_warnings(builder) do
+    {warnings, builder} = Builder.take_pending_warnings(builder)
+    :ok = JSV.Warnings.emit(warnings, builder.opts.warnings, warning_stacktrace())
+    builder
   end
 
   defp warning_stacktrace do
     {:current_stacktrace, stacktrace} = :erlang.process_info(self(), :current_stacktrace)
     Enum.drop(stacktrace, 2)
-  end
-
-  defp emit_warning(warning, stacktrace) do
-    %{key: _key, message: message, rev_path: rev_path} = warning
-
-    path = JSV.ErrorFormatter.format_schema_path(rev_path)
-
-    IO.warn(
-      """
-      #{message}
-
-      Warning emitted at #{path}.
-
-      Use `JSV.build(schema, warnings: :silent)` to silence all warnings.
-      """,
-      stacktrace
-    )
   end
 
   @doc """
@@ -1654,7 +1633,7 @@ defmodule JSV do
       root_key: root_key,
       has_casts: builder.has_casts,
       has_unevaluated: builder.has_unevaluated,
-      warnings: :lists.reverse(builder.warnings)
+      warnings: Builder.all_warnings(builder)
     }
   end
 

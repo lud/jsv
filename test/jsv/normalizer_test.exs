@@ -5,6 +5,39 @@ defmodule JSV.NormalizerTest do
 
   doctest JSV.Normalizer
 
+  describe "normalize warnings" do
+    test "unresolved modules are emitted by default" do
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          assert %{"enum" => ["Elixir.NotASchema.A"]} == Schema.normalize(%{enum: [NotASchema.A]})
+          assert %{"enum" => ["Elixir.NotASchema.B"]} == Schema.normalize_collect(%{enum: [NotASchema.B]})
+        end)
+
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "NotASchema.B"
+    end
+
+    test "unresolved modules can be silenced" do
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Schema.normalize(%{enum: [NotASchema.A]}, warnings: :silence)
+          Schema.normalize_collect(%{enum: [NotASchema.B]}, warnings: {:silence, [unresolved_module: NotASchema.B]})
+        end)
+
+      assert "" == stderr
+    end
+
+    test "warnings can be returned" do
+      assert {%{"enum" => ["Elixir.NotASchema.A", "not_a_module", true]},
+              [%{key: :unresolved_module, module: NotASchema.A}]} =
+               Schema.normalize(%{enum: [NotASchema.A, :not_a_module, true]}, warnings: :return)
+
+      assert {%{"properties" => %{"a" => "Elixir.NotASchema.A", "b" => "Elixir.NotASchema.B"}},
+              [%{key: :unresolved_module}, %{key: :unresolved_module}]} =
+               Schema.normalize_collect(%{properties: %{a: NotASchema.A, b: NotASchema.B}}, warnings: :return)
+    end
+  end
+
   describe "normalize" do
     test "remove all atoms from map" do
       # handles maps with atom keys
@@ -120,7 +153,9 @@ defmodule JSV.NormalizerTest do
       defmodule DoesNotExportSchema do
       end
 
-      assert to_string(DoesNotExportSchema) == Schema.normalize(DoesNotExportSchema)
+      assert {"Elixir.JSV.NormalizerTest.DoesNotExportSchema",
+              [%{key: :unresolved_module, module: DoesNotExportSchema}]} =
+               Schema.normalize(DoesNotExportSchema, warnings: :return)
     end
 
     test "converts Erlang modules that do not export json_schema/0 to string" do
