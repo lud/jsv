@@ -37,7 +37,7 @@ _git_status:
 
 readme:
   mix rdmx.update README.md
-  rg rdmx guides -l0 | xargs -0 -n 1 mix rdmx.update
+  for f in $(rg rdmx guides -l); do mix rdmx.update "$f"; done
 
 docs: readme
   mix docs --warnings-as-errors
