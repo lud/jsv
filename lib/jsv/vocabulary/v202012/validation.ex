@@ -547,10 +547,13 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   def format_error(:required, %{required: required}, _data) do
-    case required do
-      [single] -> "property #{quote_prop(single)} is required"
-      _ -> "properties #{required |> Enum.map(&quote_prop/1) |> verbose_list("and")} are required"
-    end
+    message =
+      case required do
+        [single] -> "property #{quote_prop(single)} is required"
+        _ -> "properties #{required |> Enum.map(&quote_prop/1) |> verbose_list("and")} are required"
+      end
+
+    %{message: message, ctx: %{missing: required}}
   end
 
   def format_error(:multipleOf, %{multipleOf: multiple_of}, data) do
@@ -582,13 +585,16 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   def format_error(:dependentRequired, %{parent: parent, missing: missing}, _data) do
-    case missing do
-      [single] ->
-        "property #{quote_prop(single)} is required when property #{quote_prop(parent)} is present"
+    message =
+      case missing do
+        [single] ->
+          "property #{quote_prop(single)} is required when property #{quote_prop(parent)} is present"
 
-      _ ->
-        "properties #{missing |> Enum.map(&quote_prop/1) |> verbose_list("and")} are required when property #{quote_prop(parent)} is present"
-    end
+        _ ->
+          "properties #{missing |> Enum.map(&quote_prop/1) |> verbose_list("and")} are required when property #{quote_prop(parent)} is present"
+      end
+
+    %{message: message, ctx: %{parent: parent, missing: missing}}
   end
 
   def format_error(:uniqueItems, %{duplicates: duplicates}, _data) do

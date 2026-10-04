@@ -44,6 +44,7 @@ defmodule JSV.Vocabulary do
                   required(:message) => String.t(),
                   optional(:kind) => atom,
                   optional(:level) => ErrorFormatter.level(),
+                  optional(:ctx) => map,
                   optional(:annots) => [Validator.Error.t() | ErrorFormatter.error_unit()]
                 }
 

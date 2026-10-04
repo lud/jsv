@@ -450,7 +450,7 @@ defmodule JSV.ErrorFormatTest do
                    instanceLocation: instance_location
                  },
                  %{
-                   errors: [%{message: message, kind: kind}],
+                   errors: [%{message: message, kind: kind} = keyword_error],
                    valid: false,
                    schemaLocation: "#",
                    evaluationPath: "#",
@@ -464,6 +464,7 @@ defmodule JSV.ErrorFormatTest do
       assert opts[:instance_location] == instance_location
       assert opts[:kind] == kind
       assert opts[:message] == message
+      assert opts[:ctx] == keyword_error[:ctx]
     end
 
     test "additionalProperties: false" do
@@ -477,7 +478,8 @@ defmodule JSV.ErrorFormatTest do
         schema_location: "#/additionalProperties",
         instance_location: "#/b",
         kind: :additionalProperties,
-        message: "additional properties are not allowed but found property 'b'"
+        message: "additional properties are not allowed but found property 'b'",
+        ctx: %{property: "b"}
       )
     end
 
@@ -492,7 +494,8 @@ defmodule JSV.ErrorFormatTest do
         schema_location: "#/properties/a",
         instance_location: "#/a",
         kind: :properties,
-        message: "property 'a' is not allowed"
+        message: "property 'a' is not allowed",
+        ctx: %{property: "a"}
       )
     end
 
@@ -507,7 +510,8 @@ defmodule JSV.ErrorFormatTest do
         schema_location: "#/patternProperties/^f",
         instance_location: "#/foo",
         kind: :patternProperties,
-        message: "properties matching /^f/ are not allowed but found property 'foo'"
+        message: "properties matching /^f/ are not allowed but found property 'foo'",
+        ctx: %{property: "foo", pattern: "^f"}
       )
     end
 
@@ -522,7 +526,8 @@ defmodule JSV.ErrorFormatTest do
         schema_location: "#/propertyNames",
         instance_location: "#/a",
         kind: :propertyNames,
-        message: "properties are not allowed but found property 'a'"
+        message: "properties are not allowed but found property 'a'",
+        ctx: %{property: "a"}
       )
     end
 
@@ -614,6 +619,67 @@ defmodule JSV.ErrorFormatTest do
            } = formatted_error
 
     assert "property name 'toolong' did not conform to the propertyNames schema" == property_names_message
+  end
+
+  describe "error context" do
+    test "required and additionalProperties expose the property names" do
+      root =
+        JSV.build!(%{
+          type: :object,
+          properties: %{a: %{type: :string}, b: %{type: :string}},
+          required: [:a, :b],
+          additionalProperties: false
+        })
+
+      assert {:error, err} = JSV.validate(%{"c" => 1}, root)
+
+      formatted_error = JSV.normalize_error(err, min_error_level: JSV.ErrorFormatter.level_cause())
+      assert_output_schema(formatted_error)
+
+      assert %{
+               details: [
+                 %{
+                   instanceLocation: "#",
+                   errors: [
+                     %{kind: :required, ctx: %{missing: ["a", "b"]}},
+                     %{kind: :additionalProperties, ctx: %{property: "c"}}
+                   ]
+                 }
+               ]
+             } = formatted_error
+
+      assert %{
+               "details" => [
+                 %{
+                   "errors" => [
+                     %{"kind" => "required", "ctx" => %{"missing" => ["a", "b"]}},
+                     %{"kind" => "additionalProperties", "ctx" => %{"property" => "c"}}
+                   ]
+                 }
+               ]
+             } = JSV.normalize_error(err, keys: :strings, min_error_level: JSV.ErrorFormatter.level_cause())
+    end
+
+    test "property names are given as-is" do
+      root = JSV.build!(%{required: ["it's", "a, b"]})
+
+      assert {:error, err} = JSV.validate(%{}, root)
+
+      assert %{details: [%{errors: [%{kind: :required, ctx: %{missing: ["it's", "a, b"]}}]}]} =
+               JSV.normalize_error(err)
+    end
+
+    test "dependentRequired exposes the parent and missing properties" do
+      root = JSV.build!(%{dependentRequired: %{a: ["b", "c"]}})
+
+      assert {:error, err} = JSV.validate(%{"a" => 1, "b" => 2}, root)
+
+      formatted_error = JSV.normalize_error(err)
+      assert_output_schema(formatted_error)
+
+      assert %{details: [%{errors: [%{kind: :dependentRequired, ctx: %{parent: "a", missing: ["c"]}}]}]} =
+               formatted_error
+    end
   end
 
   test "error formatting for dependentSchemas" do

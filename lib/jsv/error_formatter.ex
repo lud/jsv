@@ -51,6 +51,7 @@ defmodule JSV.ErrorFormatter do
   @type keyword_error :: %{
           required(:kind) => atom,
           required(:message) => String.t(),
+          optional(:ctx) => map,
           optional(:details) => [error_unit]
         }
 
@@ -282,7 +283,10 @@ defmodule JSV.ErrorFormatter do
       {:level, level}, acc when is_integer(level) ->
         Map.put(acc, :level, level)
 
-      {k, v}, _ when k in [:annots, :kind, :level] ->
+      {:ctx, ctx}, acc when is_map(ctx) ->
+        Map.put(acc, :ctx, ctx)
+
+      {k, v}, _ when k in [:annots, :kind, :level, :ctx] ->
         raise "invalid format_error value for key #{inspect(k)} from formatter #{inspect(formatter)}: #{inspect(v)}"
 
       {k, v}, _ ->

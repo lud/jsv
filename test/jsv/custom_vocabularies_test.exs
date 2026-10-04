@@ -106,5 +106,45 @@ defmodule JSV.CustomVocabulariesTest do
       assert %{details: []} = JSV.normalize_error(err, min_error_level: 8)
       assert %{details: [%{errors: [%{message: "custom level"}]}]} = JSV.normalize_error(err)
     end
+
+    test "can return error context" do
+      custom =
+        JSV.Vocabulary
+        |> mock_for()
+        |> expect(:priority, fn -> 50 end)
+        |> expect(:init_validators, fn [] -> :some_state end)
+        |> expect(:handle_keyword, 2, fn
+          {"type", "integer"}, :some_state, builder, _schema -> {:some_new_state, builder}
+          {"$schema", _}, _state, _builder, _schema -> :ignore
+        end)
+        |> expect(:finalize_validators, fn :some_new_state -> :some_final_state end)
+
+      root =
+        JSV.build!(%{"$schema": "https://json-schema.org/draft/2020-12/schema", type: :integer},
+          vocabularies: %{"https://json-schema.org/draft/2020-12/vocab/validation" => {custom, []}}
+        )
+
+      expect(custom, :validate, fn data, :some_final_state, context ->
+        {:error, Validator.__with_error__(custom, context, :type, data, [])}
+      end)
+
+      assert {:error, err} = JSV.validate("nope", root)
+
+      expect(custom, :format_error, 2, fn :type, %{}, "nope" ->
+        %{message: "with context", ctx: %{expected: :integer}}
+      end)
+
+      assert %{details: [%{errors: [%{message: "with context", ctx: %{expected: :integer}}]}]} =
+               JSV.normalize_error(err)
+
+      assert %{"details" => [%{"errors" => [%{"message" => "with context", "ctx" => %{"expected" => "integer"}}]}]} =
+               JSV.normalize_error(err, keys: :strings)
+
+      expect(custom, :format_error, fn :type, %{}, "nope" ->
+        %{message: "with context", ctx: [expected: :integer]}
+      end)
+
+      assert_raise RuntimeError, ~r/invalid format_error value for key :ctx/, fn -> JSV.normalize_error(err) end
+    end
   end
 end

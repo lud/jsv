@@ -27,6 +27,13 @@ defmodule JSV.ErrorFormatter.KeywordErrorSchema do
           """
         ),
       message: string(description: "An error message related to the invalidating keyword"),
+      ctx: %{
+        type: :object,
+        description: ~SD"""
+        Data about the error in a machine-readable form, like the missing
+        properties for "required". The keys depend on the error kind.
+        """
+      },
       details: array_of(JSV.ErrorFormatter.ValidationUnitSchema)
     },
     required: [:kind, :message]

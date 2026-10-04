@@ -662,7 +662,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def format_error(:properties, %{key: key, boolean_schema_false: true}, _data) do
-    "property '#{key}' is not allowed"
+    %{message: "property '#{key}' is not allowed", ctx: %{property: key}}
   end
 
   def format_error(:properties, %{key: key}, _) do
@@ -670,7 +670,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def format_error(:additionalProperties, %{key: key, boolean_schema_false: true}, _data) do
-    "additional properties are not allowed but found property '#{key}'"
+    %{message: "additional properties are not allowed but found property '#{key}'", ctx: %{property: key}}
   end
 
   def format_error(:additionalProperties, %{key: key}, _data) do
@@ -678,7 +678,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def format_error(:propertyNames, %{key: key, boolean_schema_false: true}, _data) do
-    "properties are not allowed but found property '#{key}'"
+    %{message: "properties are not allowed but found property '#{key}'", ctx: %{property: key}}
   end
 
   def format_error(:propertyNames, %{key: key}, _data) do
@@ -686,7 +686,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def format_error(:patternProperties, %{pattern: pattern, key: key, boolean_schema_false: true}, _data) do
-    "properties matching /#{pattern}/ are not allowed but found property '#{key}'"
+    %{
+      message: "properties matching /#{pattern}/ are not allowed but found property '#{key}'",
+      ctx: %{property: key, pattern: pattern}
+    }
   end
 
   def format_error(:patternProperties, %{pattern: pattern, key: key}, _data) do
