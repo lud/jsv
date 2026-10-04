@@ -59,5 +59,8 @@ release bump:
   fi
 
 push-release:
+  #!/usr/bin/env bash
+  set -euo pipefail
   git push --follow-tags
-  gh release create "$(git describe --tags --abbrev=0)" --notes "$(git cliff --latest --strip all)"
+  tag=$(git describe --tags --abbrev=0)
+  gh release create "$tag" --title "$tag" --notes "$(git cliff --latest --strip all)"
