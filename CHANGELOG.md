@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.0] - 2026-10-04
+
+### 🚀 Features
+
+- Expose error context data in normalized keyword errors (_lud_)
+
 ## [0.25.0] - 2026-09-25
 
 ### 🚀 Features
