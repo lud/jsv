@@ -207,12 +207,11 @@ defmodule JSV.MixProject do
 
   defp versioning do
     [
-      annotate: true,
       before_commit: [
         &readmix/1,
         {:add, "README.md"},
         {:add, "guides"},
-        &gen_changelog/1,
+        &gen_changelog/2,
         {:add, "CHANGELOG.md"}
       ]
     ]
@@ -228,8 +227,10 @@ defmodule JSV.MixProject do
       end)
   end
 
-  defp gen_changelog(vsn) do
-    case System.cmd("git", ["cliff", "--tag", vsn, "-o", "CHANGELOG.md"], stderr_to_stdout: true) do
+  defp gen_changelog(vsn, info) do
+    args = ["cliff", "--tag", vsn, "--with-tag-message", info.annotation, "-o", "CHANGELOG.md"]
+
+    case System.cmd("git", args, stderr_to_stdout: true) do
       {_, 0} -> IO.puts("Updated CHANGELOG.md with #{vsn}")
       {out, _} -> {:error, "Could not update CHANGELOG.md:\n\n #{out}"}
     end

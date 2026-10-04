@@ -46,3 +46,18 @@ changelog:
   git cliff -o CHANGELOG.md
 
 check: _mix_deps format readme _libdev_check _git_status
+
+release bump:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  notes=tmp/release-notes.md
+  if [ -f "$notes" ]; then
+    mix version --{{bump}} --confirm --annotation-file "$notes"
+    mv "$notes" "tmp/release-notes.$(date +%Y%m%dT%H%M%S).md"
+  else
+    mix version --{{bump}} --confirm
+  fi
+
+push-release:
+  git push --follow-tags
+  gh release create "$(git describe --tags --abbrev=0)" --notes "$(git cliff --latest --strip all)"
