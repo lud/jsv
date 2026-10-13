@@ -286,8 +286,6 @@ defmodule JSV.FormatValidationTest do
           "2024-12-14T23:10:00+01:00",
           # Date-time including milliseconds in UTC
           "2024-12-14T23:10:00.500Z",
-          # Date-time with comma as decimal separator for milliseconds in UTC
-          "2024-12-14T23:10:00,500Z",
 
           # Incorrect milliseconds precision (too many digits)
           # But Elixir parser will accept it
@@ -311,7 +309,9 @@ defmodule JSV.FormatValidationTest do
           # Invalid timezone offset minute (61)
           "2024-12-14T23:10:00+01:61",
           # Space instead of 'T' between date and time
-          "2024-12-14 23:10:00Z"
+          "2024-12-14 23:10:00Z",
+          # Comma as decimal separator for milliseconds, rejected by RFC 3339
+          "2024-12-14T23:10:00,500Z"
         ]
       )
     end

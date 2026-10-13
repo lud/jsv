@@ -294,5 +294,11 @@ defmodule JSV.Generated.Draft202012.AtomKeys.TimeTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "trailing whitespace after a valid time", x do
+      data = "08:30:06Z "
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

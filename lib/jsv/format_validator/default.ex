@@ -50,7 +50,7 @@ defmodule JSV.FormatValidator.Default do
   def validate_cast("date-time", data) do
     case DateTime.from_iso8601(data) do
       {:ok, dt, _} ->
-        if String.contains?(data, " ") or not Regex.match?(@rfc3339_offset, data) do
+        if String.contains?(data, [" ", ","]) or not Regex.match?(@rfc3339_offset, data) do
           {:error, :invalid_format}
         else
           {:ok, dt}

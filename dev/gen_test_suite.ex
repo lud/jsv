@@ -11,7 +11,6 @@ defmodule Mix.Tasks.Jsv.GenTestSuite do
     arguments: [
       suite: [
         type: :string,
-        short: :s,
         doc: """
         The json test suite in 'draft2019-09', 'draft2020-12', 'draft3', 'draft4',
         'draft6', 'draft7', 'draft-next' or 'latest'.

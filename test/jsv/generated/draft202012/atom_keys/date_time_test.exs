@@ -264,5 +264,29 @@ defmodule JSV.Generated.Draft202012.AtomKeys.DateTimeTest do
       expected_valid = false
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
+
+    test "a second fraction with no digits", x do
+      data = "1985-04-12T23:20:50.Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "a comma decimal separator with a time-offset", x do
+      data = "1985-04-12T23:20:50,5Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "leading whitespace before a valid date-time", x do
+      data = " 1985-04-12T23:20:50Z"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "trailing whitespace after a valid date-time", x do
+      data = "1985-04-12T23:20:50Z "
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
   end
 end

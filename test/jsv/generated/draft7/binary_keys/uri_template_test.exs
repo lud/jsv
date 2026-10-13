@@ -223,6 +223,12 @@ defmodule JSV.Generated.Draft7.BinaryKeys.UriTemplateTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "a trailing dot in a variable name is invalid", x do
+      data = "{a.}"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "a double dot in a variable name is invalid", x do
       data = "{a..b}"
       expected_valid = false
