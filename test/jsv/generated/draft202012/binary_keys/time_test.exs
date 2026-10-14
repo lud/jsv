@@ -211,6 +211,24 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.TimeTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "only RFC3339 not all of ISO 8601 are valid", x do
+      data = "01:01:01,1111"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "no time offset", x do
+      data = "12:00:00"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
+    test "no time offset with second fraction", x do
+      data = "12:00:00.52"
+      expected_valid = false
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "invalid non-ASCII '২' (a Bengali 2)", x do
       data = "1২:00:00Z"
       expected_valid = false

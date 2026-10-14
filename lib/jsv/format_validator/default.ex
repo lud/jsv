@@ -48,52 +48,34 @@ defmodule JSV.FormatValidator.Default do
     is_binary(data)
   end
 
-  # RFC 3339 requires the time offset to be "Z" or a full "+hh:mm"/"-hh:mm", but
-  # Elixir also accepts truncated forms such as "+01" or "+0130".
-  @rfc3339_offset ~r/(?:[Zz]|[-+][0-9]{2}:[0-9]{2})\z/
-
   @impl true
-  def validate_cast("date-time", data) do
-    case DateTime.from_iso8601(data) do
-      {:ok, dt, _} ->
-        if String.contains?(data, [" ", ","]) or not Regex.match?(@rfc3339_offset, data) do
-          {:error, :invalid_format}
-        else
-          {:ok, dt}
-        end
-
-      {:error, _} = err ->
-        err
+  def validate_cast("date-time", <<date::binary-size(10), sep, time::binary>> = data)
+      when sep in [?T, ?t] do
+    if full_date?(date) and full_time?(time) do
+      case DateTime.from_iso8601(String.upcase(data)) do
+        {:ok, dt, _} -> {:ok, dt}
+        {:error, _} = err -> err
+      end
+    else
+      {:error, :invalid_format}
     end
   end
 
-  def validate_cast("date", "+" <> _) do
-    {:error, :invalid_format}
-  end
-
-  def validate_cast("date", "-" <> _) do
+  def validate_cast("date-time", _data) do
     {:error, :invalid_format}
   end
 
   def validate_cast("date", data) do
-    Date.from_iso8601(data)
+    if full_date?(data) do
+      Date.from_iso8601(data)
+    else
+      {:error, :invalid_format}
+    end
   end
-
-  # RFC 3339 Appendix A. Elixir's parser is more permissive: it accepts signs,
-  # fractional components, a comma as the decimal separator, and mixing weeks
-  # with other elements.
-  @rfc3339_duration ~r"""
-  \AP(?:
-    [0-9]+W
-    | (?:[0-9]+Y(?:[0-9]+M(?:[0-9]+D)?)?|[0-9]+M(?:[0-9]+D)?|[0-9]+D)
-      (?:T(?:[0-9]+H(?:[0-9]+M(?:[0-9]+S)?)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S))?
-    | T(?:[0-9]+H(?:[0-9]+M(?:[0-9]+S)?)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S)
-  )\z
-  """x
 
   if @supports_duration do
     def validate_cast("duration", data) do
-      if Regex.match?(@rfc3339_duration, data) do
+      if Regex.match?(rfc3339_duration_regex(), data) do
         Duration.from_iso8601(data)
       else
         {:error, :invalid_format}
@@ -102,8 +84,8 @@ defmodule JSV.FormatValidator.Default do
   end
 
   def validate_cast("time", data) do
-    if Regex.match?(@rfc3339_offset, data) and not String.contains?(data, ",") do
-      Time.from_iso8601(String.replace(data, "z", "Z"))
+    if full_time?(data) do
+      Time.from_iso8601(String.upcase(data))
     else
       {:error, :invalid_format}
     end
@@ -172,5 +154,87 @@ defmodule JSV.FormatValidator.Default do
 
   def validate_cast("relative-json-pointer", data) do
     Optional.JSONPointer.parse_relative_json_pointer(data)
+  end
+
+  if @supports_duration do
+    # On OTP 28+, a regex literal is imported again each time it is evaluated.
+    @on_load :store_rfc3339_duration_regex
+
+    # RFC 3339 Appendix A. Elixir's parser is more permissive: it accepts signs,
+    # fractional components, a comma as the decimal separator, and mixing weeks
+    # with other elements.
+    defp store_rfc3339_duration_regex do
+      :persistent_term.put(:jsv_formats_default_duration_re, ~r"""
+      \AP(?:
+        [0-9]+W
+        | (?:[0-9]+Y(?:[0-9]+M(?:[0-9]+D)?)?|[0-9]+M(?:[0-9]+D)?|[0-9]+D)
+          (?:T(?:[0-9]+H(?:[0-9]+M(?:[0-9]+S)?)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S))?
+        | T(?:[0-9]+H(?:[0-9]+M(?:[0-9]+S)?)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S)
+      )\z
+      """x)
+    end
+
+    defp rfc3339_duration_regex do
+      :persistent_term.get(:jsv_formats_default_duration_re)
+    end
+  end
+
+  # RFC 3339 section 5.6. Elixir's parsers are more permissive: they accept
+  # signed years, a leading "T" for times, a comma as the decimal separator,
+  # truncated offsets such as "+01" or "+0130", and a space instead of "T".
+  defp full_date?(<<y::binary-size(4), ?-, m::binary-size(2), ?-, d::binary-size(2)>>) do
+    digits?(y) and digits?(m) and digits?(d)
+  end
+
+  defp full_date?(_) do
+    false
+  end
+
+  defp full_time?(<<h::binary-size(2), ?:, m::binary-size(2), ?:, s::binary-size(2), rest::binary>>) do
+    digits?(h) and digits?(m) and digits?(s) and decimal_part_and_offset?(rest)
+  end
+
+  defp full_time?(_) do
+    false
+  end
+
+  defp decimal_part_and_offset?(<<?., c, rest::binary>>) when c in ?0..?9 do
+    decimal_part_digits_and_offset?(rest)
+  end
+
+  defp decimal_part_and_offset?(rest) do
+    time_offset?(rest)
+  end
+
+  defp decimal_part_digits_and_offset?(<<c, rest::binary>>) when c in ?0..?9 do
+    decimal_part_digits_and_offset?(rest)
+  end
+
+  defp decimal_part_digits_and_offset?(rest) do
+    time_offset?(rest)
+  end
+
+  defp time_offset?(<<z>>) when z in [?Z, ?z] do
+    true
+  end
+
+  defp time_offset?(<<sign, h::binary-size(2), ?:, m::binary-size(2)>>) when sign in [?+, ?-] do
+    digits?(h) and digits?(m)
+  end
+
+  defp time_offset?(_) do
+    false
+  end
+
+  defp digits?(<<c, rest::binary>>) when c in ?0..?9 do
+    digits?(rest)
+  end
+
+  defp digits?(<<>>) do
+    true
+  end
+
+  defp digits?(_) do
+    false
   end
 end

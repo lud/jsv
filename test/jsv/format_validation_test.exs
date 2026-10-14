@@ -286,6 +286,8 @@ defmodule JSV.FormatValidationTest do
           "2024-12-14T23:10:00+01:00",
           # Date-time including milliseconds in UTC
           "2024-12-14T23:10:00.500Z",
+          # Lowercase "t" and "z"
+          "2024-12-14t23:10:00z",
 
           # Incorrect milliseconds precision (too many digits)
           # But Elixir parser will accept it
@@ -311,7 +313,16 @@ defmodule JSV.FormatValidationTest do
           # Space instead of 'T' between date and time
           "2024-12-14 23:10:00Z",
           # Comma as decimal separator for milliseconds, rejected by RFC 3339
-          "2024-12-14T23:10:00,500Z"
+          "2024-12-14T23:10:00,500Z",
+          # Signed year
+          "-0001-06-19T08:30:06Z",
+          "+2024-12-14T23:10:00Z",
+          # Five digits year
+          "12024-12-14T23:10:00Z",
+          # Incomplete timezone offset
+          "2024-12-14T23:10:00+01",
+          # Timezone offset without the colon separator
+          "2024-12-14T23:10:00+0130"
         ]
       )
     end
@@ -329,6 +340,8 @@ defmodule JSV.FormatValidationTest do
           "23:10:00-05:00",
           # Time including milliseconds
           "23:10:00.500Z",
+          # Lowercase UTC designator
+          "23:10:00z",
           # Incorrect milliseconds precision (too many digits) but Elixir parser will accept it
           "23:10:00.5000Z"
         ],
@@ -356,7 +369,10 @@ defmodule JSV.FormatValidationTest do
           # Invalid timezone offset minute (61)
           "23:10:00+01:61",
           # Space before UTC designator
-          "23:10:00 Z"
+          "23:10:00 Z",
+          # Leading time designator
+          "T23:10:00Z",
+          "t23:10:00Z"
         ]
       )
     end

@@ -139,6 +139,12 @@ defmodule JSV.Generated.Draft7.BinaryKeys.DateTimeTest do
       JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
     end
 
+    test "case-insensitive T and Z", x do
+      data = "1963-06-19t08:30:06.283185z"
+      expected_valid = true
+      JsonSchemaSuite.run_test(x.json_schema, x.schema, data, expected_valid, print_errors: false)
+    end
+
     test "only RFC3339 not all of ISO 8601 are valid", x do
       data = "2013-350T01:01:01"
       expected_valid = false

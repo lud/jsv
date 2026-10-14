@@ -157,13 +157,6 @@ defmodule JSV.TestSuiteGenerator do
           "a valid time string with leap second, Zulu",
           "valid leap second, negative time-offset",
 
-          # Elixir does not require a time offset to be set
-          "no time offset",
-          "no time offset with second fraction",
-
-          # Elixir supports more formats that RFC3339
-          "only RFC3339 not all of ISO 8601 are valid",
-
           # Elixir does not support RFC 3339 §4.3 "-00:00" unknown local offset
           "time with unknown local offset is valid"
         ]
@@ -171,7 +164,6 @@ defmodule JSV.TestSuiteGenerator do
       "optional/format/date-time.json" => [
         schema_build_opts: [formats: true],
         ignore: [
-          "case-insensitive T and Z",
           "a valid date-time with a leap second, UTC",
           "a valid date-time with a leap second, with minus offset"
         ]

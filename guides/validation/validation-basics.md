@@ -69,7 +69,7 @@ The listing below describe values returned when that option is enabled.
 * The format is implemented with the native `DateTime` module.
 * The native `DateTime` module supports the `YYYY-MM-DD` format only for dates. `2024T...`, `2024-W50T...`, `2024-12T...` will not be valid.
 * Decimal precision is not capped to milliseconds. `2024-12-14T23:10:00.500000001Z` will be valid.
-* The `T` separator and the `Z` designator must be uppercase. `2024-12-14t23:10:00z` will be invalid.
+* The RFC 3339 §4.3 unknown local offset (`-00:00`) is not supported. `2024-12-14T23:10:00-00:00` will be invalid.
 * The native `DateTime` module does not support leap seconds. `1998-12-31T23:59:60Z` will be invalid.
 
 ### duration
