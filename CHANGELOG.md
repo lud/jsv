@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.1] - 2026-10-14
+
+### 🚀 Features
+
+- Strict RFC 3339 validation for date, time and date-time formats (_lud_)
+
+### 🐛 Bug Fixes
+
+- Reject comma as decimal separator in date-time format (_lud_)
+
 ## [0.26.0] - 2026-10-04
 
 ### 🚀 Features

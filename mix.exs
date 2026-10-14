@@ -2,7 +2,7 @@ defmodule JSV.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/lud/jsv"
-  @version "0.26.0"
+  @version "0.26.1"
   @jsts_ref "8568bcc477cc3aaeed5bc397c9c8648e631317fc"
 
   def project do
