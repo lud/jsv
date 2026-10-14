@@ -2,6 +2,12 @@ defmodule JSV.FormatValidator.Default do
   import JSV.FormatValidator.Default.Optional
   alias JSV.FormatValidator.Default.Optional
 
+  # When changing implementation of formats, please make sure to keep the list
+  # of special cases up-to-date in dev/doc_gen/generator.ex
+  #
+  # List anything that JSV does different from the JSON Schema specification or
+  # various RFC, and also what JSV does when a behaviour is unspecified.
+
   @moduledoc false
 
   @behaviour JSV.FormatValidator
