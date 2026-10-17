@@ -1111,7 +1111,7 @@ defmodule JSV.Generated.Draft202012.AtomKeys.UnevaluatedPropertiesTest do
     end
   end
 
-  describe "dynamic evalation inside nested refs" do
+  describe "dynamic evaluation inside nested refs" do
     setup do
       json_schema = %JSV.Schema{
         "$schema": "https://json-schema.org/draft/2020-12/schema",

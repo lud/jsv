@@ -1128,7 +1128,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.UnevaluatedPropertiesTest do
     end
   end
 
-  describe "dynamic evalation inside nested refs" do
+  describe "dynamic evaluation inside nested refs" do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

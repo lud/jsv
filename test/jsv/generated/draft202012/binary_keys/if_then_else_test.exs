@@ -301,7 +301,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
 
   describe "then: false fails when condition matches" do
     setup do
-      json_schema = %{"if" => %{"const" => 1}, "then" => false}
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "if" => %{"const" => 1},
+        "then" => false
+      }
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -321,7 +326,12 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.IfThenElseTest do
 
   describe "else: false fails when condition does not match" do
     setup do
-      json_schema = %{"else" => false, "if" => %{"const" => 1}}
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "else" => false,
+        "if" => %{"const" => 1}
+      }
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_meta: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

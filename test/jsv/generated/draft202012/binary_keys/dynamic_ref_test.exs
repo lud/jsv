@@ -674,6 +674,7 @@ defmodule JSV.Generated.Draft202012.BinaryKeys.DynamicRefTest do
   describe "$ref to $dynamicRef finds detached $dynamicAnchor" do
     setup do
       json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "$ref" => "http://localhost:1234/draft2020-12/detached-dynamicref.json#/$defs/foo"
       }
 
