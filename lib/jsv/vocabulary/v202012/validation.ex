@@ -325,7 +325,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   def validate_keyword({:maxLength, max}, data, vctx) when is_binary(data) do
-    len = String.length(data)
+    len = codepoint_length(data, 0)
 
     if len <= max do
       {:ok, data, vctx}
@@ -337,7 +337,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   pass validate_keyword({:maxLength, _})
 
   def validate_keyword({:minLength, min}, data, vctx) when is_binary(data) do
-    len = String.length(data)
+    len = codepoint_length(data, 0)
 
     if len >= min do
       {:ok, data, vctx}
@@ -347,6 +347,20 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   pass validate_keyword({:minLength, _})
+
+  # The specification counts string length in code points, while String.length/1
+  # counts grapheme clusters. Invalid UTF-8 bytes count as one each.
+  defp codepoint_length(<<_::utf8, rest::binary>>, n) do
+    codepoint_length(rest, n + 1)
+  end
+
+  defp codepoint_length(<<_, rest::binary>>, n) do
+    codepoint_length(rest, n + 1)
+  end
+
+  defp codepoint_length(<<>>, n) do
+    n
+  end
 
   def validate_keyword({:const, const}, data, vctx) do
     # 1 == 1.0 should be true according to JSON Schema specs
