@@ -325,42 +325,24 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   def validate_keyword({:maxLength, max}, data, vctx) when is_binary(data) do
-    len = codepoint_length(data, 0)
-
-    if len <= max do
+    if byte_size(data) <= max or codepoint_length(data, max + 1) <= max do
       {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vctx, :maxLength, data, maxLength: max, len: len)}
+      {:error, Validator.with_error(vctx, :maxLength, data, maxLength: max)}
     end
   end
 
   pass validate_keyword({:maxLength, _})
 
   def validate_keyword({:minLength, min}, data, vctx) when is_binary(data) do
-    len = codepoint_length(data, 0)
-
-    if len >= min do
+    if byte_size(data) >= min and codepoint_length(data, min) == min do
       {:ok, data, vctx}
     else
-      {:error, Validator.with_error(vctx, :minLength, data, minLength: min, len: len)}
+      {:error, Validator.with_error(vctx, :minLength, data, minLength: min)}
     end
   end
 
   pass validate_keyword({:minLength, _})
-
-  # The specification counts string length in code points, while String.length/1
-  # counts grapheme clusters. Invalid UTF-8 bytes count as one each.
-  defp codepoint_length(<<_::utf8, rest::binary>>, n) do
-    codepoint_length(rest, n + 1)
-  end
-
-  defp codepoint_length(<<_, rest::binary>>, n) do
-    codepoint_length(rest, n + 1)
-  end
-
-  defp codepoint_length(<<>>, n) do
-    n
-  end
 
   def validate_keyword({:const, const}, data, vctx) do
     # 1 == 1.0 should be true according to JSON Schema specs
@@ -548,12 +530,12 @@ defmodule JSV.Vocabulary.V202012.Validation do
     "value #{data} is not lower than exclusive maximum #{n}"
   end
 
-  def format_error(:minLength, %{len: len, minLength: min_length}, _data) do
-    "value length must be at least #{min_length} but is #{len}"
+  def format_error(:minLength, %{minLength: min_length}, data) do
+    "value length must be at least #{min_length} but is #{codepoint_length(data, :infinity)}"
   end
 
-  def format_error(:maxLength, %{len: len, maxLength: max_length}, _data) do
-    "value length must be at most #{max_length} but is #{len}"
+  def format_error(:maxLength, %{maxLength: max_length}, data) do
+    "value length must be at most #{max_length} but is #{codepoint_length(data, :infinity)}"
   end
 
   def format_error(:const, %{const: const}, _data) do
@@ -637,6 +619,26 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   defp verbose_list([], _) do
     "(empty list)"
+  end
+
+  defp codepoint_length(string, cap) do
+    count_codepoints(string, 0, cap)
+  end
+
+  defp count_codepoints(_, cap, cap) do
+    cap
+  end
+
+  defp count_codepoints(<<_::utf8, rest::binary>>, n, cap) do
+    count_codepoints(rest, n + 1, cap)
+  end
+
+  defp count_codepoints(<<_, rest::binary>>, n, cap) do
+    count_codepoints(rest, n + 1, cap)
+  end
+
+  defp count_codepoints(<<>>, n, _) do
+    n
   end
 
   defp quote_prop(val) do

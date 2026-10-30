@@ -42,4 +42,41 @@ defmodule JSV.StringLengthTest do
     assert %{details: [%{errors: [%{kind: :maxLength, message: "value length must be at most 1 but is 2"}]}]} =
              JSV.normalize_error(err)
   end
+
+  test "minLength error reports the length in code points" do
+    root = JSV.build!(%{minLength: 3})
+    assert {:error, err} = JSV.validate(@combining, root)
+
+    assert %{details: [%{errors: [%{kind: :minLength, message: "value length must be at least 3 but is 2"}]}]} =
+             JSV.normalize_error(err)
+  end
+
+  test "multibyte strings longer in bytes than maxLength are counted in code points" do
+    assert valid?(%{maxLength: 3}, "ééé")
+    refute valid?(%{maxLength: 2}, "ééé")
+  end
+
+  test "multibyte strings long enough in bytes for minLength are counted in code points" do
+    assert valid?(%{minLength: 3}, "ééé")
+    refute valid?(%{minLength: 4}, "ééé")
+  end
+
+  test "zero length limits" do
+    assert valid?(%{minLength: 0, maxLength: 0}, "")
+    assert valid?(%{minLength: 0}, "é")
+    refute valid?(%{maxLength: 0}, "é")
+  end
+
+  test "invalid UTF-8 bytes count as one code point each" do
+    assert valid?(%{minLength: 1, maxLength: 1}, <<0xFF>>)
+    assert valid?(%{minLength: 3, maxLength: 3}, <<"a", 0xFF, 0xFE>>)
+    refute valid?(%{maxLength: 2}, <<"a", 0xFF, 0xFE>>)
+    refute valid?(%{minLength: 4}, <<"a", 0xFF, 0xFE>>)
+
+    root = JSV.build!(%{maxLength: 1})
+    assert {:error, err} = JSV.validate(<<"a", 0xFF>>, root)
+
+    assert %{details: [%{errors: [%{kind: :maxLength, message: "value length must be at most 1 but is 2"}]}]} =
+             JSV.normalize_error(err)
+  end
 end
