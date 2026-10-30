@@ -6,47 +6,6 @@ defmodule JSV.NormalizerTest do
   doctest JSV.Normalizer
 
   describe "normalize warnings" do
-    test "unresolved modules are emitted by default" do
-      stderr =
-        ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          assert %{"enum" => ["Elixir.NotASchema.A"]} == Schema.normalize(%{enum: [NotASchema.A]})
-          assert %{"enum" => ["Elixir.NotASchema.B"]} == Schema.normalize_collect(%{enum: [NotASchema.B]})
-        end)
-
-      assert stderr =~ "NotASchema.A"
-      assert stderr =~ "NotASchema.B"
-    end
-
-    test "unresolved modules can be silenced" do
-      stderr =
-        ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          Schema.normalize(%{enum: [NotASchema.A]}, warnings: :silence)
-          Schema.normalize_collect(%{enum: [NotASchema.B]}, warnings: {:silence, [unresolved_module: NotASchema.B]})
-        end)
-
-      assert "" == stderr
-    end
-
-    test "warnings are emitted with the given stacktrace" do
-      stacktrace = [{SomeCaller, :__MODULE__, 0, [file: ~c"lib/some_caller.ex", line: 123]}]
-
-      stderr =
-        ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          Schema.normalize(%{enum: [NotASchema.A]}, stacktrace: stacktrace)
-        end)
-
-      assert stderr =~ "NotASchema.A"
-      assert stderr =~ "lib/some_caller.ex:123"
-
-      stderr =
-        ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          Schema.normalize_collect(%{enum: [NotASchema.B]}, stacktrace: stacktrace)
-        end)
-
-      assert stderr =~ "NotASchema.B"
-      assert stderr =~ "lib/some_caller.ex:123"
-    end
-
     test "invalid stacktrace option" do
       assert_raise ArgumentError, ~r/invalid value for option :stacktrace/, fn ->
         Schema.normalize(%{}, stacktrace: :nope)
@@ -267,6 +226,54 @@ defmodule JSV.NormalizerTest do
       assert_raise ArgumentError, ~r"continuation function does not accept structs", fn ->
         Schema.normalize(%NormalizeTo{value: %MyStruct{}})
       end
+    end
+  end
+end
+
+defmodule JSV.NormalizerTest.IOTest do
+  alias JSV.Schema
+  use ExUnit.Case, async: false
+
+  describe "normalize warnings" do
+    test "unresolved modules are emitted by default" do
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          assert %{"enum" => ["Elixir.NotASchema.A"]} == Schema.normalize(%{enum: [NotASchema.A]})
+          assert %{"enum" => ["Elixir.NotASchema.B"]} == Schema.normalize_collect(%{enum: [NotASchema.B]})
+        end)
+
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "NotASchema.B"
+    end
+
+    test "warnings are emitted with the given stacktrace" do
+      stacktrace = [{SomeCaller, :__MODULE__, 0, [file: ~c"lib/some_caller.ex", line: 123]}]
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Schema.normalize(%{enum: [NotASchema.A]}, stacktrace: stacktrace)
+        end)
+
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "lib/some_caller.ex:123"
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Schema.normalize_collect(%{enum: [NotASchema.B]}, stacktrace: stacktrace)
+        end)
+
+      assert stderr =~ "NotASchema.B"
+      assert stderr =~ "lib/some_caller.ex:123"
+    end
+
+    test "unresolved modules can be silenced" do
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Schema.normalize(%{enum: [NotASchema.A]}, warnings: :silence)
+          Schema.normalize_collect(%{enum: [NotASchema.B]}, warnings: {:silence, [unresolved_module: NotASchema.B]})
+        end)
+
+      assert "" == stderr
     end
   end
 end

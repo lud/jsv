@@ -592,26 +592,6 @@ defmodule JSV.BuilderTest do
              ] = root.warnings
     end
 
-    test "warnings are emitted once when building multiple keys with the same context" do
-      schema = %{
-        "$defs" => %{
-          "first" => %{"type" => "string", "x-jsv-cast" => [[to_string(WarningCaster), "warn"]]},
-          "second" => %{"type" => "string", "x-jsv-cast" => [[to_string(WarningCaster), "warn2"]]}
-        }
-      }
-
-      stderr =
-        ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          {:ok, ctx} = JSV.build_init(warnings: :emit)
-          {:ok, :root, _, ctx} = JSV.build_add(ctx, schema)
-          {:ok, _, ctx} = JSV.build_key(ctx, Ref.parse!("#/$defs/first", :root))
-          {:ok, _, _ctx} = JSV.build_key(ctx, Ref.parse!("#/$defs/second", :root))
-        end)
-
-      assert 1 == length(Regex.scan(~r{#/\$defs/first}, stderr))
-      assert 1 == length(Regex.scan(~r{#/\$defs/second}, stderr))
-    end
-
     test "normalization warnings are collected on the built Root" do
       root = JSV.build!(%{enum: [NotASchema.A]}, warnings: :silence)
 
@@ -635,44 +615,6 @@ defmodule JSV.BuilderTest do
         )
 
       assert [%{key: :unresolved_module, module: NotASchema.A}] = root.warnings
-    end
-
-    test "warnings can be silenced by kind or by specific clause" do
-      schema = %{enum: [NotASchema.A, NotASchema.B]}
-
-      emit = fn warnings_opt ->
-        ExUnit.CaptureIO.capture_io(:stderr, fn -> JSV.build!(schema, warnings: warnings_opt) end)
-      end
-
-      stderr = emit.(:emit)
-      assert stderr =~ "NotASchema.A"
-      assert stderr =~ "NotASchema.B"
-
-      stderr = emit.({:silence, [unresolved_module: NotASchema.A]})
-      refute stderr =~ "NotASchema.A"
-      assert stderr =~ "NotASchema.B"
-
-      assert "" == emit.({:silence, [:unresolved_module]})
-      assert "" == emit.({:silence, [unresolved_module: NotASchema.A, unresolved_module: NotASchema.B]})
-      assert "" == emit.(:silence)
-      assert "" == emit.(:silent)
-    end
-
-    test "warnings are emitted with the given stacktrace" do
-      stacktrace = [{SomeCaller, :__MODULE__, 0, [file: ~c"lib/some_caller.ex", line: 123]}]
-
-      stderr =
-        ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          JSV.build!(%{enum: [NotASchema.A]}, stacktrace: stacktrace)
-        end)
-
-      assert stderr =~ "NotASchema.A"
-      assert stderr =~ "lib/some_caller.ex:123"
-
-      assert "" ==
-               ExUnit.CaptureIO.capture_io(:stderr, fn ->
-                 JSV.build!(%{enum: [NotASchema.A]}, stacktrace: stacktrace, warnings: :silence)
-               end)
     end
 
     test "invalid stacktrace option" do
@@ -736,6 +678,72 @@ defmodule JSV.BuilderTest do
       }
 
       assert {:ok, _} = JSV.build(raw)
+    end
+  end
+end
+
+defmodule JSV.BuilderTest.IOTest do
+  alias JSV.BuilderTest.WarningCaster
+  alias JSV.Ref
+  use ExUnit.Case, async: false
+
+  describe "build warnings" do
+    test "warnings are emitted once when building multiple keys with the same context" do
+      schema = %{
+        "$defs" => %{
+          "first" => %{"type" => "string", "x-jsv-cast" => [[to_string(WarningCaster), "warn"]]},
+          "second" => %{"type" => "string", "x-jsv-cast" => [[to_string(WarningCaster), "warn2"]]}
+        }
+      }
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          {:ok, ctx} = JSV.build_init(warnings: :emit)
+          {:ok, :root, _, ctx} = JSV.build_add(ctx, schema)
+          {:ok, _, ctx} = JSV.build_key(ctx, Ref.parse!("#/$defs/first", :root))
+          {:ok, _, _ctx} = JSV.build_key(ctx, Ref.parse!("#/$defs/second", :root))
+        end)
+
+      assert 1 == length(Regex.scan(~r{#/\$defs/first}, stderr))
+      assert 1 == length(Regex.scan(~r{#/\$defs/second}, stderr))
+    end
+
+    test "warnings can be silenced by kind or by specific clause" do
+      schema = %{enum: [NotASchema.A, NotASchema.B]}
+
+      emit = fn warnings_opt ->
+        ExUnit.CaptureIO.capture_io(:stderr, fn -> JSV.build!(schema, warnings: warnings_opt) end)
+      end
+
+      stderr = emit.(:emit)
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "NotASchema.B"
+
+      stderr = emit.({:silence, [unresolved_module: NotASchema.A]})
+      refute stderr =~ "NotASchema.A"
+      assert stderr =~ "NotASchema.B"
+
+      assert "" == emit.({:silence, [:unresolved_module]})
+      assert "" == emit.({:silence, [unresolved_module: NotASchema.A, unresolved_module: NotASchema.B]})
+      assert "" == emit.(:silence)
+      assert "" == emit.(:silent)
+    end
+
+    test "warnings are emitted with the given stacktrace" do
+      stacktrace = [{SomeCaller, :__MODULE__, 0, [file: ~c"lib/some_caller.ex", line: 123]}]
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          JSV.build!(%{enum: [NotASchema.A]}, stacktrace: stacktrace)
+        end)
+
+      assert stderr =~ "NotASchema.A"
+      assert stderr =~ "lib/some_caller.ex:123"
+
+      assert "" ==
+               ExUnit.CaptureIO.capture_io(:stderr, fn ->
+                 JSV.build!(%{enum: [NotASchema.A]}, stacktrace: stacktrace, warnings: :silence)
+               end)
     end
   end
 end
