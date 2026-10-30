@@ -355,24 +355,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   pass validate_keyword({:jsv@props, _})
 
   def validate_keyword({:jsv@array, {items_schema, prefix_items_schemas}}, data, vctx) when is_list(data) do
-    prefix_stream =
-      case prefix_items_schemas do
-        nil -> []
-        list -> Enum.map(list, &{:prefixItems, &1})
-      end
-
-    rest_stream = Stream.cycle([{:items, items_schema}])
-    all_stream = Stream.concat(prefix_stream, rest_stream)
-    data_items_index = Stream.with_index(data)
-
-    # Zipping items with their schemas. If the schema only specifies
-    # prefixItems, then items_schema is nil and the zip will associate
-    # non-prefix data items with a nil schema.
-    zipped =
-      Enum.zip_with([data_items_index, all_stream], fn
-        [{data_item, index}, {kind, schema}] -> {kind, index, data_item, schema}
-      end)
-
+    zipped = zip_items(data, prefix_items_schemas || [], :prefixItems, items_schema, :items)
     {validated_items, vctx} = validate_items(zipped, data, vctx)
     Validator.return(validated_items, vctx)
   end
@@ -593,18 +576,43 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   @doc false
   # This function is public for draft7, with support of :additionalItems
   #
+  # Pairs every data item with its index and schema, in reverse order as
+  # expected by validate_items/4. The prefix schemas are used first, then
+  # rest_schema for the remaining items. rest_schema can be nil, which makes
+  # those items automatically valid.
+  @spec zip_items(list, [Validator.validator()], atom, nil | Validator.validator(), atom) :: [
+          {atom, non_neg_integer(), term, nil | Validator.validator()}
+        ]
+  def zip_items(data, prefix_schemas, prefix_kind, rest_schema, rest_kind) do
+    zip_items(data, 0, prefix_schemas, prefix_kind, rest_schema, rest_kind, [])
+  end
+
+  defp zip_items([item | items], index, [schema | prefixes], prefix_kind, rest, rest_kind, acc) do
+    zip_items(items, index + 1, prefixes, prefix_kind, rest, rest_kind, [{prefix_kind, index, item, schema} | acc])
+  end
+
+  defp zip_items([item | items], index, [], prefix_kind, rest, rest_kind, acc) do
+    zip_items(items, index + 1, [], prefix_kind, rest, rest_kind, [{rest_kind, index, item, rest} | acc])
+  end
+
+  defp zip_items([], _index, _prefixes, _prefix_kind, _rest, _rest_kind, acc) do
+    acc
+  end
+
+  @doc false
+  # This function is public for draft7, with support of :additionalItems
+  #
   # Validate all items in a list of {kind, index, item_data, subschema}. The
   # subschema can be nil which makes the item automatically valid.
   #
-  # The list is reversed first instead of at the end so the suberrors are
-  # ordered from 0 to N if the error is normalized.
+  # The list is expected in reverse order, as returned by zip_items/5, so the
+  # validated items are accumulated in order and the suberrors are ordered from
+  # 0 to N if the error is normalized.
   @spec validate_items([validation_item], list, Validator.context(), module) :: {list, Validator.context()}
         when validation_item: {term, non_neg_integer(), nil | Validator.validator(), term}
-  def validate_items(items_with_schema, data, vctx, error_formatter \\ __MODULE__) do
+  def validate_items(reversed_items_with_schema, data, vctx, error_formatter \\ __MODULE__) do
     {items, vctx} =
-      items_with_schema
-      |> :lists.reverse()
-      |> Enum.reduce({[], vctx}, fn
+      Enum.reduce(reversed_items_with_schema, {[], vctx}, fn
         {_kind, _index, data_item, nil = _subschema}, {casted, vctx} ->
           {[data_item | casted], vctx}
 
