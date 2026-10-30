@@ -609,9 +609,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   # validated items are accumulated in order and the suberrors are ordered from
   # 0 to N if the error is normalized.
   @spec validate_items([validation_item], list, Validator.context(), module) :: {list, Validator.context()}
-        when validation_item: {term, non_neg_integer(), nil | Validator.validator(), term}
+        when validation_item: {term, non_neg_integer(), term, nil | Validator.validator()}
   def validate_items(reversed_items_with_schema, data, vctx, error_formatter \\ __MODULE__) do
-    {items, vctx} =
+    {_items, _vctx} =
       Enum.reduce(reversed_items_with_schema, {[], vctx}, fn
         {_kind, _index, data_item, nil = _subschema}, {casted, vctx} ->
           {[data_item | casted], vctx}
@@ -629,8 +629,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
               {[data_item | casted], JSV.Validator.__with_error__(error_formatter, vctx, kind, data, args)}
           end
       end)
-
-    {items, vctx}
   end
 
   # ---------------------------------------------------------------------------
