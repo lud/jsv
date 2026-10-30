@@ -40,7 +40,7 @@ defmodule JSV.Validator do
       :schema_path,
       :seen_refs,
       :opts,
-      :cast_stacks,
+      :cast_stack,
       :feature_cast,
       :feature_unevaluated
     ]
@@ -75,7 +75,7 @@ defmodule JSV.Validator do
       errors: [],
       evaluated: [%{}],
       opts: opts,
-      cast_stacks: %{},
+      cast_stack: nil,
       feature_cast: feature_cast,
       feature_unevaluated: feature_unevaluated
     }
@@ -115,20 +115,15 @@ defmodule JSV.Validator do
   # ever be cast, so the push/pop bookkeeping is pure overhead.
   def validate(data, %Subschema{} = sub, %{feature_cast: true} = vctx) do
     %{validators: validators, cast: cast} = sub
-    %{cast_stacks: cast_stacks, data_path: data_path} = vctx
 
     # * Set the path of the current validator to he one of the subschema
     # * push the cast of the subschema into the stack. after validation
-    vctx = %{
-      vctx
-      | schema_path: sub.schema_path,
-        cast_stacks: push_cast(cast_stacks, data_path, cast)
-    }
+    vctx = %{vctx | schema_path: sub.schema_path, cast_stack: push_cast(vctx.cast_stack, cast)}
 
     vdr_result = call_vocabulary(validators, data, vctx)
 
     case vdr_result do
-      {:ok, value, vctx} -> pop_apply_cast(value, data_path, vctx)
+      {:ok, value, vctx} -> pop_apply_cast(value, vctx)
       {:error, _} = err -> err
     end
   end
@@ -156,12 +151,17 @@ defmodule JSV.Validator do
   #
   # As the stack can only contain a non-nil value, instead of using a list we
   # use a {level, value} tuple.
-  defp push_cast(cast_stacks, data_path, cast) do
-    case cast_stacks do
+  #
+  # The context holds a single stack, the one for the current data path. Only
+  # validate_sub_term/7 changes the data path: it gives an empty stack to the
+  # sub term and returns the parent context, so the parent stack is restored
+  # when validating the sub term is done.
+  defp push_cast(cast_stack, cast) do
+    case cast_stack do
       # If the stack is already defined with nil we increment it and add the
       # cast
-      %{^data_path => {n, nil}} ->
-        %{cast_stacks | data_path => {n + 1, cast}}
+      {n, nil} ->
+        {n + 1, cast}
 
       # If the stack is already defined with a cast we increment it and silently
       # ignore the new cast.
@@ -170,29 +170,25 @@ defmodule JSV.Validator do
       # track multiple casts added at the same sublevels, it was warrning false
       # positives too much. We would have to also track if we are in an allOf or
       # if/then vs. oneOf to only warn about actual conflicts.
-      %{^data_path => {n, existing}} ->
-        %{cast_stacks | data_path => {n + 1, existing}}
+      {n, existing} ->
+        {n + 1, existing}
 
       # Define a new stack
-      _ when not is_map_key(cast_stacks, data_path) ->
-        Map.put(cast_stacks, data_path, {0, cast})
+      nil ->
+        {0, cast}
     end
   end
 
-  defp pop_apply_cast(value, data_path, vctx) do
-    %{cast_stacks: %{^data_path => stack} = cast_stacks} = vctx
-
-    case stack do
+  defp pop_apply_cast(value, vctx) do
+    case vctx.cast_stack do
       {0, nil} ->
-        vctx = %{vctx | cast_stacks: Map.delete(cast_stacks, data_path)}
-        {:ok, value, vctx}
+        {:ok, value, %{vctx | cast_stack: nil}}
 
       {0, cast} ->
-        vctx = %{vctx | cast_stacks: Map.delete(cast_stacks, data_path)}
-        Vocabulary.Cast.validate(value, cast, vctx)
+        Vocabulary.Cast.validate(value, cast, %{vctx | cast_stack: nil})
 
       {n, cast} when n > 0 ->
-        {:ok, value, %{vctx | cast_stacks: %{cast_stacks | data_path => {n - 1, cast}}}}
+        {:ok, value, %{vctx | cast_stack: {n - 1, cast}}}
     end
   end
 
@@ -349,7 +345,8 @@ defmodule JSV.Validator do
         evaluated: push_evaluated(vctx, evaluated),
         # A sub term can never be equal to its parent term, seen refs cannot
         # match anymore so we can discard them.
-        seen_refs: []
+        seen_refs: [],
+        cast_stack: nil
     }
 
     result =
@@ -386,7 +383,7 @@ defmodule JSV.Validator do
   def validate_as(data, add_eval_path, subvalidators, vctx) do
     %ValidationContext{evaluated: evaluated, eval_path: eval_path, schema_path: schema_path} = vctx
 
-    # The cast stacks are kept as-is: the sub part validates the same data point
+    # The cast stack is kept as-is: the sub part validates the same data point
     # as its parent, so a cast defined in it belongs to the same stack and must
     # still be applied by the topmost validator for that data path.
     sub_vctx = %{
@@ -549,17 +546,14 @@ defmodule JSV.Validator do
   end
 
   defp merge_tracked_casts(%ValidationContext{feature_cast: true} = vctx, sub) do
-    %{cast_stacks: top_cast_stacks} = vctx
-    %{cast_stacks: sub_cast_stacks} = sub
+    cast_stack =
+      case {vctx.cast_stack, sub.cast_stack} do
+        {same, same} -> same
+        {{n, nil}, {_, nil}} -> {n, nil}
+        {{n, nil}, {_, cast}} -> {n, cast}
+      end
 
-    cast_stacks =
-      Map.merge(top_cast_stacks, sub_cast_stacks, fn
-        _dpath, same, same -> same
-        _dpath, {n, nil}, {_, nil} -> {n, nil}
-        _dpath, {n, nil}, {_, cast} -> {n, cast}
-      end)
-
-    %{vctx | cast_stacks: cast_stacks}
+    %{vctx | cast_stack: cast_stack}
   end
 
   defp merge_tracked_casts(%ValidationContext{feature_cast: false} = vctx, _sub) do
