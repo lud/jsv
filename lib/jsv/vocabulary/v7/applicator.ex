@@ -66,19 +66,7 @@ defmodule JSV.Vocabulary.V7.Applicator do
   defp validate_keyword({:jsv@array, {items_schemas, additional_items_schema}}, data, vctx)
        when is_list(items_schemas) and (is_map(additional_items_schema) or is_nil(additional_items_schema)) and
               is_list(data) do
-    prefix_stream = Enum.map(items_schemas, &{:items_as_prefix, &1})
-
-    rest_stream = Stream.cycle([{:additionalItems, additional_items_schema}])
-    all_stream = Stream.concat(prefix_stream, rest_stream)
-    data_items_index = Stream.with_index(data)
-
-    # Zipping items with their schemas. If the schema only specifies
-    # prefixItems, then items_schema is nil and the zip will associate with nil.
-    zipped =
-      Enum.zip_with([data_items_index, all_stream], fn
-        [{data_item, index}, {kind, schema}] -> {kind, index, data_item, schema}
-      end)
-
+    zipped = Fallback.zip_items(data, items_schemas, :items_as_prefix, additional_items_schema, :additionalItems)
     {validated_items, vctx} = Fallback.validate_items(zipped, data, vctx, __MODULE__)
     Validator.return(validated_items, vctx)
   end
@@ -87,14 +75,7 @@ defmodule JSV.Vocabulary.V7.Applicator do
   defp validate_keyword({:jsv@array, {items_schema, _}}, data, vctx)
        when (is_map(items_schema) or (is_tuple(items_schema) and elem(items_schema, 0) == :alias_of)) and
               is_list(data) do
-    all_stream = Stream.cycle([{:items, items_schema}])
-    data_items_index = Enum.with_index(data)
-
-    zipped =
-      Enum.zip_with([data_items_index, all_stream], fn
-        [{data_item, index}, {kind, schema}] -> {kind, index, data_item, schema}
-      end)
-
+    zipped = Fallback.zip_items(data, [], :items, items_schema, :items)
     {validated_items, vctx} = Fallback.validate_items(zipped, data, vctx, __MODULE__)
     Validator.return(validated_items, vctx)
   end
