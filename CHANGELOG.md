@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.2] - 2026-10-31
+
+**Security fix: [CVE-2026-117680](https://cna.erlef.org/cves/CVE-2026-117680.html) / [GHSA-cvmg-hgv6-jqcp](https://github.com/lud/jsv/security/advisories/GHSA-cvmg-hgv6-jqcp).** All users validating untrusted data against schemas with `pattern` or `patternProperties` should upgrade.
+
+When a regex exhausted its backtracking budget, the match was reported as a non-match. Data that matches a pattern only after heavy backtracking could then skip `patternProperties` subschemas, be validated by `additionalProperties` instead, or pass a `not: {pattern: ...}` deny-list.
+
+An exhausted budget is now an indeterminate result: validation stops and returns a `JSV.ValidationError` with a single error of kind `indeterminate_pattern`, which combinators cannot invert. Such data is now always rejected, even when it would match. If valid data gets rejected this way, rewrite the pattern without nested quantifiers or overlapping alternatives.
+
+`minLength` and `maxLength` now count Unicode code points instead of grapheme clusters, as required by the specification. For instance `"é"` written as `e` followed by U+0301 now has a length of 2.
+
+
+### 🐛 Bug Fixes
+
+- Count minLength and maxLength in code points (#151) (_Lars Hesel Christensen_)
+- Fail validation when a regex exhausts its backtracking budget (_lud_)
+
+### ⚡ Performance
+
+- Keep a single cast stack per data level (_lud_)
+- Zip array items with their schemas without streams (#153) (_Lars Hesel Christensen_)
+
+### 🧪 Testing
+
+- Updated JSON Schema test suite (_lud_)
+- Run stderr capturing tests synchronously (_lud_)
+
 ## [0.26.1] - 2026-10-14
 
 ### 🚀 Features
