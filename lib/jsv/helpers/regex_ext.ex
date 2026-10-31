@@ -46,15 +46,21 @@ defmodule JSV.Helpers.RegexExt do
 
   Schema-supplied `pattern` and `patternProperties` regexes can require
   catastrophic backtracking on crafted data. This function bounds the match
-  cost linearly in `byte_size(subject)`; a match that exhausts the budget is
-  reported as a non-match.
+  cost linearly in `byte_size(subject)`. When a match exhausts the budget, the
+  engine could not determine whether the subject matches, and
+  `{JSV.Helpers.RegexExt, :budget_exhausted}` is thrown.
   """
   @spec bounded_match?(Regex.t(), binary) :: boolean
   def bounded_match?(%Regex{re_pattern: re_pattern}, subject) when is_binary(subject) do
     limit = min(@max_match_limit, @base_match_limit + @match_limit_per_byte * byte_size(subject))
 
-    :re.run(subject, re_pattern, [{:match_limit, limit}, {:match_limit_recursion, limit}, {:capture, :none}]) ==
-      :match
+    opts = [{:match_limit, limit}, {:match_limit_recursion, limit}, {:capture, :none}, :report_errors]
+
+    case :re.run(subject, re_pattern, opts) do
+      :match -> true
+      :nomatch -> false
+      {:error, reason} when reason in [:match_limit, :match_limit_recursion] -> throw({__MODULE__, :budget_exhausted})
+    end
   end
 
   defp parse_translate(<<?\\, p, ?{, rest::binary>>, acc) when p in [?p, ?P] do

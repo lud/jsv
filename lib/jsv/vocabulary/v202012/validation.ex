@@ -363,7 +363,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   end
 
   def validate_keyword({:pattern, re}, data, vctx) when is_binary(data) do
-    if RegexExt.bounded_match?(re, data) do
+    if pattern_match?(re, data, vctx) do
       {:ok, data, vctx}
     else
       {:error, Validator.with_error(vctx, :pattern, data, pattern: re.source)}
@@ -560,6 +560,10 @@ defmodule JSV.Vocabulary.V202012.Validation do
     "value does not conform to pattern /#{pattern}/"
   end
 
+  def format_error(:indeterminate_pattern, _, _data) do
+    "could not determine whether the value matches the pattern, the regular expression exceeded its backtracking budget"
+  end
+
   def format_error(:maxItems, %{len: len, maxItems: max_items}, _data) do
     "value should have at most #{max_items} items, got #{len}"
   end
@@ -623,6 +627,13 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   defp codepoint_length(string, cap) do
     count_codepoints(string, 0, cap)
+  end
+
+  defp pattern_match?(re, data, vctx) do
+    RegexExt.bounded_match?(re, data)
+  catch
+    :throw, {RegexExt, :budget_exhausted} ->
+      Validator.throw_indeterminate(vctx, :indeterminate_pattern, data, [])
   end
 
   defp count_codepoints(_, cap, cap) do

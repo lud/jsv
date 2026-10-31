@@ -643,11 +643,28 @@ defmodule JSV.Validator do
   @doc false
   @spec __with_error__(module, context, atom, term, term) :: context
   def __with_error__(module, vctx, kind, data, args) when is_list(args) or is_map(args) do
+    add_error(vctx, new_error(module, vctx, kind, data, args))
+  end
+
+  @doc false
+  defmacro throw_indeterminate(vctx, kind, data, args) do
+    quote bind_quoted: binding() do
+      JSV.Validator.__throw_indeterminate__(__MODULE__, vctx, kind, data, args)
+    end
+  end
+
+  @doc false
+  @spec __throw_indeterminate__(module, context, atom, term, term) :: no_return()
+  def __throw_indeterminate__(module, vctx, kind, data, args) when is_list(args) or is_map(args) do
+    throw({JSV, :indeterminate_result, new_error(module, vctx, kind, data, args)})
+  end
+
+  defp new_error(module, vctx, kind, data, args) do
     if [] == vctx.schema_path do
       raise "empty schema path"
     end
 
-    error = %Error{
+    %Error{
       kind: kind,
       data: data,
       data_path: vctx.data_path,
@@ -656,8 +673,6 @@ defmodule JSV.Validator do
       formatter: module,
       args: args
     }
-
-    add_error(vctx, error)
   end
 
   defp add_error(vctx, error) do

@@ -296,16 +296,25 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     end)
   end
 
-  defp pattern_properties_validations(_data, nil) do
+  defp pattern_properties_validations(_data, nil, _vctx) do
     []
   end
 
-  defp pattern_properties_validations(data, pattern_properties) do
+  defp pattern_properties_validations(data, pattern_properties, vctx) do
     for {{pattern, re}, subschema} <- pattern_properties,
         {key, _} <- data,
         RegexExt.bounded_match?(re, key) do
       {:patternProperties, key, subschema, pattern}
     end
+  catch
+    :throw, {RegexExt, :budget_exhausted} ->
+      vctx = %{
+        vctx
+        | eval_path: [:patternProperties | vctx.eval_path],
+          schema_path: [:patternProperties | vctx.schema_path]
+      }
+
+      Validator.throw_indeterminate(vctx, :indeterminate_pattern, data, [])
   end
 
   defp additional_properties_validations(data, schema, other_validations) do
@@ -323,7 +332,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   def validate_keyword({:jsv@props, {props_schemas, patterns_schemas, additionals_schema}}, data, vctx)
       when is_map(data) do
     for_props = properties_validations(data, props_schemas)
-    for_patterns = pattern_properties_validations(data, patterns_schemas)
+    for_patterns = pattern_properties_validations(data, patterns_schemas, vctx)
 
     validations = for_props ++ for_patterns
 
@@ -634,6 +643,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   # ---------------------------------------------------------------------------
 
   @impl true
+  def format_error(:indeterminate_pattern, _, _data) do
+    "could not determine whether the property names match patternProperties, a regular expression exceeded its backtracking budget"
+  end
+
   def format_error(:minContains, %{count: count, min_contains: min_contains}, _data) do
     case count do
       0 ->

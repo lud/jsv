@@ -490,6 +490,9 @@ defmodule JSV do
       {:ok, casted_data, _} -> {:ok, casted_data}
       {:error, %ValidationContext{} = validator} -> {:error, Validator.to_error(validator)}
     end
+  catch
+    :throw, {JSV, :indeterminate_result, %JSV.Validator.Error{} = error} ->
+      {:error, ValidationError.of([error])}
   end
 
   defp validate_validation_opts(:cast, value) do

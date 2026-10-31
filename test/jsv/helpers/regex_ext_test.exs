@@ -213,12 +213,22 @@ defmodule JSV.Helpers.RegexExtTest do
 
     test "aborts catastrophic backtracking instead of consuming the full PCRE2 budget" do
       # Regex.match?/2 needs ~200ms on this input (PCRE2 default match limit);
-      # the size-scaled budget rejects it in well under a millisecond.
+      # the size-scaled budget aborts it in well under a millisecond.
       re = Regex.compile!("^(a+)+$", "u")
       subject = String.duplicate("a", 3000) <> "!"
-      {us, result} = :timer.tc(fn -> RegexExt.bounded_match?(re, subject) end)
-      refute result
+
+      {us, thrown} = :timer.tc(fn -> catch_throw(RegexExt.bounded_match?(re, subject)) end)
+      assert {RegexExt, :budget_exhausted} == thrown
+
       assert us < 100_000
+    end
+
+    test "throws when the budget is exhausted on a matching subject" do
+      re = Regex.compile!("^(?:(a+)+b|a+!)$", "u")
+      subject = String.duplicate("a", 20) <> "!"
+      assert Regex.match?(re, subject)
+      assert {RegexExt, :budget_exhausted} == catch_throw(RegexExt.bounded_match?(re, subject))
+      assert RegexExt.bounded_match?(re, "aaa!")
     end
   end
 
