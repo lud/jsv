@@ -6,5 +6,5 @@ defmodule JSV.Validator.Error do
   @enforce_keys [:kind, :data, :args, :formatter, :data_path, :eval_path, :schema_path]
   defstruct @enforce_keys
 
-  @opaque t :: %__MODULE__{}
+  @type t :: %__MODULE__{}
 end
