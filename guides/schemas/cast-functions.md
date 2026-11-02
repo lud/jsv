@@ -186,6 +186,10 @@ JSV.validate("hello", root)
 
 Arguments must be JSON-encodable data.
 
+Cast functions are also called by `JSV.valid?/2`, since a failing cast makes
+the data invalid. In that case the `vctx` given to functions of arity 3 does not
+track the data and schema paths.
+
 
 ### Using a custom tag
 

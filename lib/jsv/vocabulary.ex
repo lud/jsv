@@ -15,6 +15,12 @@ defmodule JSV.Vocabulary do
     accumulator for further use.
   * When validating a schema, the module is called with the data to validate and
     the accumulated validation data to produce a validation result.
+
+  With `JSV.valid?/2`, adding an error stops the whole validation. Keywords that
+  can accept the data when a subschema rejects it, like `not` or `anyOf`, must
+  validate that subschema with `JSV.Validator.validate_catch/3`,
+  `JSV.Validator.validate_detach/4` or `JSV.Validator.catch_fail_fast/2` to get
+  the error result.
   """
 
   @typedoc """

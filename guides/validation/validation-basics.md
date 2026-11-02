@@ -11,6 +11,10 @@ JSV.validate(data, root_schema, opts)
 The return value of `JSV.validate/3` returns cast data. See the documentation of
 that function for more information.
 
+If you only need to know whether the data is valid, `JSV.valid?/2` stops at the
+first error and does not track what is needed to report errors. Call
+`JSV.validate/3` when you need them.
+
 
 ## General considerations
 

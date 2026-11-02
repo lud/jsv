@@ -442,7 +442,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       data
       |> Enum.with_index()
       |> Validator.reduce(0, vctx, fn {item, index}, count, vctx ->
-        case Validator.validate_in(item, index, :contains, subschema, vctx) do
+        case validate_contains_item(item, index, subschema, vctx) do
           {:ok, _, vctx} -> {:ok, count + 1, vctx}
           {:error, _} -> {:ok, count, vctx}
         end
@@ -464,6 +464,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   pass validate_keyword({:jsv@contains, _})
 
+  defp validate_contains_item(item, index, subschema, vctx) do
+    Validator.catch_fail_fast(vctx, fn -> Validator.validate_in(item, index, :contains, subschema, vctx) end)
+  end
+
   def validate_keyword({:dependentSchemas, {keyword, schemas_map}}, data, vctx) when is_map(data) do
     Validator.reduce(schemas_map, data, vctx, fn
       {parent_key, subschema}, data, vctx when is_map_key(data, parent_key) ->
@@ -481,7 +485,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def validate_keyword({:not, schema}, data, vctx) do
-    case Validator.validate(data, schema, vctx) do
+    case Validator.validate_catch(data, schema, vctx) do
       {:ok, data, vctx} -> {:error, Validator.with_error(vctx, :not, data, [])}
       {:error, _} -> {:ok, data, vctx}
     end
