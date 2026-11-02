@@ -120,11 +120,11 @@ awk -v labels="${summary_files[*]}" '
     reductions[key] = $5
   }
   END {
-    printf "%-30s", "scenario"
+    printf "%-34s", "scenario"
     for (i = 1; i <= n; i++) printf "%" width[i] "s", names[i]
     printf "\n"
     for (s = 1; s <= count; s++) {
-      printf "%-30s", order[s]
+      printf "%-34s", order[s]
       for (i = 1; i <= n; i++) {
         key = order[s] SUBSEP names[i]
         printf "%" width[i] "s", sprintf("%s / %s", best[key], reductions[key])
