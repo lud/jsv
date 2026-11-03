@@ -23,6 +23,8 @@ defmodule JSV.Test.JsonSchemaSuite do
           {false, validator}
       end
 
+    assert JSV.valid?(data, schema) == valid?
+
     # assert the expected result
 
     case {expected_valid, valid?} do

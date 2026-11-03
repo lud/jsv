@@ -31,6 +31,7 @@ defmodule JSV.PatternBacktrackingTest do
     assert %{valid: false, details: [unit]} = JSV.normalize_error(err)
     assert %{errors: [%{kind: :indeterminate_pattern, message: message}]} = unit
     refute message =~ "aaa"
+    refute JSV.valid?(data, root)
     unit
   end
 

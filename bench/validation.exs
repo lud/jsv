@@ -243,10 +243,25 @@ defmodule Bench.Runner do
       IO.puts("JSV #{Application.spec(:jsv, :vsn)} - #{rounds} rounds of ~#{round_ms}ms")
       IO.puts(header())
 
-      for scenario <- scenarios, {variant, data} <- [valid: scenario.valid, invalid: scenario.invalid] do
-        fun = fn -> JSV.validate(data, scenario.root) end
+      for scenario <- scenarios, {variant, fun} <- variants(scenario) do
         IO.puts(row("#{scenario.name} #{variant}", measure(fun, rounds, round_ms)))
       end
+    end
+  end
+
+  # JSV.valid?/2 is only measured on versions that define it.
+  defp variants(scenario) do
+    %{root: root, valid: valid, invalid: invalid} = scenario
+
+    validate = [
+      valid: fn -> JSV.validate(valid, root) end,
+      invalid: fn -> JSV.validate(invalid, root) end
+    ]
+
+    if function_exported?(JSV, :valid?, 2) do
+      validate ++ [fast_valid: fn -> JSV.valid?(valid, root) end, fast_invalid: fn -> JSV.valid?(invalid, root) end]
+    else
+      validate
     end
   end
 
@@ -255,11 +270,19 @@ defmodule Bench.Runner do
 
     case {JSV.validate(scenario.valid, root), JSV.validate(scenario.invalid, root)} do
       {{:ok, _}, {:error, _}} ->
+        precheck_valid?(scenario, root)
         Map.put(scenario, :root, root)
 
       {valid_result, invalid_result} ->
         raise "precheck failed for #{scenario.name}, valid data: #{inspect(valid_result)}, " <>
                 "invalid data: #{inspect(invalid_result)}"
+    end
+  end
+
+  defp precheck_valid?(scenario, root) do
+    if function_exported?(JSV, :valid?, 2) and
+         {JSV.valid?(scenario.valid, root), JSV.valid?(scenario.invalid, root)} != {true, false} do
+      raise "precheck failed for #{scenario.name}, valid?/2 disagrees with validate/3"
     end
   end
 
@@ -307,11 +330,11 @@ defmodule Bench.Runner do
   end
 
   defp header do
-    pad("scenario", 30) <> lpad("median µs", 12) <> lpad("min µs", 12) <> lpad("reductions", 12)
+    pad("scenario", 34) <> lpad("median µs", 12) <> lpad("min µs", 12) <> lpad("reductions", 12)
   end
 
   defp row(label, %{median: median, min: min, reductions: reductions}) do
-    pad(label, 30) <> lpad(us(median), 12) <> lpad(us(min), 12) <> lpad(Integer.to_string(round(reductions)), 12)
+    pad(label, 34) <> lpad(us(median), 12) <> lpad(us(min), 12) <> lpad(Integer.to_string(round(reductions)), 12)
   end
 
   defp us(ns) do

@@ -524,6 +524,39 @@ defmodule JSV do
     end
   end
 
+  @doc """
+  Returns whether the data is valid for the given schema root.
+
+  The validation stops at the first error and the paths needed to report errors
+  are not tracked, so this is cheaper than `validate/3` when the errors are not
+  needed. Call `validate/3` to get them.
+
+  Cast functions are called as with `validate/3`, since a failing cast makes the
+  data invalid, but the cast data is not returned. Cast functions of arity 3
+  receive a context where the data and schema paths are not tracked.
+
+  Accepts the same options as `validate/3`. With `cast: false`, data that would
+  fail a cast is valid, as with `validate/3`.
+  """
+  @doc group: @doc_group
+  @spec valid?(term, JSV.Root.t(), [validate_opt]) :: boolean
+  def valid?(data, root, opts \\ [])
+
+  def valid?(data, %JSV.Root{} = root, opts) do
+    opts =
+      opts
+      |> OptsValidator.validate(@default_validation_options, &validate_validation_opts/2)
+      |> Map.put(:feature_errors, false)
+
+    case validation_entrypoint(root, data, opts) do
+      {:ok, _, _} -> true
+      {:error, _} -> false
+    end
+  catch
+    :throw, {Validator, :fail_fast} -> false
+    :throw, {JSV, :indeterminate_result, _} -> false
+  end
+
   # From https://github.com/fishcakez/dialyze/blob/6698ae582c77940ee10b4babe4adeff22f1b7779/lib/mix/tasks/dialyze.ex#L168
   @doc false
   @spec otp_version :: String.t()
