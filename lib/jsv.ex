@@ -553,7 +553,7 @@ defmodule JSV do
       {:error, _} -> false
     end
   catch
-    :throw, {Validator, :fail_fast, _} -> false
+    :throw, {Validator, :fail_fast} -> false
     :throw, {JSV, :indeterminate_result, _} -> false
   end
 

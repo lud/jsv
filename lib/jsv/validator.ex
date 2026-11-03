@@ -348,7 +348,7 @@ defmodule JSV.Validator do
   def validate_catch(data, subschema, %ValidationContext{feature_errors: false} = vctx) do
     validate(data, subschema, vctx)
   catch
-    {__MODULE__, :fail_fast, err_vctx} -> {:error, err_vctx}
+    {__MODULE__, :fail_fast} -> {:error, fail_fast_context(vctx)}
   end
 
   def validate_catch(data, subschema, %ValidationContext{} = vctx) do
@@ -383,7 +383,7 @@ defmodule JSV.Validator do
       ) do
     validate_in(data, key, add_eval_path, subvalidators, vctx, level)
   catch
-    {__MODULE__, :fail_fast, err_vctx} -> {:error, err_vctx}
+    {__MODULE__, :fail_fast} -> {:error, fail_fast_context(vctx)}
   end
 
   def validate_in_catch(data, key, add_eval_path, subvalidators, %ValidationContext{} = vctx, level) do
@@ -785,6 +785,11 @@ defmodule JSV.Validator do
 
   @doc false
   @spec __with_error__(module, context, atom, term, term) :: context
+  def __with_error__(_module, %ValidationContext{feature_errors: false}, _kind, _data, args)
+      when is_list(args) or is_map(args) do
+    throw({__MODULE__, :fail_fast})
+  end
+
   def __with_error__(module, vctx, kind, data, args) when is_list(args) or is_map(args) do
     add_error(vctx, new_error(module, vctx, kind, data, args))
   end
@@ -818,13 +823,29 @@ defmodule JSV.Validator do
     }
   end
 
-  defp add_error(%ValidationContext{feature_errors: false} = vctx, error) do
-    throw({__MODULE__, :fail_fast, %{vctx | errors: [error]}})
+  defp add_error(%ValidationContext{feature_errors: false}, _error) do
+    throw({__MODULE__, :fail_fast})
   end
 
   defp add_error(%ValidationContext{} = vctx, error) do
     %ValidationContext{errors: errors} = vctx
     %{vctx | errors: [error | errors]}
+  end
+
+  # The error result returned by the catch helpers must carry an error. Nothing
+  # reads it, as JSV.valid?/2 does not report errors.
+  @fail_fast_error %Error{
+    kind: :fail_fast,
+    data: nil,
+    args: [],
+    formatter: __MODULE__,
+    data_path: [],
+    eval_path: [],
+    schema_path: []
+  }
+
+  defp fail_fast_context(vctx) do
+    %{vctx | errors: [@fail_fast_error]}
   end
 
   # Pushes a fresh evaluation frame for a nested validation, but only when the
