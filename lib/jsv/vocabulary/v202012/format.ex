@@ -1,6 +1,7 @@
 defmodule JSV.Vocabulary.V202012.Format do
   alias JSV.Builder
   alias JSV.Validator
+  alias JSV.Validator.ValidationContext
   use JSV.Vocabulary, priority: 700
 
   @moduledoc """
@@ -84,7 +85,7 @@ defmodule JSV.Vocabulary.V202012.Format do
   end
 
   defp validate_format(data, module, format, vctx) do
-    cast_formats? = vctx.opts.cast_formats
+    cast_formats? = ValidationContext.config(vctx, :opts).cast_formats
 
     case module.validate_cast(format, data) do
       {:ok, casted} when cast_formats? ->

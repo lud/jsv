@@ -2,6 +2,7 @@ defmodule JSV.Vocabulary.Cast do
   alias JSV.Builder
   alias JSV.Helpers.StringExt
   alias JSV.Validator
+  alias JSV.Validator.ValidationContext
 
   use JSV.Vocabulary,
     # Priority is meaningless here as this vocabulary is handled by the library
@@ -212,7 +213,7 @@ defmodule JSV.Vocabulary.Cast do
       Validator.error?(vctx) ->
         {:ok, data, vctx}
 
-      Map.fetch!(vctx.opts, :cast) ->
+      Map.fetch!(ValidationContext.config(vctx, :opts), :cast) ->
         call_cast_rescue(:"jsv-cast", call, data, vctx)
 
       :other ->
@@ -225,7 +226,7 @@ defmodule JSV.Vocabulary.Cast do
       Validator.error?(vctx) ->
         {:ok, data, vctx}
 
-      Map.fetch!(vctx.opts, :cast) ->
+      Map.fetch!(ValidationContext.config(vctx, :opts), :cast) ->
         call_casts(casts, data, vctx)
 
       :other ->

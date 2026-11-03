@@ -23,15 +23,15 @@
 #   Instruction counts are reproducible within ~0.1% between runs, unlike
 #   times.
 # * INSTRUCTIONS_MS - Approximate duration of the measured loop of each
-#   instruction count, default 300.
+#   instruction count, default 1000.
 # * BENCH_FILTER, BENCH_ROUNDS, BENCH_ROUND_MS - Forwarded to validation.exs.
 #
 # Before measuring, every version is compiled and prechecked: each scenario
 # must build and validate its valid and invalid data as expected.
 #
-# Instructions are counted for the whole VM, once with N calls of a scenario
-# and once with none. The difference divided by N is the count per call. N is
-# derived from the median time of the first pass.
+# User space instructions are counted for the whole VM, once with N calls of a
+# scenario and once with none. The difference divided by N is the count per
+# call. N is derived from the median time of the first pass.
 #
 # Raw outputs are written in bench/output/compare-<timestamp>/.
 #
@@ -55,7 +55,7 @@ bench_file="$script_dir/validation.exs"
 checkouts_dir="${BENCH_CHECKOUTS:-${TMPDIR:-/tmp}/jsv-bench-checkouts}"
 passes="${PASSES:-2}"
 instructions="${INSTRUCTIONS:-0}"
-instructions_ms="${INSTRUCTIONS_MS:-300}"
+instructions_ms="${INSTRUCTIONS_MS:-1000}"
 out_dir="$script_dir/output/compare-$(date +%Y%m%d-%H%M%S)"
 
 # The benchmarks run on a single scheduler without busy waiting, pinned to one
@@ -88,7 +88,7 @@ if [ "$instructions" = "1" ]; then
     exit 1
   fi
 
-  if ! perf stat -e instructions true >/dev/null 2>&1; then
+  if ! perf stat -e instructions:u true >/dev/null 2>&1; then
     echo "perf stat cannot count instructions, check kernel.perf_event_paranoid (must be <= 1)" >&2
     exit 1
   fi
@@ -158,10 +158,13 @@ done
 count_instructions() {
   local perf_out="$out_dir/perf.tmp"
 
-  (cd "$1" && BENCH_ONLY="$2" BENCH_ITERATIONS="$3" perf stat -x, -e instructions -o "$perf_out" -- "${bench_cmd[@]}" >/dev/null)
+  (cd "$1" && BENCH_ONLY="$2" BENCH_ITERATIONS="$3" LC_ALL=C perf stat -x, -e instructions:u -o "$perf_out" -- "${bench_cmd[@]}" >/dev/null)
 
-  # Hybrid CPUs report one counter per core type.
-  awk -F, '$1 ~ /^[0-9]+$/ && $3 ~ /instructions/ { sum += $1 } END { print sum }' "$perf_out"
+  # Hybrid CPUs report one counter per core type. perf scales the count of a
+  # counter by its share of the run time, which turns the few instructions of a
+  # core type the VM does not run on into large wrong numbers. The VM is pinned
+  # to one CPU, so only the counter that ran the longest is kept.
+  awk -F, '$1 ~ /^[0-9]+$/ && $4 + 0 > run_time { run_time = $4 + 0; count = $1 } END { print count }' "$perf_out"
   rm "$perf_out"
 }
 
