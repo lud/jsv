@@ -13,6 +13,9 @@
 #   300.
 # * BENCH_PRECHECK - When "1", only check that every scenario builds and that
 #   its valid and invalid data validate as expected, without measuring.
+# * BENCH_ONLY, BENCH_ITERATIONS - Only call the given scenario variant, for
+#   instance "structs valid", BENCH_ITERATIONS times, without measuring. Used
+#   to count instructions with an external tool.
 #
 # Each round runs in a fresh process. The reported time is the median of the
 # rounds, along with the fastest round. Reductions per call are less sensitive
@@ -237,15 +240,33 @@ defmodule Bench.Runner do
         precheck(scenario)
       end
 
-    if System.get_env("BENCH_PRECHECK") in ["1", "true"] do
-      IO.puts("precheck ok: #{Enum.map_join(scenarios, ", ", & &1.name)}")
-    else
-      IO.puts("JSV #{Application.spec(:jsv, :vsn)} - #{rounds} rounds of ~#{round_ms}ms")
-      IO.puts(header())
+    cond do
+      System.get_env("BENCH_PRECHECK") in ["1", "true"] ->
+        IO.puts("precheck ok: #{Enum.map_join(scenarios, ", ", & &1.name)}")
 
-      for scenario <- scenarios, {variant, fun} <- variants(scenario) do
-        IO.puts(row("#{scenario.name} #{variant}", measure(fun, rounds, round_ms)))
-      end
+      only = System.get_env("BENCH_ONLY") ->
+        run_only(scenarios, only, String.to_integer(System.fetch_env!("BENCH_ITERATIONS")))
+
+      true ->
+        IO.puts("JSV #{Application.spec(:jsv, :vsn)} - #{rounds} rounds of ~#{round_ms}ms")
+        IO.puts(header())
+
+        for scenario <- scenarios, {variant, fun} <- variants(scenario) do
+          IO.puts(row("#{scenario.name} #{variant}", measure(fun, rounds, round_ms)))
+        end
+    end
+  end
+
+  defp run_only(scenarios, only, iterations) do
+    funs =
+      for scenario <- scenarios,
+          {variant, fun} <- variants(scenario),
+          into: %{},
+          do: {"#{scenario.name} #{variant}", fun}
+
+    case Map.fetch(funs, only) do
+      {:ok, fun} -> Task.await(Task.async(fn -> loop(fun, iterations) end), :infinity)
+      :error -> raise "unknown scenario variant #{inspect(only)}, expected one of #{inspect(Map.keys(funs))}"
     end
   end
 
@@ -258,10 +279,22 @@ defmodule Bench.Runner do
       invalid: fn -> JSV.validate(invalid, root) end
     ]
 
+    case valid_fun() do
+      {:ok, valid?} ->
+        validate ++ [fast_valid: fn -> valid?.(valid, root) end, fast_invalid: fn -> valid?.(invalid, root) end]
+
+      :error ->
+        validate
+    end
+  end
+
+  # Captured at runtime so the script compiles without warnings against versions
+  # that do not define JSV.valid?/2.
+  defp valid_fun do
     if function_exported?(JSV, :valid?, 2) do
-      validate ++ [fast_valid: fn -> JSV.valid?(valid, root) end, fast_invalid: fn -> JSV.valid?(invalid, root) end]
+      {:ok, Function.capture(JSV, :valid?, 2)}
     else
-      validate
+      :error
     end
   end
 
@@ -280,8 +313,8 @@ defmodule Bench.Runner do
   end
 
   defp precheck_valid?(scenario, root) do
-    if function_exported?(JSV, :valid?, 2) and
-         {JSV.valid?(scenario.valid, root), JSV.valid?(scenario.invalid, root)} != {true, false} do
+    with {:ok, valid?} <- valid_fun(),
+         result when result != {true, false} <- {valid?.(scenario.valid, root), valid?.(scenario.invalid, root)} do
       raise "precheck failed for #{scenario.name}, valid?/2 disagrees with validate/3"
     end
   end
