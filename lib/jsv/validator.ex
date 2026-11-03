@@ -342,7 +342,7 @@ defmodule JSV.Validator do
 
   Keywords that do not simply reject the data when a subschema rejects it, like
   `not`, `anyOf` or `contains`, must validate their subschemas with this
-  function, `validate_detach/4` or `catch_fail_fast/2`.
+  function, `validate_in_catch/6` or `validate_detach/4`.
   """
   @spec validate_catch(term, validator, context) :: result
   def validate_catch(data, subschema, %ValidationContext{feature_errors: false} = vctx) do
@@ -356,21 +356,38 @@ defmodule JSV.Validator do
   end
 
   @doc """
-  Calls `fun` and returns its result, or an error result when `JSV.valid?/2`
-  stops at the first error during the call.
+  Validates a sub term of the data like `validate_in/6`, but returns an error
+  result instead of stopping the whole validation when `JSV.valid?/2` stops at
+  the first error.
 
-  This is the generic form of `validate_catch/3`, for other validation
-  functions such as `validate_in/6`.
+  See `validate_catch/3`.
   """
-  @spec catch_fail_fast(context, (-> result)) :: result
-  def catch_fail_fast(%ValidationContext{feature_errors: false}, fun) do
-    fun.()
+  @spec validate_in_catch(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) ::
+          result
+  def validate_in_catch(
+        data,
+        key,
+        add_eval_path,
+        subvalidators,
+        vctx,
+        boolean_schema_level \\ ErrorFormatter.level_cause()
+      )
+
+  def validate_in_catch(
+        data,
+        key,
+        add_eval_path,
+        subvalidators,
+        %ValidationContext{feature_errors: false} = vctx,
+        level
+      ) do
+    validate_in(data, key, add_eval_path, subvalidators, vctx, level)
   catch
     {__MODULE__, :fail_fast, err_vctx} -> {:error, err_vctx}
   end
 
-  def catch_fail_fast(%ValidationContext{}, fun) do
-    fun.()
+  def validate_in_catch(data, key, add_eval_path, subvalidators, %ValidationContext{} = vctx, level) do
+    validate_in(data, key, add_eval_path, subvalidators, vctx, level)
   end
 
   @doc """

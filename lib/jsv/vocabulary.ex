@@ -19,7 +19,7 @@ defmodule JSV.Vocabulary do
   With `JSV.valid?/2`, adding an error stops the whole validation. Keywords that
   can accept the data when a subschema rejects it, like `not` or `anyOf`, must
   validate that subschema with `JSV.Validator.validate_catch/3`,
-  `JSV.Validator.validate_detach/4` or `JSV.Validator.catch_fail_fast/2` to get
+  `JSV.Validator.validate_in_catch/6` or `JSV.Validator.validate_detach/4` to get
   the error result.
   """
 
