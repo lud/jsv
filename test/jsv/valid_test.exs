@@ -34,6 +34,10 @@ defmodule JSV.ValidTest do
       end
     end
 
+    defcast never_called(_data) do
+      ExUnit.Assertions.flunk("this should not be called")
+    end
+
     defcast with_context(data, _args, vctx) do
       if is_struct(vctx, JSV.Validator.ValidationContext) do
         {:ok, data}
@@ -135,6 +139,12 @@ defmodule JSV.ValidTest do
     refute JSV.valid?(9, conditional)
     assert JSV.valid?("a", conditional)
     refute JSV.valid?(true, conditional)
+  end
+
+  test "stops allOf at the first failing branch" do
+    root = root!(%{allOf: [%{required: ["a"]}, %{properties: %{b: Schema.xcast(%{}, Casts.never_called())}}]})
+
+    refute JSV.valid?(%{"b" => 1}, root)
   end
 
   test "counts the items that validate the contains schema" do

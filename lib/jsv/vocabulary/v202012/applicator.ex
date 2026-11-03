@@ -533,7 +533,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   defp validate_split(subschemas, kind, data, vctx) do
     {valids, invalids, vctx, _} =
       Enum.reduce(subschemas, {[], [], vctx, _index = 0}, fn subschema, {valids, invalids, vctx, index} ->
-        case Validator.validate_detach(data, {kind, index}, subschema, vctx) do
+        case validate_branch(kind, data, index, subschema, vctx) do
           {:ok, data, detached_vctx} ->
             # Valid subschemas must produce "annotations" (like evaluated
             # properties) and casts. for the data they validate.
@@ -546,6 +546,14 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       end)
 
     {:lists.reverse(valids), :lists.reverse(invalids), vctx}
+  end
+
+  defp validate_branch(:allOf, data, index, subschema, vctx) do
+    Validator.__validate_detach_uncaught__(data, {:allOf, index}, subschema, vctx)
+  end
+
+  defp validate_branch(kind, data, index, subschema, vctx) do
+    Validator.validate_detach(data, {kind, index}, subschema, vctx)
   end
 
   # A `false` subschema makes `with_property_error/3` name the rejected key

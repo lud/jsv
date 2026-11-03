@@ -309,6 +309,14 @@ defmodule JSV.Validator do
     validate_catch(data, subschema, detached_context(vctx, add_eval_path))
   end
 
+  # Same as validate_detach/4 but lets JSV.valid?/2 stop at the first error. Only
+  # for keywords that fail whenever one of their subschemas fails.
+  @doc false
+  @spec __validate_detach_uncaught__(term, eval_sub_path, validator, context) :: result
+  def __validate_detach_uncaught__(data, add_eval_path, subschema, %ValidationContext{} = vctx) do
+    validate(data, subschema, detached_context(vctx, add_eval_path))
+  end
+
   defp detached_context(%ValidationContext{feature_errors: false} = vctx, _add_eval_path) do
     case vctx do
       %{feature_unevaluated: false} -> vctx
