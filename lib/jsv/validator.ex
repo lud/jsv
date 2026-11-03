@@ -28,8 +28,8 @@ defmodule JSV.Validator do
             validate_in_catch: 7,
             sub_term_context: 3,
             same_term_context: 2,
-            scope_context: 3,
-            restore_scope: 3}
+            merge_tracked_casts: 3,
+            merge_tracked_evaluated: 3}
 
   @type context :: %ValidationContext{}
   @type eval_sub_path :: Builder.path_segment() | [Builder.path_segment()]
@@ -564,46 +564,33 @@ defmodule JSV.Validator do
     end
   end
 
-  defp with_scope(%ValidationContext{} = vctx, sub_key, add_eval_path, fun) do
-    %{scope: scopes, eval_path: eval_path} = vctx
-
-    case fun.(scope_context(vctx, sub_key, add_eval_path)) do
-      {:ok, data, vctx} -> {:ok, data, restore_scope(vctx, scopes, eval_path)}
-      {:error, vctx} -> {:error, restore_scope(vctx, scopes, eval_path)}
-    end
-  end
-
-  # Premature optimization that can be removed: skip appending scope if it is
-  # the same as the current one.
-  defp scope_context(vctx, sub_key, add_eval_path) do
+  defp with_scope(vctx, sub_key, add_eval_path, fun) do
     %ValidationContext{config: cfg, scope: scopes, eval_path: eval_path, schema_path: schema_path} = vctx
 
-    case {cfg, Key.namespace_of(sub_key), scopes} do
-      {__cfg(feature_errors: false), same, [same | _]} ->
-        vctx
+    sub_scopes =
+      case {Key.namespace_of(sub_key), scopes} do
+        {same, [same | _]} -> scopes
+        {new_scope, scopes} -> [new_scope | scopes]
+      end
 
-      {__cfg(feature_errors: false), new_scope, scopes} ->
-        %{vctx | scope: [new_scope | scopes]}
+    scoped_vctx =
+      case cfg do
+        __cfg(feature_errors: true) ->
+          %{
+            vctx
+            | scope: sub_scopes,
+              eval_path: append_eval_path(eval_path, add_eval_path),
+              schema_path: append_schema_path(schema_path, add_eval_path)
+          }
 
-      {_, same, [same | _]} ->
-        %{
-          vctx
-          | eval_path: append_eval_path(eval_path, add_eval_path),
-            schema_path: append_schema_path(schema_path, add_eval_path)
-        }
+        __cfg(feature_errors: false) ->
+          %{vctx | scope: sub_scopes}
+      end
 
-      {_, new_scope, scopes} ->
-        %{
-          vctx
-          | scope: [new_scope | scopes],
-            eval_path: append_eval_path(eval_path, add_eval_path),
-            schema_path: append_schema_path(schema_path, add_eval_path)
-        }
+    case fun.(scoped_vctx) do
+      {:ok, data, vctx} -> {:ok, data, %{vctx | scope: scopes, eval_path: eval_path}}
+      {:error, vctx} -> {:error, %{vctx | scope: scopes, eval_path: eval_path}}
     end
-  end
-
-  defp restore_scope(%ValidationContext{} = vctx, scopes, eval_path) do
-    %{vctx | scope: scopes, eval_path: eval_path}
   end
 
   defp append_eval_path(eval_path, add_eval_path) when is_list(add_eval_path) do
@@ -665,15 +652,15 @@ defmodule JSV.Validator do
   * Cast functions (defschema,defcast)
   """
   @spec merge_tracked(context, context) :: context
-  def merge_tracked(%ValidationContext{} = vctx, %ValidationContext{} = sub) do
+  def merge_tracked(%ValidationContext{config: cfg} = vctx, %ValidationContext{} = sub) do
     # Each feature is merged independently and only when active. When neither
     # casts nor unevaluated tracking are used, this is a no-op.
     vctx
-    |> merge_tracked_casts(sub)
-    |> merge_tracked_evaluated(sub)
+    |> merge_tracked_casts(cfg, sub)
+    |> merge_tracked_evaluated(cfg, sub)
   end
 
-  defp merge_tracked_casts(%ValidationContext{config: __cfg(feature_cast: true)} = vctx, sub) do
+  defp merge_tracked_casts(vctx, __cfg(feature_cast: true), sub) do
     cast_stack =
       case {vctx.cast_stack, sub.cast_stack} do
         {same, same} -> same
@@ -684,17 +671,17 @@ defmodule JSV.Validator do
     %{vctx | cast_stack: cast_stack}
   end
 
-  defp merge_tracked_casts(%ValidationContext{config: __cfg(feature_cast: false)} = vctx, _sub) do
+  defp merge_tracked_casts(vctx, __cfg(feature_cast: false), _sub) do
     vctx
   end
 
-  defp merge_tracked_evaluated(%ValidationContext{config: __cfg(feature_unevaluated: true)} = vctx, sub) do
+  defp merge_tracked_evaluated(vctx, __cfg(feature_unevaluated: true), sub) do
     %{evaluated: [top_vctx | rest_vctx]} = vctx
     %{evaluated: [top_sub | _rest_sub]} = sub
     %{vctx | evaluated: [Map.merge(top_vctx, top_sub) | rest_vctx]}
   end
 
-  defp merge_tracked_evaluated(%ValidationContext{config: __cfg(feature_unevaluated: false)} = vctx, _sub) do
+  defp merge_tracked_evaluated(vctx, __cfg(feature_unevaluated: false), _sub) do
     vctx
   end
 
