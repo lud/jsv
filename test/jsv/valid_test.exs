@@ -76,6 +76,31 @@ defmodule JSV.ValidTest do
     refute JSV.valid?([%{"name" => "a"}, %{}], root)
   end
 
+  test "does not call casts with cast: false, as validate/3" do
+    root = root!(Line)
+    data = %{"quantity" => "12a"}
+
+    refute JSV.valid?(data, root)
+    assert JSV.valid?(data, root, cast: false)
+    assert {:ok, ^data} = JSV.validate(data, root, cast: false)
+  end
+
+  test "validates against the schema of the given key" do
+    ctx = JSV.build_init!()
+    {root_key, _, ctx} = JSV.build_add!(ctx, %{"$defs" => %{"positive" => %{type: :integer, minimum: 1}}})
+    {root_key, ctx} = JSV.build_key!(ctx, root_key)
+    {positive_key, ctx} = JSV.build_key!(ctx, JSV.Ref.parse!("#/$defs/positive", :root))
+    root = JSV.to_root!(ctx, root_key)
+
+    assert JSV.valid?(0, root)
+    refute JSV.valid?(0, root, key: positive_key)
+    assert JSV.valid?(1, root, key: positive_key)
+  end
+
+  test "rejects unknown options" do
+    assert_raise ArgumentError, fn -> JSV.valid?(1, root!(%{}), feature_errors: true) end
+  end
+
   test "gives a context to cast functions of arity 3" do
     root = root!(Schema.xcast(%{type: :string}, Casts.with_context([])))
 

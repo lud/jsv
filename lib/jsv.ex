@@ -534,11 +534,19 @@ defmodule JSV do
   Cast functions are called as with `validate/3`, since a failing cast makes the
   data invalid, but the cast data is not returned. Cast functions of arity 3
   receive a context where the data and schema paths are not tracked.
+
+  Accepts the same options as `validate/3`. With `cast: false`, data that would
+  fail a cast is valid, as with `validate/3`.
   """
   @doc group: @doc_group
-  @spec valid?(term, JSV.Root.t()) :: boolean
-  def valid?(data, %JSV.Root{} = root) do
-    opts = %{cast: true, cast_formats: false, feature_errors: false}
+  @spec valid?(term, JSV.Root.t(), [validate_opt]) :: boolean
+  def valid?(data, root, opts \\ [])
+
+  def valid?(data, %JSV.Root{} = root, opts) do
+    opts =
+      opts
+      |> OptsValidator.validate(@default_validation_options, &validate_validation_opts/2)
+      |> Map.put(:feature_errors, false)
 
     case validation_entrypoint(root, data, opts) do
       {:ok, _, _} -> true
