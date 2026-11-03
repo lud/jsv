@@ -21,9 +21,11 @@ defmodule JSV.Validator do
   import ValidationContext, only: [__cfg: 1, __cfg: 2]
 
   @compile {:inline,
-            subschema_context: 2,
             subschema_context: 3,
-            detached_context: 2,
+            subschema_context: 4,
+            detached_context: 3,
+            validate_catch: 4,
+            validate_in_catch: 7,
             sub_term_context: 3,
             same_term_context: 2,
             scope_context: 3,
@@ -100,12 +102,12 @@ defmodule JSV.Validator do
   # When :feature_cast is false (no cast anywhere in the schema, or the :cast
   # option is disabled), we skip the whole cast stack machinery: nothing will
   # ever be cast, so the push/pop bookkeeping is pure overhead.
-  def validate(data, %Subschema{} = sub, %{config: __cfg(feature_cast: true)} = vctx) do
+  def validate(data, %Subschema{} = sub, %{config: __cfg(feature_cast: true, feature_errors: feature_errors)} = vctx) do
     %{validators: validators, cast: cast} = sub
 
     # * Set the path of the current validator to he one of the subschema
     # * push the cast of the subschema into the stack. after validation
-    vctx = subschema_context(vctx, sub, push_cast(vctx.cast_stack, cast))
+    vctx = subschema_context(vctx, feature_errors, sub, push_cast(vctx.cast_stack, cast))
 
     vdr_result = call_vocabulary(validators, data, vctx)
 
@@ -115,24 +117,24 @@ defmodule JSV.Validator do
     end
   end
 
-  def validate(data, %Subschema{} = sub, %{config: __cfg(feature_cast: false)} = vctx) do
-    call_vocabulary(sub.validators, data, subschema_context(vctx, sub))
+  def validate(data, %Subschema{} = sub, %{config: __cfg(feature_cast: false, feature_errors: feature_errors)} = vctx) do
+    call_vocabulary(sub.validators, data, subschema_context(vctx, feature_errors, sub))
   end
 
-  defp subschema_context(%ValidationContext{config: __cfg(feature_errors: false)} = vctx, _sub) do
-    vctx
-  end
-
-  defp subschema_context(%ValidationContext{} = vctx, sub) do
+  defp subschema_context(vctx, true = _feature_errors, sub) do
     %{vctx | schema_path: sub.schema_path}
   end
 
-  defp subschema_context(%ValidationContext{config: __cfg(feature_errors: false)} = vctx, _sub, cast_stack) do
-    %{vctx | cast_stack: cast_stack}
+  defp subschema_context(vctx, false = _feature_errors, _sub) do
+    vctx
   end
 
-  defp subschema_context(%ValidationContext{} = vctx, sub, cast_stack) do
+  defp subschema_context(vctx, true = _feature_errors, sub, cast_stack) do
     %{vctx | schema_path: sub.schema_path, cast_stack: cast_stack}
+  end
+
+  defp subschema_context(vctx, false = _feature_errors, _sub, cast_stack) do
+    %{vctx | cast_stack: cast_stack}
   end
 
   # Pushing a cast from a subschema is special. Multiple casts can be attempted
@@ -278,26 +280,27 @@ defmodule JSV.Validator do
   the validation by the given `subschema`.
   """
   @spec validate_detach(term, eval_sub_path, validator, context) :: result
-  def validate_detach(data, add_eval_path, subschema, %ValidationContext{} = vctx) do
-    validate_catch(data, subschema, detached_context(vctx, add_eval_path))
+  def validate_detach(data, add_eval_path, subschema, %ValidationContext{config: cfg} = vctx) do
+    __cfg(feature_errors: feature_errors) = cfg
+    validate_catch(data, subschema, detached_context(vctx, cfg, add_eval_path), feature_errors)
   end
 
   # Same as validate_detach/4 but lets JSV.valid?/2 stop at the first error. Only
   # for keywords that fail whenever one of their subschemas fails.
   @doc false
   @spec __validate_detach_uncaught__(term, eval_sub_path, validator, context) :: result
-  def __validate_detach_uncaught__(data, add_eval_path, subschema, %ValidationContext{} = vctx) do
-    validate(data, subschema, detached_context(vctx, add_eval_path))
+  def __validate_detach_uncaught__(data, add_eval_path, subschema, %ValidationContext{config: cfg} = vctx) do
+    validate(data, subschema, detached_context(vctx, cfg, add_eval_path))
   end
 
-  defp detached_context(%ValidationContext{config: __cfg(feature_errors: false)} = vctx, _add_eval_path) do
-    case vctx do
-      %{config: __cfg(feature_unevaluated: false)} -> vctx
+  defp detached_context(vctx, __cfg(feature_errors: false) = cfg, _add_eval_path) do
+    case cfg do
+      __cfg(feature_unevaluated: false) -> vctx
       _ -> %{vctx | evaluated: [%{}]}
     end
   end
 
-  defp detached_context(%ValidationContext{} = vctx, add_eval_path) do
+  defp detached_context(vctx, _cfg, add_eval_path) do
     %{eval_path: eval_path, schema_path: schema_path} = vctx
 
     %{
@@ -318,14 +321,18 @@ defmodule JSV.Validator do
   function, `validate_in_catch/6` or `validate_detach/4`.
   """
   @spec validate_catch(term, validator, context) :: result
-  def validate_catch(data, subschema, %ValidationContext{config: __cfg(feature_errors: false)} = vctx) do
+  def validate_catch(data, subschema, %ValidationContext{config: __cfg(feature_errors: feature_errors)} = vctx) do
+    validate_catch(data, subschema, vctx, feature_errors)
+  end
+
+  defp validate_catch(data, subschema, vctx, true = _feature_errors) do
+    validate(data, subschema, vctx)
+  end
+
+  defp validate_catch(data, subschema, vctx, false = _feature_errors) do
     validate(data, subschema, vctx)
   catch
     {__MODULE__, :fail_fast} -> {:error, fail_fast_context(vctx)}
-  end
-
-  def validate_catch(data, subschema, %ValidationContext{} = vctx) do
-    validate(data, subschema, vctx)
   end
 
   @doc """
@@ -351,16 +358,20 @@ defmodule JSV.Validator do
         key,
         add_eval_path,
         subvalidators,
-        %ValidationContext{config: __cfg(feature_errors: false)} = vctx,
+        %ValidationContext{config: __cfg(feature_errors: feature_errors)} = vctx,
         level
       ) do
+    validate_in_catch(data, key, add_eval_path, subvalidators, vctx, level, feature_errors)
+  end
+
+  defp validate_in_catch(data, key, add_eval_path, subvalidators, vctx, level, true = _feature_errors) do
+    validate_in(data, key, add_eval_path, subvalidators, vctx, level)
+  end
+
+  defp validate_in_catch(data, key, add_eval_path, subvalidators, vctx, level, false = _feature_errors) do
     validate_in(data, key, add_eval_path, subvalidators, vctx, level)
   catch
     {__MODULE__, :fail_fast} -> {:error, fail_fast_context(vctx)}
-  end
-
-  def validate_in_catch(data, key, add_eval_path, subvalidators, %ValidationContext{} = vctx, level) do
-    validate_in(data, key, add_eval_path, subvalidators, vctx, level)
   end
 
   @doc """
@@ -427,38 +438,44 @@ defmodule JSV.Validator do
 
   # A sub term can never be equal to its parent term, seen refs cannot match
   # anymore so we can discard them.
-  defp sub_term_context(%ValidationContext{config: __cfg(feature_errors: false)} = vctx, _key, _add_eval_path) do
-    case vctx do
-      %{seen_refs: [], cast_stack: nil, config: __cfg(feature_unevaluated: false)} -> vctx
-      _ -> %{vctx | seen_refs: [], cast_stack: nil, evaluated: push_evaluated(vctx, vctx.evaluated)}
-    end
-  end
-
-  defp sub_term_context(%ValidationContext{} = vctx, key, add_eval_path) do
+  defp sub_term_context(vctx, key, add_eval_path) do
     %ValidationContext{
+      config: cfg,
       data_path: data_path,
       evaluated: evaluated,
       eval_path: eval_path,
       schema_path: schema_path
     } = vctx
 
-    %{
-      vctx
-      | data_path: [key | data_path],
-        eval_path: append_eval_path(eval_path, add_eval_path),
-        schema_path: append_schema_path(schema_path, add_eval_path),
-        errors: [],
-        evaluated: push_evaluated(vctx, evaluated),
-        seen_refs: [],
-        cast_stack: nil
-    }
+    case cfg do
+      __cfg(feature_errors: true) ->
+        %{
+          vctx
+          | data_path: [key | data_path],
+            eval_path: append_eval_path(eval_path, add_eval_path),
+            schema_path: append_schema_path(schema_path, add_eval_path),
+            errors: [],
+            evaluated: push_evaluated(cfg, evaluated),
+            seen_refs: [],
+            cast_stack: nil
+        }
+
+      __cfg(feature_unevaluated: false) ->
+        case vctx do
+          %{seen_refs: [], cast_stack: nil} -> vctx
+          _ -> %{vctx | seen_refs: [], cast_stack: nil}
+        end
+
+      _ ->
+        %{vctx | seen_refs: [], cast_stack: nil, evaluated: push_evaluated(cfg, evaluated)}
+    end
   end
 
   @doc """
   Validates data with a sub part of the schema, for instance `if`, `then` or
   `else`. Data path will not change in the context.
 
-  See `validate_in/5` to validate sub terms of the data.
+  See `validate_in/6` to validate sub terms of the data.
   """
   @spec validate_as(term, eval_sub_path(), validator(), context) :: result
   def validate_as(data, add_eval_path, subvalidators, vctx) do
@@ -478,23 +495,25 @@ defmodule JSV.Validator do
   # The cast stack is kept as-is: the sub part validates the same data point as
   # its parent, so a cast defined in it belongs to the same stack and must still
   # be applied by the topmost validator for that data path.
-  defp same_term_context(%ValidationContext{config: __cfg(feature_errors: false)} = vctx, _add_eval_path) do
-    case vctx do
-      %{config: __cfg(feature_unevaluated: false)} -> vctx
-      _ -> %{vctx | evaluated: push_evaluated(vctx, vctx.evaluated)}
+  defp same_term_context(vctx, add_eval_path) do
+    %ValidationContext{config: cfg, evaluated: evaluated, eval_path: eval_path, schema_path: schema_path} = vctx
+
+    case cfg do
+      __cfg(feature_errors: true) ->
+        %{
+          vctx
+          | eval_path: append_eval_path(eval_path, add_eval_path),
+            schema_path: append_schema_path(schema_path, add_eval_path),
+            errors: [],
+            evaluated: push_evaluated(cfg, evaluated)
+        }
+
+      __cfg(feature_unevaluated: false) ->
+        vctx
+
+      _ ->
+        %{vctx | evaluated: push_evaluated(cfg, evaluated)}
     end
-  end
-
-  defp same_term_context(%ValidationContext{} = vctx, add_eval_path) do
-    %ValidationContext{evaluated: evaluated, eval_path: eval_path, schema_path: schema_path} = vctx
-
-    %{
-      vctx
-      | eval_path: append_eval_path(eval_path, add_eval_path),
-        schema_path: append_schema_path(schema_path, add_eval_path),
-        errors: [],
-        evaluated: push_evaluated(vctx, evaluated)
-    }
   end
 
   @doc """
@@ -556,27 +575,24 @@ defmodule JSV.Validator do
 
   # Premature optimization that can be removed: skip appending scope if it is
   # the same as the current one.
-  defp scope_context(%ValidationContext{config: __cfg(feature_errors: false)} = vctx, sub_key, _add_eval_path) do
-    %{scope: scopes} = vctx
+  defp scope_context(vctx, sub_key, add_eval_path) do
+    %ValidationContext{config: cfg, scope: scopes, eval_path: eval_path, schema_path: schema_path} = vctx
 
-    case {Key.namespace_of(sub_key), scopes} do
-      {same, [same | _]} -> vctx
-      {new_scope, scopes} -> %{vctx | scope: [new_scope | scopes]}
-    end
-  end
+    case {cfg, Key.namespace_of(sub_key), scopes} do
+      {__cfg(feature_errors: false), same, [same | _]} ->
+        vctx
 
-  defp scope_context(%ValidationContext{} = vctx, sub_key, add_eval_path) do
-    %{scope: scopes, eval_path: eval_path, schema_path: schema_path} = vctx
+      {__cfg(feature_errors: false), new_scope, scopes} ->
+        %{vctx | scope: [new_scope | scopes]}
 
-    case {Key.namespace_of(sub_key), scopes} do
-      {same, [same | _]} ->
+      {_, same, [same | _]} ->
         %{
           vctx
           | eval_path: append_eval_path(eval_path, add_eval_path),
             schema_path: append_schema_path(schema_path, add_eval_path)
         }
 
-      {new_scope, scopes} ->
+      {_, new_scope, scopes} ->
         %{
           vctx
           | scope: [new_scope | scopes],
@@ -820,11 +836,11 @@ defmodule JSV.Validator do
   # Pushes a fresh evaluation frame for a nested validation, but only when the
   # schema actually uses unevaluatedProperties/unevaluatedItems. Otherwise the
   # frame would never be read, so we keep the parent list untouched.
-  defp push_evaluated(%ValidationContext{config: __cfg(feature_unevaluated: true)}, evaluated) do
+  defp push_evaluated(__cfg(feature_unevaluated: true), evaluated) do
     [%{} | evaluated]
   end
 
-  defp push_evaluated(%ValidationContext{config: __cfg(feature_unevaluated: false)}, evaluated) do
+  defp push_evaluated(__cfg(feature_unevaluated: false), evaluated) do
     evaluated
   end
 
