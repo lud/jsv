@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.0] - 2026-11-04
+
+New `JSV.valid?/2` function: it returns a boolean and stops at the first error. It skips building errors and tracking the paths used to report them, so it is cheaper than `JSV.validate/3` when the errors are not needed. Cast functions are still called, because a failing cast makes the data invalid, but the cast data is not returned. Thanks to @larshesel for this contribution ([#155](https://github.com/lud/jsv/pull/155)).
+
+`JSV.validate/3` is also faster: it executes 4% to 11% fewer instructions than in 0.26.2 on the library benchmarks, and more on schemas using `$ref` or module schemas.
+
+**Custom vocabularies.** With `JSV.valid?/2`, the first error stops the whole validation. Keywords that test the result of a subschema and can accept the data that the subschema rejects, like `not`, `anyOf` or `contains`, must validate it with `JSV.Validator.validate_detach/4`, or with the new `JSV.Validator.validate_in_detach/6` for a property or array item. With `validate/3`, `validate_in/6` or `validate_as/4`, such keywords would wrongly reject data under `JSV.valid?/2`. Results with `JSV.validate/3` are unchanged. The `JSV.Vocabulary` documentation describes which function to use.
+
+The `validators` and `opts` fields of the validation context moved to an internal `config` field. Read them with `JSV.Validator.ValidationContext.config/2`, for instance `ValidationContext.config(vctx, :opts)`.
+
+
+### 🚀 Features
+
+- Add JSV.valid?/2, a fail-fast validation mode (#155) (_Lars Hesel Christensen_)
+
+### 🚜 Refactor
+
+- Reduce fail-fast validator helpers to validate_detach and validate_in_detach (_lud_)
+
+### ⚡ Performance
+
+- Pin benchmarks to one CPU and count instructions per call (_lud_)
+- Group constant validation context fields in a record (_lud_)
+- Read the fail-fast flag in existing context matches (_lud_)
+- Limit validator context lookups when changing scope (_lud_)
+- Report allocated words per call in benchmarks (_lud_)
+- Update the validator context only once when entering and leaving a $ref (_lud_)
+
+### 🧪 Testing
+
+- Cover fail-fast catches in 'contains', if and custom keywords (_lud_)
+
+### ⚙️ Miscellaneous Tasks
+
+- Make JSV.Validator.Error type non-opaque (_lud_)
+
 ## [0.26.2] - 2026-10-31
 
 **Security fix: [CVE-2026-117680](https://cna.erlef.org/cves/CVE-2026-117680.html) / [GHSA-cvmg-hgv6-jqcp](https://github.com/lud/jsv/security/advisories/GHSA-cvmg-hgv6-jqcp).** All users validating untrusted data against schemas with `pattern` or `patternProperties` should upgrade.
@@ -11,7 +47,6 @@ When a regex exhausted its backtracking budget, the match was reported as a non-
 An exhausted budget is now an indeterminate result: validation stops and returns a `JSV.ValidationError` with a single error of kind `indeterminate_pattern`, which combinators cannot invert. Such data is now always rejected, even when it would match. If valid data gets rejected this way, rewrite the pattern without nested quantifiers or overlapping alternatives.
 
 `minLength` and `maxLength` now count Unicode code points instead of grapheme clusters, as required by the specification. For instance `"é"` written as `e` followed by U+0301 now has a length of 2.
-
 
 ### 🐛 Bug Fixes
 
