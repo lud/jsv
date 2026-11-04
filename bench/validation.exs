@@ -21,6 +21,10 @@
 # rounds, along with the fastest round. Reductions per call are less sensitive
 # to machine noise than time and are a good first signal when comparing two
 # checkouts.
+#
+# Allocated words per call are the words reclaimed by garbage collections
+# during a round, including a full collection at its end. Nothing allocated by
+# the calls stays alive, so this is exact.
 
 defmodule Bench.Tag do
   use JSV.Schema
@@ -324,12 +328,13 @@ defmodule Bench.Runner do
     results = Enum.map(1..rounds, fn _ -> run_round(fun, iterations) end)
     times = Enum.sort(Enum.map(results, &elem(&1, 0)))
     reductions = Enum.sort(Enum.map(results, &elem(&1, 1)))
+    words = Enum.sort(Enum.map(results, &elem(&1, 2)))
 
-    %{median: median(times), min: hd(times), reductions: median(reductions)}
+    %{median: median(times), min: hd(times), reductions: median(reductions), words: median(words)}
   end
 
   defp calibrate(fun, round_ms) do
-    {ns, _} = run_round(fun, 100)
+    {ns, _, _} = run_round(fun, 100)
     max(100, trunc(round_ms * 1_000_000 / ns))
   end
 
@@ -338,12 +343,15 @@ defmodule Bench.Runner do
       Task.async(fn ->
         loop(fun, div(iterations, 10) + 1)
         :erlang.garbage_collect()
+        {_, w0, _} = :erlang.statistics(:garbage_collection)
         {:reductions, r0} = Process.info(self(), :reductions)
         t0 = System.monotonic_time(:nanosecond)
         loop(fun, iterations)
         t1 = System.monotonic_time(:nanosecond)
         {:reductions, r1} = Process.info(self(), :reductions)
-        {(t1 - t0) / iterations, (r1 - r0) / iterations}
+        :erlang.garbage_collect()
+        {_, w1, _} = :erlang.statistics(:garbage_collection)
+        {(t1 - t0) / iterations, (r1 - r0) / iterations, (w1 - w0) / iterations}
       end)
 
     Task.await(task, :infinity)
@@ -363,11 +371,15 @@ defmodule Bench.Runner do
   end
 
   defp header do
-    pad("scenario", 34) <> lpad("median µs", 12) <> lpad("min µs", 12) <> lpad("reductions", 12)
+    pad("scenario", 34) <> lpad("median µs", 12) <> lpad("min µs", 12) <> lpad("reductions", 12) <> lpad("words", 12)
   end
 
-  defp row(label, %{median: median, min: min, reductions: reductions}) do
-    pad(label, 34) <> lpad(us(median), 12) <> lpad(us(min), 12) <> lpad(Integer.to_string(round(reductions)), 12)
+  defp row(label, %{median: median, min: min, reductions: reductions, words: words}) do
+    pad(label, 34) <>
+      lpad(us(median), 12) <>
+      lpad(us(min), 12) <>
+      lpad(Integer.to_string(round(reductions)), 12) <>
+      lpad(Integer.to_string(round(words)), 12)
   end
 
   defp us(ns) do

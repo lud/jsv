@@ -33,6 +33,9 @@
 # scenario and once with none. The difference divided by N is the count per
 # call. N is derived from the median time of the first pass.
 #
+# Allocated words per call are exact, see bench/validation.exs, and are
+# summarized with their change from the first version.
+#
 # Raw outputs are written in bench/output/compare-<timestamp>/.
 #
 # Interesting commits:
@@ -217,6 +220,7 @@ awk -v labels="${summary_files[*]}" '
     key = scenario SUBSEP file
     if (!(key in best) || $3 + 0 < best[key] + 0) best[key] = $3
     reductions[key] = $5
+    words[key] = $6
   }
   END {
     printf "%-34s", "scenario"
@@ -227,6 +231,22 @@ awk -v labels="${summary_files[*]}" '
       for (i = 1; i <= n; i++) {
         key = order[s] SUBSEP names[i]
         printf "%" width[i] "s", sprintf("%s / %s", best[key], reductions[key])
+      }
+      printf "\n"
+    }
+    printf "\n== Summary: allocated words per call, change from %s\n", names[1]
+    printf "%-34s", "scenario"
+    for (i = 1; i <= n; i++) printf "%" width[i] "s", names[i]
+    printf "\n"
+    for (s = 1; s <= count; s++) {
+      printf "%-34s", order[s]
+      base = words[order[s] SUBSEP names[1]] + 0
+      for (i = 1; i <= n; i++) {
+        key = order[s] SUBSEP names[i]
+        if (!(key in words) || words[key] == "") cell = ""
+        else if (i == 1 || base == 0) cell = words[key]
+        else cell = sprintf("%s (%+.2f%%)", words[key], (words[key] - base) * 100 / base)
+        printf "%" width[i] "s", cell
       }
       printf "\n"
     }
