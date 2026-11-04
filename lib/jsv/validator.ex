@@ -28,6 +28,7 @@ defmodule JSV.Validator do
             validate_in_catch: 7,
             sub_term_context: 3,
             same_term_context: 2,
+            push_scope: 2,
             merge_tracked_casts: 3,
             merge_tracked_evaluated: 3}
 
@@ -525,7 +526,14 @@ defmodule JSV.Validator do
   """
   @spec validate_ref(term, Key.t(), eval_sub_path(), context) :: result
   def validate_ref(data, ref, eval_path, vctx) do
-    %{seen_refs: seen_refs} = vctx
+    %ValidationContext{
+      config: cfg,
+      seen_refs: seen_refs,
+      scope: scopes,
+      eval_path: parent_eval_path,
+      schema_path: schema_path
+    } = vctx
+
     seen_key = {ref, data}
 
     # A ref that is already being evaluated with the same data is an infinite
@@ -534,44 +542,40 @@ defmodule JSV.Validator do
     if seen_key in seen_refs do
       {:ok, data, vctx}
     else
-      result =
-        with_scope(%{vctx | seen_refs: [seen_key | seen_refs]}, ref, {:ref, eval_path, ref}, fn vctx ->
-          do_validate_ref(data, ref, vctx)
-        end)
+      ref_scopes = push_scope(scopes, ref)
+      add_eval_path = {:ref, eval_path, ref}
 
-      case result do
-        {:ok, data, vctx} -> {:ok, data, %{vctx | seen_refs: seen_refs}}
-        {:error, vctx} -> {:error, %{vctx | seen_refs: seen_refs}}
+      ref_vctx =
+        case cfg do
+          __cfg(feature_errors: true) ->
+            %{
+              vctx
+              | seen_refs: [seen_key | seen_refs],
+                scope: ref_scopes,
+                eval_path: append_eval_path(parent_eval_path, add_eval_path),
+                schema_path: append_schema_path(schema_path, add_eval_path),
+                errors: []
+            }
+
+          __cfg(feature_errors: false) ->
+            %{vctx | seen_refs: [seen_key | seen_refs], scope: ref_scopes, errors: []}
+        end
+
+      subvalidators = checkout_ref(__cfg(cfg, :validators), ref_scopes, ref)
+
+      # The parent context is returned with what the referenced schema tracked,
+      # which restores the seen refs, scope and paths at once.
+      case validate(data, subvalidators, ref_vctx) do
+        {:ok, data, ref_vctx} -> {:ok, data, merge_tracked(vctx, ref_vctx)}
+        {:error, ref_vctx} -> {:error, merge_errors(vctx, ref_vctx)}
       end
-    end
-  end
-
-  defp do_validate_ref(data, ref, %ValidationContext{} = vctx) do
-    subvalidators = checkout_ref(vctx, ref)
-
-    separate_vctx =
-      case vctx do
-        %{errors: []} -> vctx
-        _ -> %{vctx | errors: []}
-      end
-
-    case validate(data, subvalidators, separate_vctx) do
-      {:ok, data, separate_vctx} ->
-        {:ok, data, merge_tracked(vctx, separate_vctx)}
-
-      {:error, %ValidationContext{errors: [_ | _]} = separate_vctx} ->
-        {:error, merge_errors(vctx, separate_vctx)}
     end
   end
 
   defp with_scope(vctx, sub_key, add_eval_path, fun) do
     %ValidationContext{config: cfg, scope: scopes, eval_path: eval_path, schema_path: schema_path} = vctx
 
-    sub_scopes =
-      case {Key.namespace_of(sub_key), scopes} do
-        {same, [same | _]} -> scopes
-        {new_scope, scopes} -> [new_scope | scopes]
-      end
+    sub_scopes = push_scope(scopes, sub_key)
 
     scoped_vctx =
       case cfg do
@@ -590,6 +594,13 @@ defmodule JSV.Validator do
     case fun.(scoped_vctx) do
       {:ok, data, vctx} -> {:ok, data, %{vctx | scope: scopes, eval_path: eval_path}}
       {:error, vctx} -> {:error, %{vctx | scope: scopes, eval_path: eval_path}}
+    end
+  end
+
+  defp push_scope(scopes, key) do
+    case {Key.namespace_of(key), scopes} do
+      {same, [same | _]} -> scopes
+      {new_scope, scopes} -> [new_scope | scopes]
     end
   end
 
@@ -698,27 +709,27 @@ defmodule JSV.Validator do
     {:error, vctx}
   end
 
-  defp checkout_ref(%{scope: scope} = vctx, {:dynamic_anchor, ns, anchor}) do
-    case checkout_dynamic_ref(scope, vctx, anchor) do
-      :error -> checkout_ref(vctx, {:anchor, ns, anchor})
+  defp checkout_ref(validators, scopes, {:dynamic_anchor, ns, anchor}) do
+    case checkout_dynamic_ref(validators, scopes, anchor) do
+      :error -> Map.fetch!(validators, {:anchor, ns, anchor})
       {:ok, v} -> v
     end
   end
 
-  defp checkout_ref(%{config: __cfg(validators: vds)}, vkey) do
-    Map.fetch!(vds, vkey)
+  defp checkout_ref(validators, _scopes, vkey) do
+    Map.fetch!(validators, vkey)
   end
 
-  defp checkout_dynamic_ref([h | scope], vctx, anchor) do
+  defp checkout_dynamic_ref(validators, [h | scopes], anchor) do
     # Recursion first as the outermost scope should have priority. If the
     # dynamic ref resolution fails with all outer scopes, then actually try to
     # resolve from this scope.
-    with :error <- checkout_dynamic_ref(scope, vctx, anchor) do
-      Map.fetch(__cfg(vctx.config, :validators), {:dynamic_anchor, h, anchor})
+    with :error <- checkout_dynamic_ref(validators, scopes, anchor) do
+      Map.fetch(validators, {:dynamic_anchor, h, anchor})
     end
   end
 
-  defp checkout_dynamic_ref([], _, _) do
+  defp checkout_dynamic_ref(_validators, [], _anchor) do
     :error
   end
 
