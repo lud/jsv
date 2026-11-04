@@ -32,7 +32,7 @@ defmodule JSV.CustomVocabulariesTest do
 
     @impl true
     def validate(data, [{:"x-reject", subschema}], vctx) do
-      case Validator.validate_catch(data, subschema, vctx) do
+      case Validator.validate_detach(data, :"x-reject", subschema, vctx) do
         {:ok, _, _} -> {:error, Validator.with_error(vctx, :reject, data, [])}
         {:error, _} -> {:ok, data, vctx}
       end
@@ -45,7 +45,7 @@ defmodule JSV.CustomVocabulariesTest do
   end
 
   describe "keywords with subschemas" do
-    test "accept data rejected by a subschema with validate_catch/3, in both modes" do
+    test "accept data rejected by a subschema with validate_detach/4, in both modes" do
       root =
         JSV.build!(%{"x-reject" => %{"type" => "integer"}},
           vocabularies: %{"https://json-schema.org/draft/2020-12/vocab/content" => RejectVocabulary}

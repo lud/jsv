@@ -442,7 +442,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       data
       |> Enum.with_index()
       |> Validator.reduce(0, vctx, fn {item, index}, count, vctx ->
-        case Validator.validate_in_catch(item, index, :contains, subschema, vctx) do
+        case Validator.validate_in_detach(item, index, :contains, subschema, vctx) do
           {:ok, _, vctx} -> {:ok, count + 1, vctx}
           {:error, _} -> {:ok, count, vctx}
         end
@@ -481,7 +481,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def validate_keyword({:not, schema}, data, vctx) do
-    case Validator.validate_catch(data, schema, vctx) do
+    case Validator.validate_detach(data, :not, schema, vctx) do
       {:ok, data, vctx} -> {:error, Validator.with_error(vctx, :not, data, [])}
       {:error, _} -> {:ok, data, vctx}
     end

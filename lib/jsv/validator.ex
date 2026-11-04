@@ -24,8 +24,8 @@ defmodule JSV.Validator do
             subschema_context: 3,
             subschema_context: 4,
             detached_context: 3,
-            validate_catch: 4,
-            validate_in_catch: 7,
+            validate_catching: 4,
+            validate_in_catching: 7,
             sub_term_context: 3,
             same_term_context: 2,
             push_scope: 2,
@@ -274,16 +274,25 @@ defmodule JSV.Validator do
   end
 
   @doc """
-  Validate the data with the given validators but separate the current
-  evaluation context during the validation.
+  Validates the data with a subschema whose result the keyword tests rather
+  than enforces, like the subschema of `not`, the branches of `anyOf` or
+  `oneOf`, or the `if` condition.
 
-  Currently evaluated properties or items will not be seen as evaluated during
-  the validation by the given `subschema`.
+  The subschema is validated in a separate evaluation context: properties or
+  items evaluated so far are not seen as evaluated by the subschema, and the
+  error result only holds the errors of the subschema.
+
+  With `JSV.valid?/2`, the first error of the subschema stops its validation
+  and this function returns an error result, so the keyword can carry on. As
+  errors are not collected in that mode, its context holds a single placeholder
+  error.
+
+  See `validate_in_detach/6` to test a sub term of the data.
   """
   @spec validate_detach(term, eval_sub_path, validator, context) :: result
   def validate_detach(data, add_eval_path, subschema, %ValidationContext{config: cfg} = vctx) do
     __cfg(feature_errors: feature_errors) = cfg
-    validate_catch(data, subschema, detached_context(vctx, cfg, add_eval_path), feature_errors)
+    validate_catching(data, subschema, detached_context(vctx, cfg, add_eval_path), feature_errors)
   end
 
   # Same as validate_detach/4 but lets JSV.valid?/2 stop at the first error. Only
@@ -313,39 +322,26 @@ defmodule JSV.Validator do
     }
   end
 
-  @doc """
-  Validates the data like `validate/3`, but returns an error result instead of
-  stopping the whole validation when `JSV.valid?/2` stops at the first error.
-
-  Keywords that do not simply reject the data when a subschema rejects it, like
-  `not`, `anyOf` or `contains`, must validate their subschemas with this
-  function, `validate_in_catch/6` or `validate_detach/4`.
-  """
-  @spec validate_catch(term, validator, context) :: result
-  def validate_catch(data, subschema, %ValidationContext{config: __cfg(feature_errors: feature_errors)} = vctx) do
-    validate_catch(data, subschema, vctx, feature_errors)
-  end
-
-  defp validate_catch(data, subschema, vctx, true = _feature_errors) do
+  defp validate_catching(data, subschema, vctx, true = _feature_errors) do
     validate(data, subschema, vctx)
   end
 
-  defp validate_catch(data, subschema, vctx, false = _feature_errors) do
+  defp validate_catching(data, subschema, vctx, false = _feature_errors) do
     validate(data, subschema, vctx)
   catch
-    {__MODULE__, :fail_fast} -> {:error, fail_fast_context(vctx)}
+    {__MODULE__, :fail_fast} -> {:error, context_with_fail_fast_error(vctx)}
   end
 
   @doc """
-  Validates a sub term of the data like `validate_in/6`, but returns an error
-  result instead of stopping the whole validation when `JSV.valid?/2` stops at
-  the first error.
+  Validates a sub term of the data like `validate_in/6`, with a subschema whose
+  result the keyword tests rather than enforces, like the subschema of
+  `contains`.
 
-  See `validate_catch/3`.
+  See `validate_detach/4`.
   """
-  @spec validate_in_catch(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) ::
+  @spec validate_in_detach(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) ::
           result
-  def validate_in_catch(
+  def validate_in_detach(
         data,
         key,
         add_eval_path,
@@ -354,7 +350,7 @@ defmodule JSV.Validator do
         boolean_schema_level \\ ErrorFormatter.level_cause()
       )
 
-  def validate_in_catch(
+  def validate_in_detach(
         data,
         key,
         add_eval_path,
@@ -362,17 +358,17 @@ defmodule JSV.Validator do
         %ValidationContext{config: __cfg(feature_errors: feature_errors)} = vctx,
         level
       ) do
-    validate_in_catch(data, key, add_eval_path, subvalidators, vctx, level, feature_errors)
+    validate_in_catching(data, key, add_eval_path, subvalidators, vctx, level, feature_errors)
   end
 
-  defp validate_in_catch(data, key, add_eval_path, subvalidators, vctx, level, true = _feature_errors) do
+  defp validate_in_catching(data, key, add_eval_path, subvalidators, vctx, level, true = _feature_errors) do
     validate_in(data, key, add_eval_path, subvalidators, vctx, level)
   end
 
-  defp validate_in_catch(data, key, add_eval_path, subvalidators, vctx, level, false = _feature_errors) do
+  defp validate_in_catching(data, key, add_eval_path, subvalidators, vctx, level, false = _feature_errors) do
     validate_in(data, key, add_eval_path, subvalidators, vctx, level)
   catch
-    {__MODULE__, :fail_fast} -> {:error, fail_fast_context(vctx)}
+    {__MODULE__, :fail_fast} -> {:error, context_with_fail_fast_error(vctx)}
   end
 
   @doc """
@@ -473,8 +469,9 @@ defmodule JSV.Validator do
   end
 
   @doc """
-  Validates data with a sub part of the schema, for instance `if`, `then` or
-  `else`. Data path will not change in the context.
+  Validates data with a sub part of the schema that the data must be valid
+  against, for instance the subschemas of `dependentSchemas`. Data path will not
+  change in the context.
 
   See `validate_in/6` to validate sub terms of the data.
   """
@@ -827,7 +824,7 @@ defmodule JSV.Validator do
     schema_path: []
   }
 
-  defp fail_fast_context(vctx) do
+  defp context_with_fail_fast_error(vctx) do
     %{vctx | errors: [@fail_fast_error]}
   end
 
