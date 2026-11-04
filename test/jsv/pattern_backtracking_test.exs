@@ -102,6 +102,14 @@ defmodule JSV.PatternBacktrackingTest do
       assert_indeterminate(schema, key)
     end
 
+    test "invalid data cannot bypass a not-contains deny-list", %{key: key} do
+      assert_indeterminate(%{"not" => %{"contains" => %{"pattern" => @evil_matching_pattern}}}, [key])
+    end
+
+    test "invalid data cannot skip then when the if condition is indeterminate", %{key: key} do
+      assert_indeterminate(%{"if" => %{"pattern" => @evil_matching_pattern}, "then" => false}, key)
+    end
+
     test "invalid data cannot bypass a not-pattern deny-list on property names", %{key: key} do
       assert_indeterminate(%{"propertyNames" => %{"not" => %{"pattern" => @evil_matching_pattern}}}, %{key => 1})
     end

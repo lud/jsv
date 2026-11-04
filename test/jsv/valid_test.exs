@@ -120,6 +120,25 @@ defmodule JSV.ValidTest do
     assert_agrees(root, %{"quantity" => "12a", "fallback" => true})
   end
 
+  test "applies else when the if condition fails on a nested cast" do
+    root = root!(%{if: Line, then: %{required: [:then]}, else: %{required: [:else]}})
+
+    then_valid = %{"quantity" => "12", "then" => true}
+    else_valid = %{"quantity" => "12a", "else" => true}
+    then_invalid = %{"quantity" => "12", "else" => true}
+    else_invalid = %{"quantity" => "12a", "then" => true}
+
+    assert {:ok, _} = JSV.validate(then_valid, root)
+    assert {:ok, _} = JSV.validate(else_valid, root)
+    assert {:error, _} = JSV.validate(then_invalid, root)
+    assert {:error, _} = JSV.validate(else_invalid, root)
+
+    assert JSV.valid?(then_valid, root)
+    assert JSV.valid?(else_valid, root)
+    refute JSV.valid?(then_invalid, root)
+    refute JSV.valid?(else_invalid, root)
+  end
+
   test "supports oneOf, allOf, not and if/then/else" do
     one_of = root!(%{oneOf: [%{type: :integer}, %{minimum: 5}]})
     assert JSV.valid?(3, one_of)

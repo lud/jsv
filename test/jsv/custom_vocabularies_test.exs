@@ -6,6 +6,62 @@ defmodule JSV.CustomVocabulariesTest do
 
   setup :verify_on_exit!
 
+  defmodule RejectVocabulary do
+    use JSV.Vocabulary, priority: 300
+
+    @impl true
+    def init_validators(_) do
+      []
+    end
+
+    @impl true
+    take_keyword :"x-reject", subschema, acc, builder, _ do
+      take_sub(:"x-reject", subschema, acc, builder)
+    end
+
+    ignore_any_keyword()
+
+    @impl true
+    def finalize_validators([]) do
+      :ignore
+    end
+
+    def finalize_validators(validators) do
+      validators
+    end
+
+    @impl true
+    def validate(data, [{:"x-reject", subschema}], vctx) do
+      case Validator.validate_catch(data, subschema, vctx) do
+        {:ok, _, _} -> {:error, Validator.with_error(vctx, :reject, data, [])}
+        {:error, _} -> {:ok, data, vctx}
+      end
+    end
+
+    @impl true
+    def format_error(:reject, _, _data) do
+      "value must not be valid against the x-reject schema"
+    end
+  end
+
+  describe "keywords with subschemas" do
+    test "accept data rejected by a subschema with validate_catch/3, in both modes" do
+      root =
+        JSV.build!(%{"x-reject" => %{"type" => "integer"}},
+          vocabularies: %{"https://json-schema.org/draft/2020-12/vocab/content" => RejectVocabulary}
+        )
+
+      assert {:ok, "not an integer"} = JSV.validate("not an integer", root)
+      assert JSV.valid?("not an integer", root)
+
+      assert {:error, err} = JSV.validate(1, root)
+      refute JSV.valid?(1, root)
+
+      assert %{details: [%{errors: [%{kind: :reject, message: "value must not be valid against the x-reject schema"}]}]} =
+               JSV.normalize_error(err, keys: :atoms)
+    end
+  end
+
   describe "custom implemenations" do
     test "can be remapped" do
       # We have a schema with the `type` keyword
