@@ -34,7 +34,7 @@ body = """
         - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
             {{ commit.message | upper_first }}\
-            {% if commit.author.name not in maintainers %} — by {{ commit.author.name }}{% endif %}\
+            {% if commit.author.name not in maintainers %} – by {{ commit.author.name }}{% endif %}\
     {% endfor %}
 {% endfor %}
 
