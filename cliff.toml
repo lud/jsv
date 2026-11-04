@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.\n
 # X.Y.Z" annotation, which is filtered out rather than rendered as a note.
 
 body = """
+{% set maintainers = ["lud", "Ludovic Dem"] %}\
 {% if version %}\
     ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% else %}\
@@ -32,8 +33,8 @@ body = """
     {% for commit in commits %}
         - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first }} \
-            (_{{ commit.author.name }}_)\
+            {{ commit.message | upper_first }}\
+            {% if commit.author.name not in maintainers %} — by {{ commit.author.name }}{% endif %}\
     {% endfor %}
 {% endfor %}
 
