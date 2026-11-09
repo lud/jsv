@@ -312,7 +312,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   pass validate_keyword({:multipleOf, _})
 
   def validate_keyword({:required, required_keys}, data, vctx) when is_map(data) do
-    case required_keys -- Map.keys(data) do
+    case missing_keys(required_keys, data) do
       [] -> {:ok, data, vctx}
       missing -> {:error, Validator.with_error(vctx, :required, data, required: missing)}
     end
@@ -391,20 +391,6 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:uniqueItems, true})
 
-  with_decimal do
-    defp unique_item_key(%Decimal{} = item) do
-      if Decimal.integer?(item) do
-        Decimal.to_integer(item)
-      else
-        Decimal.normalize(item)
-      end
-    end
-  end
-
-  defp unique_item_key(item) do
-    item
-  end
-
   def validate_keyword({:minProperties, n}, data, vctx) when is_map(data) do
     case map_size(data) do
       size when size < n -> {:error, Validator.with_error(vctx, :minProperties, data, minProperties: n, size: size)}
@@ -448,6 +434,32 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   def validate_dependent_required(_other, data, vctx) do
     {:ok, data, vctx}
+  end
+
+  defp missing_keys([key | keys], data) when is_map_key(data, key) do
+    missing_keys(keys, data)
+  end
+
+  defp missing_keys([key | keys], data) do
+    [key | missing_keys(keys, data)]
+  end
+
+  defp missing_keys([], _data) do
+    []
+  end
+
+  with_decimal do
+    defp unique_item_key(%Decimal{} = item) do
+      if Decimal.integer?(item) do
+        Decimal.to_integer(item)
+      else
+        Decimal.normalize(item)
+      end
+    end
+  end
+
+  defp unique_item_key(item) do
+    item
   end
 
   defp validate_type(data, :array) do
