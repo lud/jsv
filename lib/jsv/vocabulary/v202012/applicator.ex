@@ -552,7 +552,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     Validator.validate_detach(data, {kind, index}, subschema, vctx)
   end
 
-  # A `false` subschema makes `with_property_error/3` name the rejected key
+  # A `false` subschema makes `with_property_error/2` name the rejected key
   # itself, so the error raised by the boolean schema is reported by the parent.
   defp boolean_schema_level(%JSV.BooleanSchema{valid?: false}) do
     ErrorFormatter.level_parent_reported()
@@ -594,7 +594,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   # This function is public for draft7, with support of :additionalItems
   #
   # Pairs every data item with its index and schema, in reverse order as
-  # expected by validate_items/4. The prefix schemas are used first, then
+  # expected by validate_items/3. The prefix schemas are used first, then
   # rest_schema for the remaining items. rest_schema can be nil, which makes
   # those items automatically valid.
   @spec zip_items(list, [Validator.validator()], atom, nil | Validator.validator(), atom) :: [
