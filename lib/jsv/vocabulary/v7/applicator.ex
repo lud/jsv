@@ -67,7 +67,7 @@ defmodule JSV.Vocabulary.V7.Applicator do
        when is_list(items_schemas) and (is_map(additional_items_schema) or is_nil(additional_items_schema)) and
               is_list(data) do
     zipped = Fallback.zip_items(data, items_schemas, :items_as_prefix, additional_items_schema, :additionalItems)
-    {validated_items, vctx} = Fallback.validate_items(zipped, data, vctx, __MODULE__)
+    {validated_items, vctx} = Fallback.validate_items(zipped, vctx, __MODULE__)
     Validator.return(validated_items, vctx)
   end
 
@@ -76,7 +76,7 @@ defmodule JSV.Vocabulary.V7.Applicator do
        when (is_map(items_schema) or (is_tuple(items_schema) and elem(items_schema, 0) == :alias_of)) and
               is_list(data) do
     zipped = Fallback.zip_items(data, [], :items, items_schema, :items)
-    {validated_items, vctx} = Fallback.validate_items(zipped, data, vctx, __MODULE__)
+    {validated_items, vctx} = Fallback.validate_items(zipped, vctx, __MODULE__)
     Validator.return(validated_items, vctx)
   end
 

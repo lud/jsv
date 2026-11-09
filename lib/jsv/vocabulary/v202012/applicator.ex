@@ -356,7 +356,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
         case Validator.validate_in(Map.fetch!(data, key), key, eval_path, subschema, vctx, level) do
           {:ok, casted, vctx} -> {:ok, Map.put(data, key, casted), vctx}
-          {:error, vctx} -> {:error, with_property_error(vctx, data, propcase)}
+          {:error, vctx} -> {:error, with_property_error(vctx, propcase)}
         end
     end)
   end
@@ -365,7 +365,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   def validate_keyword({:jsv@array, {items_schema, prefix_items_schemas}}, data, vctx) when is_list(data) do
     zipped = zip_items(data, prefix_items_schemas || [], :prefixItems, items_schema, :items)
-    {validated_items, vctx} = validate_items(zipped, data, vctx)
+    {validated_items, vctx} = validate_items(zipped, vctx)
     Validator.return(validated_items, vctx)
   end
 
@@ -495,7 +495,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     |> Validator.reduce(data, vctx, fn key, data, vctx ->
       case Validator.validate_key(key, :propertyNames, subschema, vctx, level) do
         {:ok, _, vctx} -> {:ok, data, vctx}
-        {:error, vctx} -> {:error, with_property_error(vctx, data, {:propertyNames, key, subschema, nil})}
+        {:error, vctx} -> {:error, with_property_error(vctx, {:propertyNames, key, subschema, nil})}
       end
     end)
   end
@@ -570,7 +570,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     [index: index]
   end
 
-  defp with_property_error(vctx, data, {kind, key, subschema, pattern}) do
+  defp with_property_error(vctx, {kind, key, subschema, pattern}) do
     args =
       case kind do
         :patternProperties -> [pattern: pattern, key: key]
@@ -583,7 +583,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
         _ -> args
       end
 
-    Validator.with_error(vctx, kind, data, args)
+    Validator.with_error(vctx, kind, nil, args)
   end
 
   defp validation_enabled?(builder) do
@@ -625,9 +625,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   # The list is expected in reverse order, as returned by zip_items/5, so the
   # validated items are accumulated in order and the suberrors are ordered from
   # 0 to N if the error is normalized.
-  @spec validate_items([validation_item], list, Validator.context(), module) :: {list, Validator.context()}
+  @spec validate_items([validation_item], Validator.context(), module) :: {list, Validator.context()}
         when validation_item: {term, non_neg_integer(), term, nil | Validator.validator()}
-  def validate_items(reversed_items_with_schema, data, vctx, error_formatter \\ __MODULE__) do
+  def validate_items(reversed_items_with_schema, vctx, error_formatter \\ __MODULE__) do
     {_items, _vctx} =
       Enum.reduce(reversed_items_with_schema, {[], vctx}, fn
         {_kind, _index, data_item, nil = _subschema}, {casted, vctx} ->
@@ -643,7 +643,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
             {:error, vctx} ->
               args = item_error_args(index, subschema)
-              {[data_item | casted], JSV.Validator.__with_error__(error_formatter, vctx, kind, data, args)}
+              {[data_item | casted], JSV.Validator.__with_error__(error_formatter, vctx, kind, nil, args)}
           end
       end)
   end
