@@ -312,13 +312,25 @@ defmodule JSV.Vocabulary.V202012.Validation do
   pass validate_keyword({:multipleOf, _})
 
   def validate_keyword({:required, required_keys}, data, vctx) when is_map(data) do
-    case required_keys -- Map.keys(data) do
+    case missing_keys(required_keys, data) do
       [] -> {:ok, data, vctx}
       missing -> {:error, Validator.with_error(vctx, :required, data, required: missing)}
     end
   end
 
   pass validate_keyword({:required, _})
+
+  defp missing_keys([key | keys], data) when is_map_key(data, key) do
+    missing_keys(keys, data)
+  end
+
+  defp missing_keys([key | keys], data) do
+    [key | missing_keys(keys, data)]
+  end
+
+  defp missing_keys([], _data) do
+    []
+  end
 
   def validate_keyword({:dependentRequired, dependent_required}, data, vctx) do
     validate_dependent_required(dependent_required, data, vctx)
