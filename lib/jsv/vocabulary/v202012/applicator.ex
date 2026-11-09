@@ -285,17 +285,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     Validator.reduce(vds, data, vctx, &validate_keyword/3)
   end
 
-  defp properties_validations(_data, nil) do
-    []
-  end
-
-  defp properties_validations(data, properties) do
-    Enum.flat_map(properties, fn
-      {key, subschema} when is_map_key(data, key) -> [{:properties, key, subschema, nil}]
-      _ -> []
-    end)
-  end
-
   defp pattern_properties_validations(_data, nil, _vctx) do
     []
   end
@@ -317,32 +306,76 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       Validator.throw_indeterminate(vctx, :indeterminate_pattern, data, [])
   end
 
-  defp additional_properties_validations(data, schema, other_validations) do
-    Enum.flat_map(data, fn {key, _} ->
-      if List.keymember?(other_validations, key, 1) do
-        []
-      else
-        [{:additionalProperties, key, schema, nil}]
+  defp object_validations(data, props_schemas, [], nil) do
+    properties_validations(data, props_schemas)
+  end
+
+  defp object_validations(data, props_schemas, for_patterns, nil) do
+    properties_validations(data, props_schemas) ++ for_patterns
+  end
+
+  defp object_validations(data, props_schemas, for_patterns, additionals_schema) do
+    case split_properties(data, props_schemas, for_patterns, additionals_schema) do
+      {[], for_props} -> for_props ++ for_patterns
+      {for_additional, for_props} -> for_additional ++ for_props ++ for_patterns
+    end
+  end
+
+  # Iterates over the smaller of the two maps.
+  defp properties_validations(data, props_schemas) when map_size(props_schemas) <= map_size(data) do
+    fn
+      key, subschema, acc when is_map_key(data, key) -> [{:properties, key, subschema, nil} | acc]
+      _, _, acc -> acc
+    end
+    |> :maps.fold([], props_schemas)
+    |> :lists.reverse()
+  end
+
+  defp properties_validations(data, props_schemas) do
+    fn key, _, acc ->
+      case props_schemas do
+        %{^key => subschema} -> [{:properties, key, subschema, nil} | acc]
+        _ -> acc
       end
-    end)
+    end
+    |> :maps.fold([], data)
+    |> :lists.reverse()
+  end
+
+  # With `additionalProperties`, every data key is visited anyway, so the keys of
+  # `properties` and the additional ones are split in a single pass.
+  defp split_properties(data, props_schemas, for_patterns, additionals_schema) do
+    {additional, props} =
+      :maps.fold(
+        fn key, _, acc -> split_property(key, acc, props_schemas, for_patterns, additionals_schema) end,
+        {[], []},
+        data
+      )
+
+    {:lists.reverse(additional), :lists.reverse(props)}
+  end
+
+  @compile {:inline, split_property: 5}
+  defp split_property(key, {additional, props} = acc, props_schemas, for_patterns, additionals_schema) do
+    case props_schemas do
+      %{^key => subschema} ->
+        {additional, [{:properties, key, subschema, nil} | props]}
+
+      _ ->
+        if List.keymember?(for_patterns, key, 1) do
+          acc
+        else
+          {[{:additionalProperties, key, additionals_schema, nil} | additional], props}
+        end
+    end
   end
 
   @doc false
   @spec validate_keyword({atom | binary, term}, Vocabulary.data(), Validator.context()) :: Validator.result()
   def validate_keyword({:jsv@props, {props_schemas, patterns_schemas, additionals_schema}}, data, vctx)
       when is_map(data) do
-    for_props = properties_validations(data, props_schemas)
     for_patterns = pattern_properties_validations(data, patterns_schemas, vctx)
-
-    validations = for_props ++ for_patterns
-
-    for_additional =
-      case additionals_schema do
-        nil -> []
-        _ -> additional_properties_validations(data, additionals_schema, validations)
-      end
-
-    all_validations = for_additional ++ validations
+    all_validations = object_validations(data, props_schemas || %{}, for_patterns, additionals_schema)
 
     # Note: if a property is validated by both :properties and
     # :patternProperties, casted data from the first schema is evaluted by the
@@ -354,7 +387,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
         eval_path = path_segment(kind, pattern || key)
         level = boolean_schema_level(subschema)
 
-        case Validator.validate_in(Map.fetch!(data, key), key, eval_path, subschema, vctx, level) do
+        value = Map.fetch!(data, key)
+
+        case Validator.validate_in(value, key, eval_path, subschema, vctx, level) do
+          {:ok, ^value, vctx} -> {:ok, data, vctx}
           {:ok, casted, vctx} -> {:ok, Map.put(data, key, casted), vctx}
           {:error, vctx} -> {:error, with_property_error(vctx, propcase)}
         end
