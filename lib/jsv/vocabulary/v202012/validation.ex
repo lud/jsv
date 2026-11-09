@@ -157,19 +157,7 @@ defmodule JSV.Vocabulary.V202012.Validation do
   @doc false
   @spec validate_keyword({atom, Validator.validator()}, term, Validator.context()) :: Validator.result()
   def validate_keyword({:type, ts}, data, vctx) when is_list(ts) do
-    found =
-      Enum.find_value(ts, fn t ->
-        case validate_type(data, t) do
-          true -> {:ok, data}
-          false -> nil
-          {:swap, new_data} -> {:ok, new_data}
-        end
-      end)
-
-    case found do
-      {:ok, data} -> {:ok, data, vctx}
-      nil -> {:error, Validator.with_error(vctx, :type, data, type: ts)}
-    end
+    validate_any_type(ts, ts, data, vctx)
   end
 
   def validate_keyword({:type, t}, data, vctx) do
@@ -460,6 +448,18 @@ defmodule JSV.Vocabulary.V202012.Validation do
 
   defp unique_item_key(item) do
     item
+  end
+
+  defp validate_any_type([t | rest], ts, data, vctx) do
+    case validate_type(data, t) do
+      true -> {:ok, data, vctx}
+      false -> validate_any_type(rest, ts, data, vctx)
+      {:swap, new_data} -> {:ok, new_data, vctx}
+    end
+  end
+
+  defp validate_any_type([], ts, data, vctx) do
+    {:error, Validator.with_error(vctx, :type, data, type: ts)}
   end
 
   defp validate_type(data, :array) do
