@@ -52,7 +52,14 @@ defmodule JSV.FormatValidator.Default do
   def validate_cast("date-time", <<date::binary-size(10), sep, time::binary>> = data)
       when sep in [?T, ?t] do
     if full_date?(date) and full_time?(time) do
-      case DateTime.from_iso8601(String.upcase(data)) do
+      data =
+        if sep == ?t or :binary.last(data) == ?z do
+          String.upcase(data)
+        else
+          data
+        end
+
+      case DateTime.from_iso8601(data) do
         {:ok, dt, _} -> {:ok, dt}
         {:error, _} = err -> err
       end
@@ -85,7 +92,14 @@ defmodule JSV.FormatValidator.Default do
 
   def validate_cast("time", data) do
     if full_time?(data) do
-      Time.from_iso8601(String.upcase(data))
+      data =
+        if :binary.last(data) == ?z do
+          String.upcase(data)
+        else
+          data
+        end
+
+      Time.from_iso8601(data)
     else
       {:error, :invalid_format}
     end
