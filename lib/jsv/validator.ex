@@ -26,7 +26,7 @@ defmodule JSV.Validator do
             detached_context: 3,
             validate_catching: 4,
             validate_in_catching: 7,
-            sub_term_context: 3,
+            sub_term_context: 4,
             same_term_context: 2,
             push_scope: 2,
             merge_tracked_casts: 3,
@@ -120,6 +120,10 @@ defmodule JSV.Validator do
 
   def validate(data, %Subschema{} = sub, %{config: __cfg(feature_cast: false, feature_errors: feature_errors)} = vctx) do
     call_vocabulary(sub.validators, data, subschema_context(vctx, feature_errors, sub))
+  end
+
+  defp subschema_context(%{schema_path: schema_path} = vctx, true = _feature_errors, %{schema_path: schema_path}) do
+    vctx
   end
 
   defp subschema_context(vctx, true = _feature_errors, sub) do
@@ -407,7 +411,7 @@ defmodule JSV.Validator do
   end
 
   defp validate_sub_term(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level, flag_evaluated?) do
-    sub_vctx = sub_term_context(vctx, key, add_eval_path)
+    sub_vctx = sub_term_context(vctx, key, add_eval_path, subvalidators)
 
     result =
       case subvalidators do
@@ -435,7 +439,7 @@ defmodule JSV.Validator do
 
   # A sub term can never be equal to its parent term, seen refs cannot match
   # anymore so we can discard them.
-  defp sub_term_context(vctx, key, add_eval_path) do
+  defp sub_term_context(vctx, key, add_eval_path, subvalidators) do
     %ValidationContext{
       config: cfg,
       data_path: data_path,
@@ -450,7 +454,7 @@ defmodule JSV.Validator do
           vctx
           | data_path: [key | data_path],
             eval_path: append_eval_path(eval_path, add_eval_path),
-            schema_path: append_schema_path(schema_path, add_eval_path),
+            schema_path: sub_schema_path(subvalidators, schema_path, add_eval_path),
             errors: [],
             evaluated: push_evaluated(cfg, evaluated),
             seen_refs: [],
@@ -599,6 +603,16 @@ defmodule JSV.Validator do
       {same, [same | _]} -> scopes
       {new_scope, scopes} -> [new_scope | scopes]
     end
+  end
+
+  # A subschema sets its own schema path when validated, so the sub term context
+  # takes it right away and validate/3 does not have to copy the context again.
+  defp sub_schema_path(%Subschema{schema_path: schema_path}, _parent_schema_path, _add_eval_path) do
+    schema_path
+  end
+
+  defp sub_schema_path(_subvalidators, parent_schema_path, add_eval_path) do
+    append_schema_path(parent_schema_path, add_eval_path)
   end
 
   defp append_eval_path(eval_path, add_eval_path) when is_list(add_eval_path) do
