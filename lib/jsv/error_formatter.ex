@@ -105,9 +105,13 @@ defmodule JSV.ErrorFormatter do
     __MODULE__.ValidationErrorSchema
   end
 
-  @type normalize_opt :: {:sort, :asc | :desc} | {:keys, :atoms | :strings} | {:min_error_level, level}
+  @type normalize_opt ::
+          {:sort, :asc | :desc}
+          | {:keys, :atoms | :strings}
+          | {:min_error_level, level}
+          | {:max_errors, pos_integer | :infinity}
 
-  @default_normalize_options %{sort: :desc, keys: :atoms, min_error_level: 0}
+  @default_normalize_options %{sort: :desc, keys: :atoms, min_error_level: 0, max_errors: :infinity}
 
   @doc """
   Returns a JSON-able version of the errors contained in the ValidationError.
@@ -133,10 +137,16 @@ defmodule JSV.ErrorFormatter do
 
     Passing `#{@level_cause}` drops the errors that only point at a deeper
     error.
+
+  * `:max_errors` (positive integer or `:infinity`) - Only formats the errors of
+    the first invalid locations of the data. See
+    `#{inspect(ValidationError)}.prune_errors/2`. The default value is
+    `:infinity`.
   """
   @spec normalize_error(ValidationError.t(), keyword) :: map()
   def normalize_error(%ValidationError{} = e, opts \\ []) do
     opts = OptsValidator.validate(opts, @default_normalize_options, &validate_normalize_opts/2)
+    e = ValidationError.prune_errors(e, min_error_level: opts.min_error_level, max_errors: opts.max_errors)
 
     top = %{valid: false, details: filter_units(normalize_errors(e.errors, opts), opts.min_error_level)}
     normalize_keys(top, opts)
@@ -164,6 +174,14 @@ defmodule JSV.ErrorFormatter do
 
   defp validate_normalize_opts(:min_error_level, value) do
     OptsValidator.invalid_option!(:min_error_level, value, "an integer")
+  end
+
+  defp validate_normalize_opts(:max_errors, value) when (is_integer(value) and value > 0) or value == :infinity do
+    value
+  end
+
+  defp validate_normalize_opts(:max_errors, value) do
+    OptsValidator.invalid_option!(:max_errors, value, "a positive integer or :infinity")
   end
 
   defp validate_normalize_opts(key, _value) do
