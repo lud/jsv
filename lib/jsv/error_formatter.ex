@@ -342,15 +342,18 @@ defmodule JSV.ErrorFormatter do
   with `:oneOf`.
   """
   @spec valid_annot(Validator.validator(), Validator.context()) :: error_unit
-
   def valid_annot(subschema, vctx) do
-    evaluation_path = format_eval_path(vctx.eval_path)
+    valid_annot(subschema, vctx.data_path, vctx.eval_path)
+  end
 
+  @doc false
+  @spec valid_annot([term] | Validator.validator(), list, list) :: error_unit
+  def valid_annot(schema_location, data_path, eval_path) do
     %{
       valid: true,
-      instanceLocation: format_data_path(vctx.data_path),
-      evaluationPath: evaluation_path,
-      schemaLocation: format_schema_path(subschema)
+      instanceLocation: format_data_path(data_path),
+      evaluationPath: format_eval_path(eval_path),
+      schemaLocation: format_schema_path(schema_location)
     }
   end
 

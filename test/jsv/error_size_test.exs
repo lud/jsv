@@ -42,4 +42,29 @@ defmodule JSV.ErrorSizeTest do
       assert copied_size(unquote(kind), 400) < 6 * copied_size(unquote(kind), 100)
     end
   end
+
+  @branch_schemas %{
+    anyOf: %{anyOf: [@integer, %{type: :boolean}]},
+    oneOf_none: %{oneOf: [@integer, %{type: :boolean}]},
+    oneOf_many: %{oneOf: [%{type: :string}, %{minLength: 1}]},
+    allOf: %{allOf: [@integer, %{type: :string}]},
+    if_then: %{if: %{type: :string}, then: @integer},
+    if_else: %{if: @integer, else: %{type: :boolean}}
+  }
+
+  defp branch_error_size(kind, padding) do
+    schema =
+      @branch_schemas
+      |> Map.fetch!(kind)
+      |> Map.put(:properties, Map.new(1..padding, &{"key#{&1}", @integer}))
+
+    assert {:error, err} = JSV.validate("x", JSV.build!(schema))
+    byte_size(:erlang.term_to_binary(err))
+  end
+
+  for kind <- Map.keys(@branch_schemas) do
+    test "copied error does not grow with the schema size: #{kind}" do
+      assert branch_error_size(unquote(kind), 400) == branch_error_size(unquote(kind), 10)
+    end
+  end
 end

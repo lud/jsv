@@ -415,10 +415,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       {[], invalids, vctx} ->
         {:error, Validator.with_error(vctx, :oneOf, data, validated: [], invalidated: invalids)}
 
-      # with oneOf we also return the subschema so we can compute the
-      # schemaLocation of the extra validated subschemas
+      # with oneOf we also keep the paths of the extra validated subschemas to
+      # report their schemaLocation
       {[_, _ | _] = too_much, _, _} ->
-        validated = Enum.map(too_much, fn {index, _, subschema, vctx} -> {index, subschema, vctx} end)
+        validated = Enum.map(too_much, fn {index, _, subschema, vctx} -> {index, valid_branch(subschema, vctx)} end)
 
         {:error, Validator.with_error(vctx, :oneOf, data, validated: validated)}
     end
@@ -450,10 +450,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     {to_validate, vctx, eval_path, meta} =
       case Validator.validate_detach(data, "if", if_vds, vctx) do
         {:ok, _, ok_vctx} ->
-          {then_vds, Validator.merge_tracked(vctx, ok_vctx), "then", ok_if_vctx: ok_vctx, ok_if_subschema: if_vds}
+          {then_vds, Validator.merge_tracked(vctx, ok_vctx), "then", {:ok_if, if_vds, ok_vctx}}
 
         {:error, err_vctx} ->
-          {else_vds, vctx, "else", err_if_vctx: err_vctx}
+          {else_vds, vctx, "else", {:err_if, err_vctx}}
       end
 
     case to_validate do
@@ -466,7 +466,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
             {:ok, data, Validator.merge_tracked(vctx, ok_vctx)}
 
           {:error, err_vctx} ->
-            {:error, Validator.with_error(vctx, :jsv@if, data, [{:after_err_vctx, err_vctx} | meta])}
+            {:error, Validator.with_error(vctx, :jsv@if, data, if_error_args(meta, err_vctx))}
         end
     end
   end
@@ -573,11 +573,32 @@ defmodule JSV.Vocabulary.V202012.Applicator do
             {[{index, data, subschema, detached_vctx} | valids], invalids, vctx, index + 1}
 
           {:error, err_vctx} ->
-            {valids, [{index, err_vctx} | invalids], vctx, index + 1}
+            {valids, [{index, err_vctx.errors} | invalids], vctx, index + 1}
         end
       end)
 
     {:lists.reverse(valids), :lists.reverse(invalids), vctx}
+  end
+
+  defp if_error_args({:ok_if, if_vds, ok_vctx}, after_err_vctx) do
+    [ok_if: valid_branch(if_vds, ok_vctx), after_errors: after_err_vctx.errors]
+  end
+
+  defp if_error_args({:err_if, err_vctx}, after_err_vctx) do
+    [err_if_errors: err_vctx.errors, after_errors: after_err_vctx.errors]
+  end
+
+  defp valid_branch(subschema, vctx) do
+    %{data_path: data_path, eval_path: eval_path} = vctx
+    {schema_location(subschema), data_path, eval_path}
+  end
+
+  defp schema_location({:alias_of, _} = alias) do
+    alias
+  end
+
+  defp schema_location(%{schema_path: schema_path}) do
+    schema_path
   end
 
   defp validate_branch(:allOf, data, index, subschema, vctx) do
@@ -768,8 +789,8 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     # Best effort for now, we are not accumulating annotations for valid data,
     # so we only return the paths of the multiples schemas that were validated
     validated =
-      Enum.map(validated, fn {_index, subschema, vctx} ->
-        ErrorFormatter.valid_annot(subschema, vctx)
+      Enum.map(validated, fn {_index, {schema_location, data_path, eval_path}} ->
+        ErrorFormatter.valid_annot(schema_location, data_path, eval_path)
       end)
 
     %{message: "value did conform to more than one of the given schemas", annots: validated}
@@ -793,18 +814,20 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   def format_error(:jsv@if, meta, _data) do
     case meta do
-      %{ok_if_subschema: if_schema, ok_if_vctx: ok_if_vctx, after_err_vctx: then_err} ->
+      %{ok_if: {schema_location, data_path, eval_path}, after_errors: then_errors} ->
         %{
           message: "value validated 'if' but not 'then'",
           kind: :"if/then",
-          annots: [ErrorFormatter.valid_annot(if_schema, ok_if_vctx)] ++ Validator.flat_errors(then_err)
+          annots: [
+            ErrorFormatter.valid_annot(schema_location, data_path, eval_path) | :lists.flatten(then_errors)
+          ]
         }
 
-      %{err_if_vctx: err_if_vctx, after_err_vctx: else_err} ->
+      %{err_if_errors: if_errors, after_errors: else_errors} ->
         %{
           message: "value validated neither 'if' nor 'else'",
           kind: :"if/else",
-          annots: Validator.flat_errors(err_if_vctx) ++ Validator.flat_errors(else_err)
+          annots: :lists.flatten([if_errors, else_errors])
         }
     end
   end
@@ -814,6 +837,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   defp format_invalidated_subs(invalidated) do
-    Enum.flat_map(invalidated, fn {_index, vctx} -> Validator.flat_errors(vctx) end)
+    :lists.flatten(Enum.map(invalidated, fn {_index, errors} -> errors end))
   end
 end
