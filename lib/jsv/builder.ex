@@ -330,7 +330,7 @@ defmodule JSV.Builder do
     # later.
 
     with_current_path(builder, rev_path, fn builder ->
-      do_build_sub(resolved.raw, rev_path, builder)
+      do_build_sub(resolved.raw, rev_path, builder, [])
     end)
   end
 
@@ -349,24 +349,36 @@ defmodule JSV.Builder do
   @doc """
   Builds a subschema. Called from vocabulary modules to build nested schemas
   such as in properties, if/else, items, etc.
+
+  ### Options
+
+  * `:error_formatter` (`{module, keyword}`) - Formats the error of a `false`
+    subschema. The module's `c:JSV.Vocabulary.format_error/3` is called with
+    the `:boolean_schema` kind, and the given args plus the `:key` of the
+    rejected property or item. This applies when the data is validated with
+    `JSV.Validator.validate_in/5` or `JSV.Validator.validate_key/4`. Use it to
+    name the rejected property or item in the message, as in "additional
+    properties are not allowed but found property 'foo'".
   """
-  @spec build_sub!(JSV.normal_schema(), [path_segment()], t) :: {Validator.validator(), t} | {:error, term}
-  def build_sub!(%{"$id" => id}, _add_rev_path, builder) do
+  @spec build_sub!(JSV.normal_schema(), [path_segment()], t, keyword) :: {Validator.validator(), t} | {:error, term}
+  def build_sub!(raw_schema, add_rev_path, builder, opts \\ [])
+
+  def build_sub!(%{"$id" => id}, _add_rev_path, builder, _opts) do
     case RNS.derive(builder.ns, id) do
       {:ok, key} -> {{:alias_of, key}, stage_build(builder, key)}
       {:error, reason} -> fail(builder, reason, :deriving_namespace)
     end
   end
 
-  def build_sub!(raw_schema, add_rev_path, builder) when is_map(raw_schema) when is_boolean(raw_schema) do
+  def build_sub!(raw_schema, add_rev_path, builder, opts) when is_map(raw_schema) when is_boolean(raw_schema) do
     new_rev_path = add_rev_path ++ builder.current_rev_path
 
     with_current_path(builder, new_rev_path, fn builder ->
-      do_build_sub(raw_schema, new_rev_path, builder)
+      do_build_sub(raw_schema, new_rev_path, builder, opts)
     end)
   end
 
-  def build_sub!(other, add_rev_path, builder) do
+  def build_sub!(other, add_rev_path, builder, _opts) do
     fail(
       builder,
       {:invalid_sub_schema, JSV.ErrorFormatter.format_schema_path(add_rev_path ++ builder.current_rev_path), other},
@@ -374,7 +386,7 @@ defmodule JSV.Builder do
     )
   end
 
-  defp do_build_sub(raw_schema, rev_path, builder) when is_map(raw_schema) do
+  defp do_build_sub(raw_schema, rev_path, builder, _opts) when is_map(raw_schema) do
     {_leftovers, schema_validators, builder} =
       Enum.reduce(builder.vocabularies, {raw_schema, [], builder}, fn module_or_tuple,
                                                                       {remaining_pairs, schema_validators, builder} ->
@@ -427,8 +439,13 @@ defmodule JSV.Builder do
     }
   end
 
-  defp do_build_sub(valid?, rev_path, builder) when is_boolean(valid?) do
-    {BooleanSchema.of(valid?, rev_path), builder}
+  defp do_build_sub(valid?, rev_path, builder, opts) when is_boolean(valid?) do
+    bs = BooleanSchema.of(valid?, rev_path)
+
+    case Keyword.get(opts, :error_formatter) do
+      nil -> {bs, builder}
+      {module, args} = formatter when is_atom(module) and is_list(args) -> {%{bs | error_formatter: formatter}, builder}
+    end
   end
 
   defp mod_and_init_opts({module, opts}) when is_atom(module) and is_list(opts) do

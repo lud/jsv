@@ -25,7 +25,7 @@ defmodule JSV.Validator do
             subschema_context: 4,
             detached_context: 3,
             validate_catching: 4,
-            validate_in_catching: 7,
+            validate_in_catching: 6,
             sub_term_context: 4,
             same_term_context: 2,
             push_scope: 2,
@@ -88,7 +88,10 @@ defmodule JSV.Validator do
   def validate(data, subschema, vctx)
 
   def validate(data, %BooleanSchema{} = bs, vctx) do
-    validate_boolean_schema(bs, data, vctx, ErrorFormatter.level_cause())
+    case bs do
+      %BooleanSchema{valid?: true} -> return(data, vctx)
+      %BooleanSchema{valid?: false} -> {:error, add_error(vctx, boolean_schema_error(vctx, bs, data, __MODULE__, []))}
+    end
   end
 
   def validate(data, {:alias_of, key}, vctx) do
@@ -291,7 +294,7 @@ defmodule JSV.Validator do
   errors are not collected in that mode, its context holds a single placeholder
   error.
 
-  See `validate_in_detach/6` to test a sub term of the data.
+  See `validate_in_detach/5` to test a sub term of the data.
   """
   @spec validate_detach(term, eval_sub_path, validator, context) :: result
   def validate_detach(data, add_eval_path, subschema, %ValidationContext{config: cfg} = vctx) do
@@ -337,40 +340,37 @@ defmodule JSV.Validator do
   end
 
   @doc """
-  Validates a sub term of the data like `validate_in/6`, with a subschema whose
+  Validates a sub term of the data like `validate_in/5`, with a subschema whose
   result the keyword tests rather than enforces, like the subschema of
   `contains`.
 
   See `validate_detach/4`.
   """
+  @spec validate_in_detach(term, Builder.path_segment(), eval_sub_path, validator, context) :: result
+  def validate_in_detach(
+        data,
+        key,
+        add_eval_path,
+        subvalidators,
+        %ValidationContext{config: __cfg(feature_errors: feature_errors)} = vctx
+      ) do
+    validate_in_catching(data, key, add_eval_path, subvalidators, vctx, feature_errors)
+  end
+
+  @doc "Deprecated, see `validate_in_detach/5`."
+  @deprecated "Use validate_in_detach/5 instead, and the :error_formatter option of JSV.Builder.build_sub!/4 for false subschemas."
   @spec validate_in_detach(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) ::
           result
-  def validate_in_detach(
-        data,
-        key,
-        add_eval_path,
-        subvalidators,
-        vctx,
-        boolean_schema_level \\ ErrorFormatter.level_cause()
-      )
-
-  def validate_in_detach(
-        data,
-        key,
-        add_eval_path,
-        subvalidators,
-        %ValidationContext{config: __cfg(feature_errors: feature_errors)} = vctx,
-        level
-      ) do
-    validate_in_catching(data, key, add_eval_path, subvalidators, vctx, level, feature_errors)
+  def validate_in_detach(data, key, add_eval_path, subvalidators, vctx, _level) do
+    validate_in_detach(data, key, add_eval_path, subvalidators, vctx)
   end
 
-  defp validate_in_catching(data, key, add_eval_path, subvalidators, vctx, level, true = _feature_errors) do
-    validate_in(data, key, add_eval_path, subvalidators, vctx, level)
+  defp validate_in_catching(data, key, add_eval_path, subvalidators, vctx, true = _feature_errors) do
+    validate_in(data, key, add_eval_path, subvalidators, vctx)
   end
 
-  defp validate_in_catching(data, key, add_eval_path, subvalidators, vctx, level, false = _feature_errors) do
-    validate_in(data, key, add_eval_path, subvalidators, vctx, level)
+  defp validate_in_catching(data, key, add_eval_path, subvalidators, vctx, false = _feature_errors) do
+    validate_in(data, key, add_eval_path, subvalidators, vctx)
   catch
     {__MODULE__, :fail_fast} -> {:error, context_with_fail_fast_error(vctx)}
   end
@@ -382,40 +382,49 @@ defmodule JSV.Validator do
   See `validate_as/4` to validate the same data point with a nested keyword. For
   instance `if`, `then` or `else`.
 
-  The `boolean_schema_level` argument sets the level of the error returned when
-  `subvalidators` is the `false` schema. Keywords that report their own error
-  for the rejected property or item, with a message naming it, should lower it
-  to `JSV.ErrorFormatter.level_parent_reported/0`.
+  When `subvalidators` is a `false` schema built with the `:error_formatter`
+  option of `JSV.Builder.build_sub!/4`, the error is formatted by the given
+  module, with the `key` added to the args.
   """
-  @spec validate_in(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) :: result
-  def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_cause())
-
-  def validate_in(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level)
+  @spec validate_in(term, Builder.path_segment(), eval_sub_path, validator, context) :: result
+  def validate_in(data, key, add_eval_path, subvalidators, vctx)
       when is_binary(key)
       when is_integer(key) do
-    validate_sub_term(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level, _flag_evaluated? = true)
+    validate_sub_term(data, key, add_eval_path, subvalidators, vctx, _flag_evaluated? = true)
+  end
+
+  @doc "Deprecated, see `validate_in/5`."
+  @deprecated "Use validate_in/5 instead, and the :error_formatter option of JSV.Builder.build_sub!/4 for false subschemas."
+  @spec validate_in(term, Builder.path_segment(), eval_sub_path, validator, context, ErrorFormatter.level()) :: result
+  def validate_in(data, key, add_eval_path, subvalidators, vctx, _level) do
+    validate_in(data, key, add_eval_path, subvalidators, vctx)
   end
 
   @doc """
-  Validates a property name of the data, as `validate_in/6` does for property
+  Validates a property name of the data, as `validate_in/5` does for property
   values, but without flagging the property as evaluated.
 
   This is used by the `propertyNames` keyword, which does not evaluate the
   property values and must not affect `unevaluatedProperties`.
   """
-  @spec validate_key(binary, eval_sub_path, validator, context, ErrorFormatter.level()) :: result
-  def validate_key(key, add_eval_path, subvalidators, vctx, boolean_schema_level \\ ErrorFormatter.level_cause())
-
-  def validate_key(key, add_eval_path, subvalidators, vctx, boolean_schema_level) when is_binary(key) do
-    validate_sub_term(key, key, add_eval_path, subvalidators, vctx, boolean_schema_level, _flag_evaluated? = false)
+  @spec validate_key(binary, eval_sub_path, validator, context) :: result
+  def validate_key(key, add_eval_path, subvalidators, vctx) when is_binary(key) do
+    validate_sub_term(key, key, add_eval_path, subvalidators, vctx, _flag_evaluated? = false)
   end
 
-  defp validate_sub_term(data, key, add_eval_path, subvalidators, vctx, boolean_schema_level, flag_evaluated?) do
+  @doc "Deprecated, see `validate_key/4`."
+  @deprecated "Use validate_key/4 instead, and the :error_formatter option of JSV.Builder.build_sub!/4 for false subschemas."
+  @spec validate_key(binary, eval_sub_path, validator, context, ErrorFormatter.level()) :: result
+  def validate_key(key, add_eval_path, subvalidators, vctx, _level) do
+    validate_key(key, add_eval_path, subvalidators, vctx)
+  end
+
+  defp validate_sub_term(data, key, add_eval_path, subvalidators, vctx, flag_evaluated?) do
     sub_vctx = sub_term_context(vctx, key, add_eval_path, subvalidators)
 
     result =
       case subvalidators do
-        %BooleanSchema{} = bs -> validate_boolean_schema(bs, data, sub_vctx, boolean_schema_level)
+        %BooleanSchema{} = bs -> validate_sub_boolean_schema(bs, key, data, sub_vctx)
         _ -> validate(data, subvalidators, sub_vctx)
       end
 
@@ -477,7 +486,7 @@ defmodule JSV.Validator do
   against, for instance the subschemas of `dependentSchemas`. Data path will not
   change in the context.
 
-  See `validate_in/6` to validate sub terms of the data.
+  See `validate_in/5` to validate sub terms of the data.
   """
   @spec validate_as(term, eval_sub_path(), validator(), context) :: result
   def validate_as(data, add_eval_path, subvalidators, vctx) do
@@ -744,22 +753,27 @@ defmodule JSV.Validator do
     :error
   end
 
-  defp validate_boolean_schema(%BooleanSchema{} = bs, data, vctx, level) do
-    case bs.valid? do
-      true -> return(data, vctx)
-      false -> {:error, add_error(vctx, boolean_schema_error(vctx, bs, data, level))}
-    end
+  defp validate_sub_boolean_schema(%BooleanSchema{valid?: true}, _key, data, vctx) do
+    return(data, vctx)
   end
 
-  defp boolean_schema_error(vctx, %BooleanSchema{valid?: false} = bs, data, level) do
+  defp validate_sub_boolean_schema(%BooleanSchema{error_formatter: nil} = bs, _key, data, vctx) do
+    {:error, add_error(vctx, boolean_schema_error(vctx, bs, data, __MODULE__, []))}
+  end
+
+  defp validate_sub_boolean_schema(%BooleanSchema{error_formatter: {formatter, args}} = bs, key, data, vctx) do
+    {:error, add_error(vctx, boolean_schema_error(vctx, bs, data, formatter, [{:key, key} | args]))}
+  end
+
+  defp boolean_schema_error(vctx, %BooleanSchema{valid?: false} = bs, data, formatter, args) do
     %Error{
       kind: :boolean_schema,
       data: data,
       data_path: vctx.data_path,
       eval_path: vctx.eval_path,
       schema_path: bs.schema_path,
-      formatter: __MODULE__,
-      args: [level: level]
+      formatter: formatter,
+      args: args
     }
   end
 
@@ -907,11 +921,8 @@ defmodule JSV.Validator do
 
   @doc false
   # error formatter implementation for the boolean schema
-  @spec format_error(:boolean_schema, term, term) :: map
-  def format_error(:boolean_schema, args, _data) do
-    %{
-      message: "value was rejected from boolean schema: false",
-      level: Map.get(args, :level, ErrorFormatter.level_cause())
-    }
+  @spec format_error(:boolean_schema, term, term) :: String.t()
+  def format_error(:boolean_schema, _args, _data) do
+    "value was rejected from boolean schema: false"
   end
 end

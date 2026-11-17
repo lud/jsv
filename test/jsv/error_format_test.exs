@@ -1,6 +1,7 @@
 defmodule JSV.ErrorFormatTest do
   alias JSV
   alias JSV.Codec
+  alias JSV.ErrorFormatter
   alias JSV.Schema
   use ExUnit.Case, async: true
 
@@ -429,28 +430,29 @@ defmodule JSV.ErrorFormatTest do
 
   describe "error formatting for boolean schemas" do
     # When a subschema is `false` we want a custom message naming the rejected
-    # property or item, so the keyword that descended into it must carry the
-    # info in the error (boolean_schema_false: true).
-    #
-    # The boolean schema error is still reported, at the parent_reported level,
-    # as it is the actual cause of the rejection.
+    # property or item. The keyword gives its formatter to the boolean schema
+    # when building, so the boolean schema error carries that message and is
+    # the cause. The keyword error on the parent only points at it.
 
     defp assert_boolean_schema_pair(err, opts) do
-      assert %JSV.ValidationError{errors: [%JSV.Validator.Error{args: args}, _]} = err
-      assert opts[:args] == args
+      assert %JSV.ValidationError{errors: [parent, child]} = err
+      assert %JSV.Validator.Error{kind: :boolean_schema, args: child_args} = child
+      assert %JSV.Validator.Error{args: parent_args} = parent
+      assert opts[:args] == child_args
+      assert ErrorFormatter.level_intermediary() == parent_args[:level]
 
       assert %{
                valid: false,
                details: [
                  %{
-                   errors: [%{message: "value was rejected from boolean schema: false", kind: :boolean_schema}],
+                   errors: [%{message: message, kind: :boolean_schema} = keyword_error],
                    valid: false,
                    schemaLocation: schema_location,
                    evaluationPath: eval_path,
                    instanceLocation: instance_location
                  },
                  %{
-                   errors: [%{message: message, kind: kind} = keyword_error],
+                   errors: [%{kind: kind}],
                    valid: false,
                    schemaLocation: "#",
                    evaluationPath: "#",
@@ -465,6 +467,9 @@ defmodule JSV.ErrorFormatTest do
       assert opts[:kind] == kind
       assert opts[:message] == message
       assert opts[:ctx] == keyword_error[:ctx]
+
+      assert %{details: [%{instanceLocation: ^instance_location, errors: [%{message: ^message}]}]} =
+               JSV.normalize_error(err, keys: :atoms, min_error_level: ErrorFormatter.level_cause())
     end
 
     test "additionalProperties: false" do
@@ -474,7 +479,7 @@ defmodule JSV.ErrorFormatTest do
       assert {:error, err} = JSV.validate(%{"a" => 1, "b" => 2}, root)
 
       assert_boolean_schema_pair(err,
-        args: [key: "b", boolean_schema_false: true],
+        args: [key: "b", keyword: :additionalProperties],
         schema_location: "#/additionalProperties",
         instance_location: "#/b",
         kind: :additionalProperties,
@@ -490,7 +495,7 @@ defmodule JSV.ErrorFormatTest do
       assert {:error, err} = JSV.validate(%{"a" => 1}, root)
 
       assert_boolean_schema_pair(err,
-        args: [key: "a", boolean_schema_false: true],
+        args: [key: "a", keyword: :properties],
         schema_location: "#/properties/a",
         instance_location: "#/a",
         kind: :properties,
@@ -506,7 +511,7 @@ defmodule JSV.ErrorFormatTest do
       assert {:error, err} = JSV.validate(%{"foo" => 1}, root)
 
       assert_boolean_schema_pair(err,
-        args: [pattern: "^f", key: "foo", boolean_schema_false: true],
+        args: [key: "foo", keyword: :patternProperties, pattern: "^f"],
         schema_location: "#/patternProperties/^f",
         instance_location: "#/foo",
         kind: :patternProperties,
@@ -522,7 +527,7 @@ defmodule JSV.ErrorFormatTest do
       assert {:error, err} = JSV.validate(%{"a" => 1}, root)
 
       assert_boolean_schema_pair(err,
-        args: [key: "a", boolean_schema_false: true],
+        args: [key: "a", keyword: :propertyNames],
         schema_location: "#/propertyNames",
         instance_location: "#/a",
         kind: :propertyNames,
@@ -538,7 +543,7 @@ defmodule JSV.ErrorFormatTest do
       assert {:error, err} = JSV.validate([1, 2], root)
 
       assert_boolean_schema_pair(err,
-        args: [index: 1, boolean_schema_false: true],
+        args: [key: 1, keyword: :items],
         schema_location: "#/items",
         instance_location: "#/1",
         kind: :items,
@@ -553,7 +558,7 @@ defmodule JSV.ErrorFormatTest do
       assert {:error, err} = JSV.validate([1, 2], root)
 
       assert_boolean_schema_pair(err,
-        args: [index: 1, boolean_schema_false: true],
+        args: [key: 1, keyword: :prefixItems],
         schema_location: "#/prefixItems/1",
         instance_location: "#/1",
         kind: :prefixItems,
@@ -569,7 +574,7 @@ defmodule JSV.ErrorFormatTest do
       assert {:error, err} = JSV.validate([1, 2], root)
 
       assert_boolean_schema_pair(err,
-        args: [index: 1, boolean_schema_false: true],
+        args: [key: 1, keyword: :additionalItems],
         schema_location: "#/additionalItems",
         instance_location: "#/1",
         kind: :additionalItems,
@@ -638,24 +643,15 @@ defmodule JSV.ErrorFormatTest do
 
       assert %{
                details: [
-                 %{
-                   instanceLocation: "#",
-                   errors: [
-                     %{kind: :required, ctx: %{missing: ["a", "b"]}},
-                     %{kind: :additionalProperties, ctx: %{property: "c"}}
-                   ]
-                 }
+                 %{instanceLocation: "#/c", errors: [%{kind: :boolean_schema, ctx: %{property: "c"}}]},
+                 %{instanceLocation: "#", errors: [%{kind: :required, ctx: %{missing: ["a", "b"]}}]}
                ]
              } = formatted_error
 
       assert %{
                "details" => [
-                 %{
-                   "errors" => [
-                     %{"kind" => "required", "ctx" => %{"missing" => ["a", "b"]}},
-                     %{"kind" => "additionalProperties", "ctx" => %{"property" => "c"}}
-                   ]
-                 }
+                 %{"errors" => [%{"kind" => "boolean_schema", "ctx" => %{"property" => "c"}}]},
+                 %{"errors" => [%{"kind" => "required", "ctx" => %{"missing" => ["a", "b"]}}]}
                ]
              } = JSV.normalize_error(err, keys: :strings, min_error_level: JSV.ErrorFormatter.level_cause())
     end

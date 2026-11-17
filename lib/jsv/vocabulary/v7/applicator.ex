@@ -1,6 +1,5 @@
 defmodule JSV.Vocabulary.V7.Applicator do
   alias JSV.Builder
-  alias JSV.ErrorFormatter
   alias JSV.Validator
   alias JSV.Vocabulary.V202012.Applicator, as: Fallback
   use JSV.Vocabulary, priority: 200
@@ -14,17 +13,18 @@ defmodule JSV.Vocabulary.V7.Applicator do
 
   @impl true
   take_keyword :additionalItems, items, acc, builder, _ do
-    take_sub(:additionalItems, items, acc, builder)
+    take_sub_with_formatter(:additionalItems, :additionalItems, items, acc, builder)
   end
 
   take_keyword :items, items when is_map(items), acc, builder, _ do
-    take_sub(:items, items, acc, builder)
+    take_sub_with_formatter(:items, :items, items, acc, builder)
   end
 
   take_keyword :items, items when is_list(items), acc, builder, _ do
     {subvalidators, builder} =
       Enum.map_reduce(items, builder, fn item, builder ->
-        {_subvalidators, _builder} = Builder.build_sub!(item, [:items], builder)
+        {_subvalidators, _builder} =
+          Builder.build_sub!(item, [:items], builder, error_formatter: {__MODULE__, keyword: :items_as_prefix})
       end)
 
     {[{:items, subvalidators} | acc], builder}
@@ -32,6 +32,13 @@ defmodule JSV.Vocabulary.V7.Applicator do
 
   def handle_keyword(pair, acc, builder, raw_schema) do
     Fallback.handle_keyword(pair, acc, builder, raw_schema)
+  end
+
+  defp take_sub_with_formatter(key, formatter_keyword, raw_schema, acc, builder) do
+    {subvalidators, builder} =
+      Builder.build_sub!(raw_schema, [key], builder, error_formatter: {__MODULE__, keyword: formatter_keyword})
+
+    {[{key, subvalidators} | acc], builder}
   end
 
   @impl true
@@ -89,30 +96,20 @@ defmodule JSV.Vocabulary.V7.Applicator do
   end
 
   @impl true
-  def format_error(:additionalItems, %{index: index, boolean_schema_false: true}, _data) do
+  def format_error(:additionalItems, %{index: index}, _) do
+    "item at index #{index} does not validate the 'additionalItems' schema"
+  end
+
+  def format_error(:items_as_prefix, %{index: index}, _) do
+    "item at index #{index} does not validate the 'items[#{index}]' schema"
+  end
+
+  def format_error(:boolean_schema, %{keyword: :additionalItems, key: index}, _data) do
     "additional items are not allowed but found item at index #{index}"
   end
 
-  def format_error(:additionalItems, args, _) do
-    %{index: index} = args
-
-    %{
-      message: "item at index #{index} does not validate the 'additionalItems' schema",
-      level: ErrorFormatter.level_intermediary()
-    }
-  end
-
-  def format_error(:items_as_prefix, %{index: index, boolean_schema_false: true}, _data) do
+  def format_error(:boolean_schema, %{keyword: :items_as_prefix, key: index}, _data) do
     "item at index #{index} is not allowed"
-  end
-
-  def format_error(:items_as_prefix, args, _) do
-    %{index: index} = args
-
-    %{
-      message: "item at index #{index} does not validate the 'items[#{index}]' schema",
-      level: ErrorFormatter.level_intermediary()
-    }
   end
 
   defdelegate format_error(key, args, data), to: Fallback
