@@ -719,6 +719,35 @@ defmodule JSV.ErrorFormatTest do
            } = JSV.normalize_error(err, keys: :atoms)
   end
 
+  test "error formatting for draft 7 items as a list" do
+    root =
+      build_schema!(%{
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        items: [%{type: "integer"}, %{type: "string"}]
+      })
+
+    assert {:ok, _} = JSV.validate([1, "a"], root)
+    assert {:error, err} = JSV.validate(["a", 1], root)
+
+    assert %{
+             details: [
+               %{evaluationPath: "#", schemaLocation: "#"},
+               %{
+                 errors: [%{kind: :type, message: "value is not of type integer"}],
+                 instanceLocation: "#/0",
+                 evaluationPath: "#/items/0",
+                 schemaLocation: "#/items/0"
+               },
+               %{
+                 errors: [%{kind: :type, message: "value is not of type string"}],
+                 instanceLocation: "#/1",
+                 evaluationPath: "#/items/1",
+                 schemaLocation: "#/items/1"
+               }
+             ]
+           } = JSV.normalize_error(err, keys: :atoms, sort: :asc)
+  end
+
   test "dynamic anchor schema location" do
     # In case of a dynamic ref/anchor, the schema location on the error should
     # be correct and tell which anchor was used

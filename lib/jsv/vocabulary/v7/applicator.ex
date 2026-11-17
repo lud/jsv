@@ -22,10 +22,9 @@ defmodule JSV.Vocabulary.V7.Applicator do
 
   take_keyword :items, items when is_list(items), acc, builder, _ do
     {subvalidators, builder} =
-      Enum.map_reduce(items, builder, fn item, builder ->
-        {_subvalidators, _builder} =
-          Builder.build_sub!(item, [:items], builder, error_formatter: {__MODULE__, keyword: :items_as_prefix})
-      end)
+      Fallback.build_sub_list(:items_as_prefix, items, builder,
+        error_formatter: {__MODULE__, keyword: :items_as_prefix}
+      )
 
     {[{:items, subvalidators} | acc], builder}
   end

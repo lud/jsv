@@ -211,7 +211,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     {[{keyword, subvalidators} | acc], builder}
   end
 
-  defp build_sub_list(keyword, subschemas, builder, opts \\ []) do
+  @doc false
+  @spec build_sub_list(atom, [JSV.normal_schema()], Builder.t(), keyword) :: {[Validator.validator()], Builder.t()}
+  def build_sub_list(keyword, subschemas, builder, opts \\ []) do
     {_subvalidators, _builder} =
       subschemas
       |> Enum.with_index()
@@ -652,8 +654,8 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     zip_items(items, index + 1, prefixes, prefix_kind, rest, rest_kind, [{prefix_kind, index, item, schema} | acc])
   end
 
-  defp zip_items([item | items], index, [], prefix_kind, rest, rest_kind, acc) do
-    zip_items(items, index + 1, [], prefix_kind, rest, rest_kind, [{rest_kind, index, item, rest} | acc])
+  defp zip_items([item | items], index, [], prefix_kind, rest_schema, rest_kind, acc) do
+    zip_items(items, index + 1, [], prefix_kind, rest_schema, rest_kind, [{rest_kind, index, item, rest_schema} | acc])
   end
 
   defp zip_items([], _index, _prefixes, _prefix_kind, _rest, _rest_kind, acc) do
