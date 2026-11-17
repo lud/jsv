@@ -22,13 +22,13 @@ defmodule JSV.Vocabulary do
   what the keyword does with the result:
 
   * When the data must be valid against the subschema, like with `properties`,
-    `items` or `dependentSchemas`, use `JSV.Validator.validate_in/6` for a
-    property or item of the data, `JSV.Validator.validate_key/5` for a property
+    `items` or `dependentSchemas`, use `JSV.Validator.validate_in/5` for a
+    property or item of the data, `JSV.Validator.validate_key/4` for a property
     name, and `JSV.Validator.validate_as/4` for the data itself.
   * When the keyword tests the result and can accept the data that the
     subschema rejects, like `not`, `anyOf` or `contains`, use
     `JSV.Validator.validate_detach/4` for the data itself and
-    `JSV.Validator.validate_in_detach/6` for a property or item.
+    `JSV.Validator.validate_in_detach/5` for a property or item.
 
   With `JSV.valid?/2`, adding an error stops the whole validation. The functions
   of the second group stop the validation of their subschema only, and return an

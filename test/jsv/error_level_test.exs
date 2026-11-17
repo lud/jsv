@@ -44,21 +44,16 @@ defmodule JSV.ErrorLevelTest do
              findings(@issue_schema, @issue_data, min_error_level: 0)
   end
 
-  test "the parent-reported level drops the errors that only point at a deeper error" do
+  test "the cause level keeps one error per invalidated data point" do
     assert [
-             {"#/user", :additionalProperties, _},
-             {"#/user/extra", :boolean_schema, _},
-             {"#/user/name", :type, _},
-             {"#/user/role", :enum, _}
-           ] = findings(@issue_schema, @issue_data, min_error_level: ErrorFormatter.level_parent_reported())
-  end
-
-  test "the default level keeps one error per invalidated data point" do
-    assert [
-             {"#/user", :additionalProperties, "additional properties are not allowed but found property 'extra'"},
+             {"#/user/extra", :boolean_schema, "additional properties are not allowed but found property 'extra'"},
              {"#/user/name", :type, "value is not of type string"},
              {"#/user/role", :enum, "value must be one of the enum values: \"admin\" or \"user\""}
            ] = findings(@issue_schema, @issue_data, min_error_level: ErrorFormatter.level_cause())
+
+    # Former level_parent_reported value
+    assert findings(@issue_schema, @issue_data, min_error_level: ErrorFormatter.level_cause()) ==
+             findings(@issue_schema, @issue_data, min_error_level: 8)
   end
 
   test "levels are not part of the normalized output" do
@@ -71,35 +66,30 @@ defmodule JSV.ErrorLevelTest do
   end
 
   describe "boolean subschemas" do
-    test "a false property schema is reported on the parent" do
+    test "a false property schema is reported on the child" do
       schema = %{properties: %{a: false}}
 
       assert [
-               {"#", :properties, "property 'a' is not allowed"},
-               {"#/a", :boolean_schema, _}
+               {"#", :properties, "property 'a' did not conform to the property schema"},
+               {"#/a", :boolean_schema, "property 'a' is not allowed"}
              ] = findings(schema, %{"a" => 1}, [])
 
-      assert [{"#", :properties, "property 'a' is not allowed"}] =
+      assert [{"#/a", :boolean_schema, "property 'a' is not allowed"}] =
                findings(schema, %{"a" => 1}, min_error_level: ErrorFormatter.level_cause())
     end
 
-    test "a false patternProperties schema is reported on the parent" do
+    test "a false patternProperties schema is reported on the child" do
       schema = %{patternProperties: %{"^f" => false}}
 
       assert [
-               {"#", :patternProperties, "properties matching /^f/ are not allowed but found property 'foo'"}
+               {"#/foo", :boolean_schema, "properties matching /^f/ are not allowed but found property 'foo'"}
              ] = findings(schema, %{"foo" => 1}, min_error_level: ErrorFormatter.level_cause())
     end
 
-    test "a false propertyNames schema is reported on the parent" do
+    test "a false propertyNames schema is reported on the child" do
       schema = %{properties: %{x: %{propertyNames: false}}}
 
-      assert [
-               {"#/x", :propertyNames, "properties are not allowed but found property 'k'"},
-               {"#/x/k", :boolean_schema, _}
-             ] = findings(schema, %{"x" => %{"k" => 1}}, min_error_level: ErrorFormatter.level_parent_reported())
-
-      assert [{"#/x", :propertyNames, "properties are not allowed but found property 'k'"}] =
+      assert [{"#/x/k", :boolean_schema, "properties are not allowed but found property 'k'"}] =
                findings(schema, %{"x" => %{"k" => 1}}, min_error_level: ErrorFormatter.level_cause())
     end
 
@@ -107,12 +97,27 @@ defmodule JSV.ErrorLevelTest do
       schema = %{patternProperties: %{"^f" => false}}
 
       assert [
-               {"#", :patternProperties, "properties matching /^f/ are not allowed but found property 'fob'"},
-               {"#", :patternProperties, "properties matching /^f/ are not allowed but found property 'foo'"}
-             ] =
-               schema
-               |> findings(%{"foo" => 1, "fob" => 2}, min_error_level: ErrorFormatter.level_cause())
-               |> Enum.sort()
+               {"#/fob", :boolean_schema, "properties matching /^f/ are not allowed but found property 'fob'"},
+               {"#/foo", :boolean_schema, "properties matching /^f/ are not allowed but found property 'foo'"}
+             ] = findings(schema, %{"foo" => 1, "fob" => 2}, min_error_level: ErrorFormatter.level_cause())
+    end
+
+    test "the keyword message is only used for the direct subschema of the keyword" do
+      plain = "value was rejected from boolean schema: false"
+
+      cases = [
+        {%{properties: %{a: false, b: %{"$ref": "#/properties/a"}}}, %{"b" => 1}, "#/b"},
+        {%{properties: %{a: %{"$ref": "#/additionalProperties"}}, additionalProperties: false}, %{"a" => 1}, "#/a"},
+        {%{properties: %{a: %{"$ref": "#/items"}}, items: false}, %{"a" => 1}, "#/a"},
+        {%{items: %{"$ref": "#/properties/a"}, properties: %{a: false}}, [1], "#/0"},
+        {%{"$ref": "#/properties/a", properties: %{a: false}}, %{}, "#"}
+      ]
+
+      for {schema, data, location} <- cases do
+        assert [{^location, :boolean_schema, ^plain}] =
+                 findings(schema, data, min_error_level: ErrorFormatter.level_cause()),
+               "expected the plain boolean schema message for #{inspect(schema)}"
+      end
     end
 
     # Keywords that do not report the rejected property themselves must keep the

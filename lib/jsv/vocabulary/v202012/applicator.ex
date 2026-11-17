@@ -28,7 +28,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
             k
           end
 
-        {subvalidators, builder} = Builder.build_sub!(pschema, [properties: k], builder)
+        {subvalidators, builder} =
+          Builder.build_sub!(pschema, [properties: k], builder, error_formatter: {__MODULE__, keyword: :properties})
+
         {{k, subvalidators}, builder}
       end)
 
@@ -40,7 +42,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   take_keyword :additionalProperties, additional_properties, acc, builder, _ do
-    take_sub(:additionalProperties, additional_properties, acc, builder)
+    take_sub_with_formatter(:additionalProperties, additional_properties, acc, builder)
   end
 
   take_keyword :patternProperties, pattern_properties, acc, builder, _ do
@@ -48,7 +50,11 @@ defmodule JSV.Vocabulary.V202012.Applicator do
       Enum.map_reduce(pattern_properties, builder, fn {k, pschema}, builder ->
         re = k |> RegexExt.translate_ecma_regex() |> Regex.compile("u") |> unwrap_ok()
 
-        {subvalidators, builder} = Builder.build_sub!(pschema, [patternProperties: k], builder)
+        {subvalidators, builder} =
+          Builder.build_sub!(pschema, [patternProperties: k], builder,
+            error_formatter: {__MODULE__, keyword: :patternProperties, pattern: k}
+          )
+
         {{{k, re}, subvalidators}, builder}
       end)
 
@@ -56,11 +62,13 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   take_keyword :items, items, acc, builder, _ do
-    take_sub(:items, items, acc, builder)
+    take_sub_with_formatter(:items, items, acc, builder)
   end
 
   take_keyword :prefixItems, prefix_items when is_list(prefix_items), acc, builder, _ do
-    {subvalidators, builder} = build_sub_list(:prefixItems, prefix_items, builder)
+    {subvalidators, builder} =
+      build_sub_list(:prefixItems, prefix_items, builder, error_formatter: {__MODULE__, keyword: :prefixItems})
+
     {[{:prefixItems, subvalidators} | acc], builder}
   end
 
@@ -104,7 +112,7 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   take_keyword :propertyNames, property_names, acc, builder, _ do
-    take_sub(:propertyNames, property_names, acc, builder)
+    take_sub_with_formatter(:propertyNames, property_names, acc, builder)
   end
 
   take_keyword :contains, contains, acc, builder, _ do
@@ -196,12 +204,19 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
-  defp build_sub_list(keyword, subschemas, builder) do
+  defp take_sub_with_formatter(keyword, raw_schema, acc, builder) do
+    {subvalidators, builder} =
+      Builder.build_sub!(raw_schema, [keyword], builder, error_formatter: {__MODULE__, keyword: keyword})
+
+    {[{keyword, subvalidators} | acc], builder}
+  end
+
+  defp build_sub_list(keyword, subschemas, builder, opts \\ []) do
     {_subvalidators, _builder} =
       subschemas
       |> Enum.with_index()
       |> Enum.map_reduce(builder, fn {subschema, index}, builder ->
-        {_subvalidators, _builder} = Builder.build_sub!(subschema, [path_segment(keyword, index)], builder)
+        {_subvalidators, _builder} = Builder.build_sub!(subschema, [path_segment(keyword, index)], builder, opts)
       end)
   end
 
@@ -385,11 +400,9 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     Validator.reduce(all_validations, data, vctx, fn
       {kind, key, subschema, pattern} = propcase, data, vctx ->
         eval_path = path_segment(kind, pattern || key)
-        level = boolean_schema_level(subschema)
-
         value = Map.fetch!(data, key)
 
-        case Validator.validate_in(value, key, eval_path, subschema, vctx, level) do
+        case Validator.validate_in(value, key, eval_path, subschema, vctx) do
           {:ok, ^value, vctx} -> {:ok, data, vctx}
           {:ok, casted, vctx} -> {:ok, Map.put(data, key, casted), vctx}
           {:error, vctx} -> {:error, with_property_error(vctx, propcase)}
@@ -524,12 +537,10 @@ defmodule JSV.Vocabulary.V202012.Applicator do
   end
 
   def validate_keyword({:propertyNames, subschema}, data, vctx) when is_map(data) do
-    level = boolean_schema_level(subschema)
-
     data
     |> Map.keys()
     |> Validator.reduce(data, vctx, fn key, data, vctx ->
-      case Validator.validate_key(key, :propertyNames, subschema, vctx, level) do
+      case Validator.validate_key(key, :propertyNames, subschema, vctx) do
         {:ok, _, vctx} -> {:ok, data, vctx}
         {:error, vctx} -> {:error, with_property_error(vctx, {:propertyNames, key, subschema, nil})}
       end
@@ -609,35 +620,11 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     Validator.validate_detach(data, {kind, index}, subschema, vctx)
   end
 
-  # A `false` subschema makes `with_property_error/2` name the rejected key
-  # itself, so the error raised by the boolean schema is reported by the parent.
-  defp boolean_schema_level(%JSV.BooleanSchema{valid?: false}) do
-    ErrorFormatter.level_parent_reported()
-  end
-
-  defp boolean_schema_level(_) do
-    ErrorFormatter.level_cause()
-  end
-
-  defp item_error_args(index, %JSV.BooleanSchema{valid?: false}) do
-    [index: index, boolean_schema_false: true]
-  end
-
-  defp item_error_args(index, _) do
-    [index: index]
-  end
-
-  defp with_property_error(vctx, {kind, key, subschema, pattern}) do
+  defp with_property_error(vctx, {kind, key, _subschema, pattern}) do
     args =
       case kind do
-        :patternProperties -> [pattern: pattern, key: key]
-        _ -> [key: key]
-      end
-
-    args =
-      case subschema do
-        %JSV.BooleanSchema{valid?: false} -> args ++ [boolean_schema_false: true]
-        _ -> args
+        :patternProperties -> [pattern: pattern, key: key, level: ErrorFormatter.level_intermediary()]
+        _ -> [key: key, level: ErrorFormatter.level_intermediary()]
       end
 
     Validator.with_error(vctx, kind, nil, args)
@@ -692,14 +679,13 @@ defmodule JSV.Vocabulary.V202012.Applicator do
 
         {kind, index, data_item, subschema}, {casted, vctx} ->
           eval_path = path_segment(kind, index)
-          level = boolean_schema_level(subschema)
 
-          case Validator.validate_in(data_item, index, eval_path, subschema, vctx, level) do
+          case Validator.validate_in(data_item, index, eval_path, subschema, vctx) do
             {:ok, casted_item, vctx} ->
               {[casted_item | casted], vctx}
 
             {:error, vctx} ->
-              args = item_error_args(index, subschema)
+              args = [index: index, level: ErrorFormatter.level_intermediary()]
               {[data_item | casted], JSV.Validator.__with_error__(error_formatter, vctx, kind, nil, args)}
           end
       end)
@@ -727,57 +713,55 @@ defmodule JSV.Vocabulary.V202012.Applicator do
     "list contains more than #{max_contains} items validating the 'contains' schema, found #{count} items"
   end
 
-  def format_error(:items, %{index: index, boolean_schema_false: true}, _data) do
-    "items are not allowed but found item at index #{index}"
+  def format_error(:items, %{index: index}, _) do
+    "item at index #{index} does not validate the 'items' schema"
   end
 
-  def format_error(:items, args, _) do
-    %{index: index} = args
-    intermediary("item at index #{index} does not validate the 'items' schema")
-  end
-
-  def format_error(:prefixItems, %{index: index, boolean_schema_false: true}, _data) do
-    "item at index #{index} is not allowed"
-  end
-
-  def format_error(:prefixItems, args, _) do
-    %{index: index} = args
-    intermediary("item at index #{index} does not validate the 'prefixItems[#{index}]' schema")
-  end
-
-  def format_error(:properties, %{key: key, boolean_schema_false: true}, _data) do
-    %{message: "property '#{key}' is not allowed", ctx: %{property: key}}
+  def format_error(:prefixItems, %{index: index}, _) do
+    "item at index #{index} does not validate the 'prefixItems[#{index}]' schema"
   end
 
   def format_error(:properties, %{key: key}, _) do
-    intermediary("property '#{key}' did not conform to the property schema")
-  end
-
-  def format_error(:additionalProperties, %{key: key, boolean_schema_false: true}, _data) do
-    %{message: "additional properties are not allowed but found property '#{key}'", ctx: %{property: key}}
+    "property '#{key}' did not conform to the property schema"
   end
 
   def format_error(:additionalProperties, %{key: key}, _data) do
-    intermediary("property '#{key}' did not conform to the additionalProperties schema")
-  end
-
-  def format_error(:propertyNames, %{key: key, boolean_schema_false: true}, _data) do
-    %{message: "properties are not allowed but found property '#{key}'", ctx: %{property: key}}
+    "property '#{key}' did not conform to the additionalProperties schema"
   end
 
   def format_error(:propertyNames, %{key: key}, _data) do
-    intermediary("property name '#{key}' did not conform to the propertyNames schema")
+    "property name '#{key}' did not conform to the propertyNames schema"
   end
 
-  def format_error(:patternProperties, %{pattern: pattern, key: key, boolean_schema_false: true}, _data) do
+  def format_error(:patternProperties, %{pattern: pattern, key: key}, _data) do
+    "property '#{key}' did not conform to the patternProperties schema for pattern /#{pattern}/"
+  end
+
+  def format_error(:boolean_schema, %{keyword: :items, key: index}, _data) do
+    "items are not allowed but found item at index #{index}"
+  end
+
+  def format_error(:boolean_schema, %{keyword: :prefixItems, key: index}, _data) do
+    "item at index #{index} is not allowed"
+  end
+
+  def format_error(:boolean_schema, %{keyword: :properties, key: key}, _data) do
+    %{message: "property '#{key}' is not allowed", ctx: %{property: key}}
+  end
+
+  def format_error(:boolean_schema, %{keyword: :additionalProperties, key: key}, _data) do
+    %{message: "additional properties are not allowed but found property '#{key}'", ctx: %{property: key}}
+  end
+
+  def format_error(:boolean_schema, %{keyword: :propertyNames, key: key}, _data) do
+    %{message: "properties are not allowed but found property '#{key}'", ctx: %{property: key}}
+  end
+
+  def format_error(:boolean_schema, %{keyword: :patternProperties, pattern: pattern, key: key}, _data) do
     %{
       message: "properties matching /#{pattern}/ are not allowed but found property '#{key}'",
       ctx: %{property: key, pattern: pattern}
     }
-  end
-
-  def format_error(:patternProperties, %{pattern: pattern, key: key}, _data) do
-    intermediary("property '#{key}' did not conform to the patternProperties schema for pattern /#{pattern}/")
   end
 
   def format_error(:oneOf, %{validated: [], invalidated: invalidated}, _data) do
@@ -830,10 +814,6 @@ defmodule JSV.Vocabulary.V202012.Applicator do
           annots: :lists.flatten([if_errors, else_errors])
         }
     end
-  end
-
-  defp intermediary(message) do
-    %{message: message, level: ErrorFormatter.level_intermediary()}
   end
 
   defp format_invalidated_subs(invalidated) do

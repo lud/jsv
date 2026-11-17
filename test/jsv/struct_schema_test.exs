@@ -1294,7 +1294,7 @@ defmodule JSV.StructSchemaTest do
                :error,
                %JSV.ValidationError{
                  errors: [
-                   %JSV.Validator.Error{kind: :properties, args: [key: "some_const"]},
+                   %JSV.Validator.Error{kind: :properties, args: [key: "some_const", level: 5]},
                    %JSV.Validator.Error{kind: :const}
                  ]
                }
@@ -1450,7 +1450,7 @@ defmodule JSV.StructSchemaTest do
                  errors: [
                    %JSV.Validator.Error{
                      kind: :properties,
-                     args: [key: "some_const"]
+                     args: [key: "some_const", level: 5]
                    },
                    %JSV.Validator.Error{
                      kind: :const
@@ -1494,7 +1494,7 @@ defmodule JSV.StructSchemaTest do
                  errors: [
                    %JSV.Validator.Error{
                      kind: :properties,
-                     args: [key: "some_const"]
+                     args: [key: "some_const", level: 5]
                    },
                    %JSV.Validator.Error{
                      kind: :const
@@ -1540,7 +1540,7 @@ defmodule JSV.StructSchemaTest do
                  errors: [
                    %JSV.Validator.Error{
                      kind: :properties,
-                     args: [key: "some_const"]
+                     args: [key: "some_const", level: 5]
                    },
                    %JSV.Validator.Error{
                      kind: :const
@@ -1575,7 +1575,7 @@ defmodule JSV.StructSchemaTest do
                  errors: [
                    %JSV.Validator.Error{
                      kind: :properties,
-                     args: [key: "some_const"]
+                     args: [key: "some_const", level: 5]
                    },
                    %JSV.Validator.Error{
                      kind: :const

@@ -9,9 +9,13 @@ defmodule JSV.BooleanSchema do
   """
 
   @enforce_keys [:valid?, :schema_path]
-  defstruct @enforce_keys
+  defstruct valid?: nil, schema_path: nil, error_formatter: nil
 
-  @type t :: %__MODULE__{valid?: boolean, schema_path: [Builder.path_segment()]}
+  @type t :: %__MODULE__{
+          valid?: boolean,
+          schema_path: [Builder.path_segment()],
+          error_formatter: nil | {module, keyword}
+        }
 
   @doc """
   Returns a `#{inspect(__MODULE__)}` struct wrapping the given boolean.
