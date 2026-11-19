@@ -170,10 +170,19 @@ defmodule JSV.PruneErrorsTest do
     assert size.(10) == size.(2)
   end
 
-  test "keeps all errors with the default options" do
-    err = error(%{items: %{type: :integer}}, @strings)
-    assert err == ValidationError.prune_errors(err, min_error_level: 0, max_errors: :infinity)
-    assert err == ValidationError.prune_errors(err, [])
+  test "returns the error unchanged without options" do
+    err = error(%{anyOf: [%{properties: %{a: %{type: :integer}, b: %{type: :integer}}}]}, %{"a" => "x", "b" => "y"})
+    assert err === ValidationError.prune_errors(err, [])
+    assert err === ValidationError.prune_errors(err, max_errors: :infinity)
+  end
+
+  test "applies an explicit min_error_level of 0" do
+    negative = error_at(:custom, [], level: -1)
+    cause = error_at(:custom, ["a"], [])
+    err = ValidationError.of([negative, cause])
+
+    assert %ValidationError{errors: [^negative, ^cause]} = ValidationError.prune_errors(err, max_errors: 5)
+    assert %ValidationError{errors: [^cause]} = ValidationError.prune_errors(err, min_error_level: 0)
   end
 
   test "rejects invalid options" do
