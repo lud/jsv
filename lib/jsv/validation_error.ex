@@ -28,32 +28,39 @@ defmodule JSV.ValidationError do
 
   Errors are first filtered by level, then only the errors of the first
   `:max_errors` invalid locations of the data are kept, in data path order.
+  Without options, the error is returned unchanged.
 
   An invalid location is a data path with errors and no errors deeper in the
   data. The errors on the parents of the kept locations are kept too, except the
   errors at the `JSV.ErrorFormatter.level_intermediary/0` level with a `key` or
-  `index` arg, which only stay when the child location they point at is kept. The
-  branch errors of `anyOf`, `oneOf`, `allOf` and `if` are pruned the same way.
+  `index` arg, which only stay when the child location they point at is kept.
 
-  Only the levels given in the error args are known here. Levels returned by
+  The branch errors of `anyOf`, `oneOf`, `allOf` and `if` are pruned the same
+  way, and each branch keeps up to `:max_errors` locations of its own. With
+  nested branches, the total number of kept locations can be higher than
+  `:max_errors`.
+
+  Levels are read from the error args. Levels returned by
   `c:JSV.Vocabulary.format_error/3` are applied by
   `JSV.ErrorFormatter.normalize_error/2`.
 
   ### Options
 
   * `:min_error_level` (integer) - Drops the errors whose level is below the
-    given value. The default value is `0`.
+    given value. When omitted, errors of all levels are kept.
   * `:max_errors` (positive integer or `:infinity`) - The number of invalid
-    locations to keep. The default value is `:infinity`.
+    locations to keep. When omitted or `:infinity`, all locations are kept.
   """
   @spec prune_errors(t, keyword) :: t
   def prune_errors(%__MODULE__{} = e, opts) do
-    case OptsValidator.validate(opts, %{min_error_level: 0, max_errors: :infinity}, &validate_prune_opts/2) do
-      %{min_error_level: min_level, max_errors: :infinity} when min_level <= 0 -> e
-      %{min_error_level: min_level, max_errors: max_errors} -> %{e | errors: prune(e.errors, min_level, max_errors)}
+    case OptsValidator.validate(opts, %{max_errors: :infinity}, &validate_prune_opts/2) do
+      %{max_errors: :infinity} = opts when map_size(opts) == 1 -> e
+      opts -> %{e | errors: prune(e.errors, opts)}
     end
   end
 
+  # TODO: share the validation of :min_error_level and :max_errors with
+  # JSV.ErrorFormatter.normalize_error/2.
   defp validate_prune_opts(:min_error_level, value) when is_integer(value) do
     value
   end
@@ -74,23 +81,20 @@ defmodule JSV.ValidationError do
     OptsValidator.unknown_option!(key)
   end
 
-  defp prune(errors, min_level, max_errors) do
-    errors
-    |> filter_level(min_level)
-    |> prune_locations(max_errors)
-    |> Enum.map(&prune_branches(&1, min_level, max_errors))
-  end
+  defp prune(errors, opts) do
+    errors =
+      case opts do
+        %{min_error_level: min_level} -> Enum.filter(errors, &(args_level(&1) >= min_level))
+        _ -> errors
+      end
 
-  defp filter_level(errors, min_level) when min_level <= 0 do
-    errors
-  end
+    errors =
+      case opts do
+        %{max_errors: max_errors} when is_integer(max_errors) -> prune_locations(errors, max_errors)
+        _ -> errors
+      end
 
-  defp filter_level(errors, min_level) do
-    Enum.filter(errors, &(args_level(&1) >= min_level))
-  end
-
-  defp prune_locations(errors, :infinity) do
-    errors
+    Enum.map(errors, &prune_branches(&1, opts))
   end
 
   defp prune_locations(errors, max_errors) do
@@ -148,25 +152,24 @@ defmodule JSV.ValidationError do
     end
   end
 
-  defp prune_branches(%Error{formatter: V202012.Applicator, kind: kind, args: args} = error, min_level, max_errors)
+  defp prune_branches(%Error{formatter: V202012.Applicator, kind: kind, args: args} = error, opts)
        when kind in [:anyOf, :oneOf, :allOf, :jsv@if] do
-    %{error | args: Enum.map(args, &prune_branch_arg(&1, min_level, max_errors))}
+    %{error | args: Enum.map(args, &prune_branch_arg(&1, opts))}
   end
 
-  defp prune_branches(error, _min_level, _max_errors) do
+  defp prune_branches(error, _opts) do
     error
   end
 
-  defp prune_branch_arg({:invalidated, branches}, min_level, max_errors) do
-    {:invalidated,
-     Enum.map(branches, fn {index, errors} -> {index, prune(:lists.flatten(errors), min_level, max_errors)} end)}
+  defp prune_branch_arg({:invalidated, branches}, opts) do
+    {:invalidated, Enum.map(branches, fn {index, errors} -> {index, prune(:lists.flatten(errors), opts)} end)}
   end
 
-  defp prune_branch_arg({key, errors}, min_level, max_errors) when key in [:err_if_errors, :after_errors] do
-    {key, prune(:lists.flatten(errors), min_level, max_errors)}
+  defp prune_branch_arg({key, errors}, opts) when key in [:err_if_errors, :after_errors] do
+    {key, prune(:lists.flatten(errors), opts)}
   end
 
-  defp prune_branch_arg(arg, _min_level, _max_errors) do
+  defp prune_branch_arg(arg, _opts) do
     arg
   end
 

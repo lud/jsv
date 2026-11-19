@@ -35,8 +35,10 @@ defmodule JSV.ErrorFormatter do
   | `#{@level_cause}` | The error states why the data was rejected. | `value is not of type string` |
 
   Vocabularies set the level of an error with an integer `:level` in the error
-  args, or with a `:level` key returned by `c:JSV.Vocabulary.format_error/3`,
-  which takes precedence. Errors are assigned `#{@level_cause}` otherwise.
+  args. Errors are assigned `#{@level_cause}` otherwise. `:min_error_level` is
+  first applied to that level, then to the `:level` key that
+  `c:JSV.Vocabulary.format_error/3` can return, so both levels must reach it for
+  the error to be kept.
   Custom vocabularies can use any integer, including values between or below the
   ones listed above.
   """
@@ -139,14 +141,16 @@ defmodule JSV.ErrorFormatter do
     error.
 
   * `:max_errors` (positive integer or `:infinity`) - Only formats the errors of
-    the first invalid locations of the data. See
+    the first invalid locations of the data. Each branch of `anyOf`, `oneOf`,
+    `allOf` and `if` keeps up to that number of locations of its own. See
     `#{inspect(ValidationError)}.prune_errors/2`. The default value is
     `:infinity`.
   """
   @spec normalize_error(ValidationError.t(), keyword) :: map()
   def normalize_error(%ValidationError{} = e, opts \\ []) do
+    prune_opts = Keyword.take(opts, [:min_error_level, :max_errors])
     opts = OptsValidator.validate(opts, @default_normalize_options, &validate_normalize_opts/2)
-    e = ValidationError.prune_errors(e, min_error_level: opts.min_error_level, max_errors: opts.max_errors)
+    e = ValidationError.prune_errors(e, prune_opts)
 
     top = %{valid: false, details: filter_units(normalize_errors(e.errors, opts), opts.min_error_level)}
     normalize_keys(top, opts)
