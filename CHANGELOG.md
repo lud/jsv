@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.28.1] - 2026-11-23
+
+**Pruning errors.** `JSV.ValidationError.prune_errors/2` drops errors from a validation error before it is copied to another process, stored or normalized. `:min_error_level` drops the errors below a level, and `:max_errors` keeps only the errors of the first invalid locations of the data, in data path order. Each branch of `anyOf`, `oneOf`, `allOf` and `if` keeps up to `:max_errors` locations of its own. `JSV.normalize_error/2` accepts `:max_errors` too, and prunes the error before formatting it.
+
+**Custom vocabularies.** With `:min_error_level`, an error is now kept only when both its `level` arg and the `:level` returned by `format_error/3` reach the given value. The returned level no longer overrides a lower `level` arg.
+
+If you are upgrading from 0.27 or earlier, make sure to read the 0.28.0 release notes, that release changed the error args and deprecated some `JSV.Validator` functions.
+
+
+### 🚀 Features
+
+- Add JSV.ValidationError.prune_errors/2 (#168) – by Lars Hesel Christensen
+
 ## [0.28.0] - 2026-11-19
 
 **Smaller errors.** The per-child errors of `items`, `properties` and related keywords now carry `nil` as data instead of the whole array or object, and the errors of `anyOf`, `oneOf`, `allOf` and `if` no longer embed the root schema. Sending an error to another process, storing it in ETS or serializing it now copies much less data.
@@ -19,7 +32,6 @@ All notable changes to this project will be documented in this file.
 - `JSV.ErrorFormatter.level_parent_reported/0`: no built-in error uses it anymore.
 
 IDNA 8 is now accepted as a dependency.
-
 
 ### 🚀 Features
 
